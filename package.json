@@ -1,0 +1,29 @@
+{
+  "name": "cfwf-core-ui-full",
+  "version": "0.2.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --hostname 0.0.0.0 -p 3000",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "clsx": "2.1.1",
+    "next": "14.2.4",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "20.12.12",
+    "@types/react": "18.2.66",
+    "@types/react-dom": "18.2.22",
+    "@typescript-eslint/eslint-plugin": "^8.39.0",
+    "@typescript-eslint/parser": "^8.39.0",
+    "autoprefixer": "10.4.19",
+    "eslint": "^9.33.0",
+    "eslint-plugin-react": "^7.37.5",
+    "postcss": "8.4.38",
+    "tailwindcss": "3.4.4",
+    "typescript": "5.4.5"
+  }
+}
