@@ -17,6 +17,8 @@ export type Puzzle = {
   cells: Cell[];
 }
 
+export type WordEntry = { answer: string; clue: string }
+
 // lib/puzzle.ts
 export function coordsToIndex(row: number, col: number, size = 15) {
   return row * size + col;
@@ -27,7 +29,7 @@ function hash(s: string) {
   return Math.abs(h>>>0) % 97;
 }
 
-export function generateDaily(seed: string): Puzzle {
+export function generateDaily(seed: string, wordList: WordEntry[] = []): Puzzle {
   const size = 15;
   const cells: Cell[] = [];
   const blocks = new Set<string>();
@@ -44,9 +46,9 @@ export function generateDaily(seed: string): Puzzle {
     }
   }
 
-  // numbering
+  // numbering and fill answers
   let num=1; const get=(r:number,c:number)=>cells[r*size+c];
-  const across: Clue[]=[]; const down: Clue[]=[]
+  const across: Clue[]=[]; const down: Clue[]=[]; let widx=0;
   for (let r=0;r<size;r++){
     for (let c=0;c<size;c++){
       const cell=get(r,c); if (cell.isBlack) continue;
@@ -54,8 +56,28 @@ export function generateDaily(seed: string): Puzzle {
       const startDown  =(r===0||get(r-1,c).isBlack)&&(r+1<size&&!get(r+1,c).isBlack)
       if (startAcross||startDown){
         cell.clueNumber=num;
-        if (startAcross){ let len=1; while(c+len<size&&!get(r,c+len).isBlack) len++; across.push({number:num,text:`Across ${num}: placeholder`,length:len}); }
-        if (startDown){ let len=1; while(r+len<size&&!get(r+len,c).isBlack) len++; down.push({number:num,text:`Down ${num}: placeholder`,length:len}); }
+        if (startAcross){
+          let len=1; while(c+len<size&&!get(r,c+len).isBlack) len++;
+          const entry = wordList[widx++];
+          const ans = entry?.answer?.toUpperCase() ?? ''.padEnd(len, ' ');
+          for(let i=0;i<len;i++){
+            const ch = ans[i] ?? '';
+            get(r,c+i).answer = ch;
+          }
+          const clue = entry?.clue ?? `Across ${num}`;
+          across.push({number:num,text:clue,length:len});
+        }
+        if (startDown){
+          let len=1; while(r+len<size&&!get(r+len,c).isBlack) len++;
+          const entry = wordList[widx++];
+          const ans = entry?.answer?.toUpperCase() ?? ''.padEnd(len, ' ');
+          for(let i=0;i<len;i++){
+            const ch = ans[i] ?? get(r+i,c).answer;
+            if (ch) get(r+i,c).answer = ch;
+          }
+          const clue = entry?.clue ?? `Down ${num}`;
+          down.push({number:num,text:clue,length:len});
+        }
         num++;
       }
     }
