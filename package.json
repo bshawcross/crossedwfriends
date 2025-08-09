@@ -2,6 +2,10 @@
   "name": "cfwf-core-ui-full",
   "version": "0.2.0",
   "private": true,
+  "engines": {
+    "node": ">=18"
+  },
+  "packageManager": "npm@10.x",
   "scripts": {
   "dev": "next dev --hostname 0.0.0.0 -p 3000",
   "build": "next build",
