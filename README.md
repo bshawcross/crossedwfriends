@@ -38,3 +38,9 @@ You can load it in your shell with `source .env` or by copying it to `.env.local
   ```bash
   npm test
   ```
+
+- Lint the codebase with:
+
+  ```bash
+  npm run lint
+  ```
