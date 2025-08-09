@@ -4,7 +4,6 @@ import Header from '@/components/Header'
 import Grid from '@/components/Grid'
 import ClueBar from '@/components/ClueBar'
 import ClueList from '@/components/ClueList'
-import { generateDaily } from '@/lib/puzzle'
 import { loadDemoFromFile } from '@/lib/puzzle'
 import { yyyyMmDd } from '@/utils/date'
 import { KEYBOARD_INSET_THRESHOLD } from '@/utils/constants'
@@ -19,6 +18,7 @@ export default function Page() {
   const [clueBarH, setClueBarH] = useState(0)
   const [kbOpen, setKbOpen] = useState(false)
   const [scale, setScale] = useState(1)
+  const [seed, setSeed] = useState(() => yyyyMmDd(new Date(), 'America/Los_Angeles'))
 
   const gridOuterRef = useRef<HTMLDivElement>(null)
   const gridInnerRef = useRef<HTMLDivElement>(null) // for measuring natural height
@@ -30,18 +30,32 @@ export default function Page() {
 
   useEffect(() => {
     if (demo === null) return
-    (async () => {
+    ; (async () => {
       if (demo) {
         try {
           const p = await loadDemoFromFile()
           setPuzzle(p); setCells(p.cells); return
         } catch { }
       }
-      const seed = yyyyMmDd(new Date(), 'America/Los_Angeles')
-      const p = generateDaily(seed)
+      const res = await fetch(`/api/puzzle/${seed}`)
+      const p = await res.json()
       setPuzzle(p); setCells(p.cells)
     })()
-  }, [demo])
+  }, [demo, seed])
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const next = yyyyMmDd(new Date(), 'America/Los_Angeles')
+      if (!demo && next !== seed) {
+        setSeed(next)
+        setPuzzle(null)
+        setCells([])
+        setActive({ number: null, dir: 'across' })
+        setJump(undefined)
+      }
+    }, 60 * 1000)
+    return () => clearInterval(interval)
+  }, [demo, seed])
 
   // Detect keyboard via VisualViewport inset
   useEffect(() => {
