@@ -1,6 +1,7 @@
 'use client'
 
 import Header from '@/components/Header'
+import UserMenu from '@/components/UserMenu'
 import Grid from '@/components/Grid'
 import ClueBar from '@/components/ClueBar'
 import ClueList from '@/components/ClueList'
@@ -107,7 +108,9 @@ export default function Page() {
     <main className="pb-28" style={{ paddingBottom: clueBarH + 16 }}>
       {/* Hide header when keyboard is open to buy vertical room */}
       {!kbOpen && (
-        <Header title={puzzle.title ?? 'Today'} subtitle={puzzle.theme ?? ''} />
+        <Header title={puzzle.title ?? 'Today'} subtitle={puzzle.theme ?? ''}>
+          <UserMenu />
+        </Header>
       )}
 
       {/* Scale-to-fit wrapper */}
