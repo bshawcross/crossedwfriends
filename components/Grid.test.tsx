@@ -3,6 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import Grid from './Grid'
 import type { Cell } from '../lib/puzzle'
+import { coordsToIndex } from '../lib/puzzle'
 
 function createCells(): Cell[] {
   const cells: Cell[] = []
@@ -19,6 +20,15 @@ function createCells(): Cell[] {
       })
     }
   }
+  return cells
+}
+
+function createNumberedCells(): Cell[] {
+  const cells = createCells()
+  const blackIdx = coordsToIndex(0, 2, 15)
+  cells[blackIdx].isBlack = true
+  cells[coordsToIndex(0, 0, 15)].clueNumber = 1
+  cells[coordsToIndex(0, 3, 15)].clueNumber = 2
   return cells
 }
 
@@ -47,6 +57,37 @@ describe('Grid focus movement', () => {
     expect(inputs[0]).toHaveFocus()
     await user.keyboard('{Enter}')
     await user.type(inputs[0], 'B')
+    const below = inputs[15]
+    await waitFor(() => expect(below).toHaveFocus())
+  })
+
+  test('completing a word advances to next across clue', async () => {
+    const user = userEvent.setup()
+    function Wrapper() {
+      const [cells, setCells] = React.useState(createNumberedCells())
+      return <Grid cells={cells} setCells={setCells} />
+    }
+    render(<Wrapper />)
+    const inputs = screen.getAllByRole('textbox')
+    await user.type(inputs[0], 'A')
+    await user.type(inputs[1], 'B')
+    await waitFor(() => expect(inputs[3]).toHaveFocus())
+  })
+
+  test('after last across clue, moves to first down clue', async () => {
+    const user = userEvent.setup()
+    function Wrapper() {
+      const [cells, setCells] = React.useState(createNumberedCells())
+      return <Grid cells={cells} setCells={setCells} />
+    }
+    render(<Wrapper />)
+    const inputs = screen.getAllByRole('textbox')
+    await user.type(inputs[0], 'A')
+    await user.type(inputs[1], 'B')
+    await user.type(inputs[3], 'C')
+    await user.type(inputs[4], 'D')
+    await waitFor(() => expect(inputs[0]).toHaveFocus())
+    await user.type(inputs[0], 'E')
     const below = inputs[15]
     await waitFor(() => expect(below).toHaveFocus())
   })

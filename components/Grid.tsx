@@ -90,7 +90,28 @@ export default function Grid({
     const next = cells.slice()
     next[idx] = { ...next[idx], userInput: ch }
     setCells(next)
-    if (ch) { dir === 'across' ? move(0, 1) : move(1, 0) }
+    if (ch) {
+      const last = activeWord[activeWord.length - 1]
+      const isLast = last && last.row === r && last.col === c
+      if (isLast) {
+        advanceToNextWord(next)
+      } else {
+        dir === 'across' ? move(0, 1) : move(1, 0)
+      }
+    }
+  }
+
+  function advanceToNextWord(current: Cell[]) {
+    const curNum = activeNumber ?? 0
+    const nextStart = findNextWordStart(current, curNum, dir)
+    if (nextStart) {
+      setCursor({ row: nextStart.row, col: nextStart.col })
+    } else {
+      const other: Direction = dir === 'across' ? 'down' : 'across'
+      const first = findFirstWordStart(current, other)
+      setDir(other)
+      if (first) setCursor({ row: first.row, col: first.col })
+    }
   }
 
   function onKeyDown(e: React.KeyboardEvent<HTMLInputElement>, r: number, c: number) {
@@ -192,4 +213,41 @@ function getWordCells(cells: Cell[], start: { row: number, col: number }, dir: D
 
 function clamp(n: number, min: number, max: number) {
   return Math.max(min, Math.min(max, n))
+}
+
+function getWordStarts(cells: Cell[], dir: Direction) {
+  const out: { row: number; col: number; number: number }[] = []
+  for (let r = 0; r < SIZE; r++) {
+    for (let c = 0; c < SIZE; c++) {
+      const idx = coordsToIndex(r, c, SIZE)
+      const cell = cells[idx]
+      if (cell.isBlack || !cell.clueNumber) continue
+      if (
+        dir === 'across' &&
+        (c === 0 || cells[coordsToIndex(r, c - 1, SIZE)].isBlack) &&
+        c + 1 < SIZE && !cells[coordsToIndex(r, c + 1, SIZE)].isBlack
+      ) {
+        out.push({ row: r, col: c, number: cell.clueNumber })
+      }
+      if (
+        dir === 'down' &&
+        (r === 0 || cells[coordsToIndex(r - 1, c, SIZE)].isBlack) &&
+        r + 1 < SIZE && !cells[coordsToIndex(r + 1, c, SIZE)].isBlack
+      ) {
+        out.push({ row: r, col: c, number: cell.clueNumber })
+      }
+    }
+  }
+  return out.sort((a, b) => a.number - b.number)
+}
+
+function findNextWordStart(cells: Cell[], currentNumber: number, dir: Direction) {
+  const starts = getWordStarts(cells, dir)
+  for (const s of starts) if (s.number > currentNumber) return s
+  return null
+}
+
+function findFirstWordStart(cells: Cell[], dir: Direction) {
+  const starts = getWordStarts(cells, dir)
+  return starts[0] || null
 }
