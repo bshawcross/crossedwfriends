@@ -9,17 +9,16 @@ export default function ClueBar({
   onHeightChange?: (px: number) => void
 }) {
   const [bottom, setBottom] = useState(0)
-  const [maxH, setMaxH] = useState<number>(120) // will update via viewport
+  const [maxH, setMaxH] = useState<number>(120)
   const wrapRef = useRef<HTMLDivElement>(null)
 
-  // Track keyboard height (visual viewport) and compute max bar height
   useEffect(() => {
     const vv = (window as any).visualViewport
     if (!vv) return
     const update = () => {
       const inset = Math.max(0, window.innerHeight - vv.height - vv.offsetTop)
       setBottom(inset)
-      setMaxH(Math.floor(vv.height * 0.42)) // allow up to ~42% of visible height
+      setMaxH(Math.floor(vv.height * 0.42))
     }
     update()
     vv.addEventListener('resize', update)
@@ -30,7 +29,6 @@ export default function ClueBar({
     }
   }, [])
 
-  // Report actual rendered height up to parent (so grid can avoid being obscured)
   useLayoutEffect(() => {
     const el = wrapRef.current
     if (!el) return
@@ -40,10 +38,7 @@ export default function ClueBar({
   }, [onHeightChange, text])
 
   return (
-    <div
-      style={{ bottom }}
-      className="fixed left-0 right-0 z-20 border-t border-gray-200 dark:border-gray-800 bg-white/95 dark:bg-black/80"
-    >
+    <div style={{ bottom }} className="fixed left-0 right-0 z-20 border-t border-gray-200 dark:border-gray-800 bg-white/95 dark:bg-black/80">
       <div
         ref={wrapRef}
         style={{ maxHeight: maxH }}
@@ -53,7 +48,6 @@ export default function ClueBar({
           {text || ' '}
         </div>
       </div>
-      {/* iOS safe-area shim */}
       <div className="h-[env(safe-area-inset-bottom)]" />
     </div>
   )

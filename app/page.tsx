@@ -20,7 +20,7 @@ export default function Page() {
   const [scale, setScale] = useState(1)
 
   const gridOuterRef = useRef<HTMLDivElement>(null)
-  const gridInnerRef = useRef<HTMLDivElement>(null) // for measuring natural height
+  const gridInnerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -34,7 +34,7 @@ export default function Page() {
         try {
           const p = await loadDemoFromFile()
           setPuzzle(p); setCells(p.cells); return
-        } catch { }
+        } catch {}
       }
       const seed = yyyyMmDd(new Date(), 'America/Los_Angeles')
       const p = generateDaily(seed)
@@ -42,39 +42,38 @@ export default function Page() {
     })()
   }, [demo])
 
-  // Detect keyboard via VisualViewport inset
-  useEffect(() => {
-    const vv = (window as any).visualViewport
-    if (!vv) return
-    const onResize = () => {
-      const inset = Math.max(0, window.innerHeight - vv.height - vv.offsetTop)
-      setKbOpen(inset > 0)
-      // recompute scale on each change
-      requestAnimationFrame(() => {
-        const inner = gridInnerRef.current
-        if (!inner) return
-        const naturalHeight = inner.offsetHeight // unscaled height of the grid
-        // available height inside viewport
-        const available = vv.height - clueBarH - 12 /* breathing room */
-        const s = Math.min(1, Math.max(0.6, available / naturalHeight)) // cap between 0.6 and 1
-        setScale(s)
-      })
-    }
-    onResize()
-    vv.addEventListener('resize', onResize)
-    vv.addEventListener('scroll', onResize)
-    return () => {
-      vv.removeEventListener('resize', onResize)
-      vv.removeEventListener('scroll', onResize)
-    }
-  }, [clueBarH])
+// Detect keyboard + compute scale-to-fit
+useEffect(() => {
+  const vv = (window as any).visualViewport
+  if (!vv) return
+  const onResize = () => {
+    const inset = Math.max(0, window.innerHeight - vv.height - vv.offsetTop)
+    setKbOpen(inset > 0)
 
-  // also recompute when active clue changes (grid height can wiggle very slightly)
+    requestAnimationFrame(() => {
+      const inner = gridInnerRef.current
+      if (!inner) return
+      const naturalHeight = inner.offsetHeight
+      // while keyboard is up, we hide clue lists; available is viewport - clue bar
+      const available = vv.height - clueBarH - 12
+      // only scale when keyboard is open; clamp so it never gets tiny
+      const s = !inset ? 1 : Math.max(0.85, Math.min(1, available / naturalHeight))
+      setScale(s)
+    })
+  }
+  onResize()
+  vv.addEventListener('resize', onResize)
+  vv.addEventListener('scroll', onResize)
+  return () => {
+    vv.removeEventListener('resize', onResize)
+    vv.removeEventListener('scroll', onResize)
+  }
+}, [clueBarH])
+
   useEffect(() => {
     const inner = gridInnerRef.current
-    if (!inner) return
     const vv = (window as any).visualViewport
-    if (!vv) return
+    if (!inner || !vv) return
     const naturalHeight = inner.offsetHeight
     const available = vv.height - clueBarH - 12
     const s = Math.min(1, Math.max(0.6, available / naturalHeight))
@@ -102,42 +101,54 @@ export default function Page() {
   }
 
   return (
-    <main className="pb-28" style={{ paddingBottom: clueBarH + 16 }}>
-      {/* Hide header when keyboard is open to buy vertical room */}
-      {!kbOpen && (
-        <Header title={puzzle.title ?? 'Today'} subtitle={puzzle.theme ?? ''} />
-      )}
+  // ----- render -----
+<main className="pb-28" style={{ paddingBottom: clueBarH + 16 }}>
+  {!kbOpen && (
+    <Header title={puzzle.title ?? 'Today'} subtitle={puzzle.theme ?? ''} />
+  )}
 
-      {/* Scale-to-fit wrapper */}
-      <div ref={gridOuterRef}
-        style={{ transform: `scale(${scale})`, transformOrigin: 'top center' }}>
-        <div ref={gridInnerRef}>
-          <Grid
-            cells={cells}
-            setCells={setCells}
-            onActiveChange={setActive}
-            jump={jump}
-            kbOpen={kbOpen}
-          />
-        </div>
-      </div>
+  {/* Centered, full-width wrapper. Only scaled when kbOpen is true */}
+  <div
+    ref={gridOuterRef}
+    style={{
+      transform: kbOpen ? `scale(${scale})` : 'none',
+      transformOrigin: 'top center',
+      display: 'flex',
+      justifyContent: 'center',
+      width: '100%',
+    }}
+  >
+    <div ref={gridInnerRef} style={{ display: 'inline-block', width: '100%' }}>
+      <Grid
+        cells={cells}
+        setCells={setCells}
+        onActiveChange={setActive}
+        jump={jump}
+        kbOpen={kbOpen}
+      />
+    </div>
+  </div>
 
-      <div className="grid grid-cols-2 gap-4 mt-4">
-        <ClueList
-          title="Across"
-          clues={puzzle.across ?? []}
-          activeNumber={active.dir === 'across' ? active.number : null}
-          onSelect={(n) => handleClueTap('across', n)}
-        />
-        <ClueList
-          title="Down"
-          clues={puzzle.down ?? []}
-          activeNumber={active.dir === 'down' ? active.number : null}
-          onSelect={(n) => handleClueTap('down', n)}
-        />
-      </div>
+  {/* Hide clue lists while typing to keep the grid big */}
+  {!kbOpen && (
+    <div className="grid grid-cols-2 gap-4 mt-4">
+      <ClueList
+        title="Across"
+        clues={puzzle.across ?? []}
+        activeNumber={active.dir === 'across' ? active.number : null}
+        onSelect={(n) => handleClueTap('across', n)}
+      />
+      <ClueList
+        title="Down"
+        clues={puzzle.down ?? []}
+        activeNumber={active.dir === 'down' ? active.number : null}
+        onSelect={(n) => handleClueTap('down', n)}
+      />
+    </div>
+  )}
 
-      <ClueBar text={clueText} onHeightChange={setClueBarH} />
-    </main>
+  <ClueBar text={clueText} onHeightChange={setClueBarH} />
+</main>
   )
 }
+

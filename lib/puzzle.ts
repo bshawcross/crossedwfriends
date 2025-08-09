@@ -75,32 +75,30 @@ export async function loadDemoFromFile(): Promise<Puzzle> {
     throw new Error('Invalid demo puzzle format');
   }
 
-  // --- fix clue text that came in as [id, "Text"] OR as a string like "[1, 'Text']"
+  // Normalize clue text ([id, 'Text'] or stringified array)
   const coerceClueText = (t: any): string => {
-    if (Array.isArray(t)) return String(t[1] ?? t[0] ?? '');
-    if (t && typeof t === 'object' && 'clue' in t) return String((t as any).clue ?? '');
+    if (Array.isArray(t)) return String(t[1] ?? t[0] ?? '')
+    if (t && typeof t === 'object' && 'clue' in t) return String((t as any).clue ?? '')
     if (typeof t === 'string') {
-      // try to parse stringified list: [number, 'Text']  or  [number, "Text"]
-      const m = t.match(/^\s*\[\s*\d+\s*,\s*["'](.+?)["']\s*\]\s*$/);
-      if (m) return m[1];
-      return t;
+      const m = t.match(/^\s*\[\s*\d+\s*,\s*["'](.+?)["']\s*\]\s*$/)
+      if (m) return m[1]
+      return t
     }
-    return '';
-  };
+    return ''
+  }
 
-  const normalizeClues = (arr: any[]): Clue[] =>
-    (arr ?? []).map((c: any) => ({
-      number: Number(c.number),
-      text: coerceClueText(c.text),
-      length: Number(c.length),
-    }));
+  const normalize = (arr:any[]) => (arr ?? []).map((c:any)=>({
+    number: Number(c.number),
+    text: coerceClueText(c.text),
+    length: Number(c.length),
+  }))
 
   return {
     id: String(raw.id ?? 'demo'),
     title: String(raw.title ?? 'Imported Puzzle'),
     theme: String(raw.theme ?? ''),
-    across: normalizeClues(raw.across),
-    down: normalizeClues(raw.down),
+    across: normalize(raw.across),
+    down: normalize(raw.down),
     cells: raw.cells as Cell[],
   };
 }
