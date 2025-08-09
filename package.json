@@ -3,12 +3,12 @@
   "version": "0.2.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --hostname 0.0.0.0 -p 3000",
-    "build": "next build",
-    "start": "next start",
-    "generate:daily": "tsx scripts/generateDaily.ts",
-    "test": "vitest run"
-  },
+  "dev": "next dev --hostname 0.0.0.0 -p 3000",
+  "build": "next build",
+  "start": "next start",
+  "test": "vitest run",
+  "generate:daily": "tsx scripts/generateDaily.ts"
+},
   "dependencies": {
     "@simplewebauthn/browser": "^9.0.1",
     "@simplewebauthn/server": "^9.0.3",
