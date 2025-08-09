@@ -1,5 +1,6 @@
 'use client'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { KEYBOARD_INSET_THRESHOLD } from '@/utils/constants'
 
 export default function ClueBar({
   text,
@@ -18,7 +19,8 @@ export default function ClueBar({
     if (!vv) return
     const update = () => {
       const inset = Math.max(0, window.innerHeight - vv.height - vv.offsetTop)
-      setBottom(inset)
+      const isKeyboard = inset > KEYBOARD_INSET_THRESHOLD
+      setBottom(isKeyboard ? inset : 0)
       setMaxH(Math.floor(vv.height * 0.42)) // allow up to ~42% of visible height
     }
     update()
