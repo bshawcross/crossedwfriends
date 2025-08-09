@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "next dev --hostname 0.0.0.0 -p 3000",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "test": "echo \"No tests configured\""
   },
   "dependencies": {
     "@simplewebauthn/browser": "^9.0.1",
