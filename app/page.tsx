@@ -7,6 +7,7 @@ import ClueList from '@/components/ClueList'
 import { generateDaily } from '@/lib/puzzle'
 import { loadDemoFromFile } from '@/lib/puzzle'
 import { yyyyMmDd } from '@/utils/date'
+import { KEYBOARD_INSET_THRESHOLD } from '@/utils/constants'
 import { useMemo, useState, useEffect, useRef } from 'react'
 
 export default function Page() {
@@ -48,7 +49,8 @@ export default function Page() {
     if (!vv) return
     const onResize = () => {
       const inset = Math.max(0, window.innerHeight - vv.height - vv.offsetTop)
-      setKbOpen(inset > 0)
+      const isKeyboard = inset > KEYBOARD_INSET_THRESHOLD
+      setKbOpen(isKeyboard)
       // recompute scale on each change
       requestAnimationFrame(() => {
         const inner = gridInnerRef.current
