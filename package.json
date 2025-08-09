@@ -3,12 +3,12 @@
   "version": "0.2.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --hostname 0.0.0.0 -p 3000",
-    "build": "next build",
-    "start": "next start",
-    "test": "node --import tsx --test",
-    "generate:daily": "tsx scripts/generateDaily.ts"
-  },
+  "dev": "next dev --hostname 0.0.0.0 -p 3000",
+  "build": "next build",
+  "start": "next start",
+  "test": "vitest run",
+  "generate:daily": "tsx scripts/generateDaily.ts"
+},
   "dependencies": {
     "@simplewebauthn/browser": "^9.0.1",
     "@simplewebauthn/server": "^9.0.3",
@@ -29,7 +29,8 @@
     "eslint-plugin-react": "^7.37.5",
     "postcss": "8.4.38",
     "tailwindcss": "3.4.4",
+    "tsx": "^4.7.1",
     "typescript": "5.4.5",
-    "tsx": "^4.7.1"
+    "vitest": "^3.2.4"
   }
 }
