@@ -2,6 +2,19 @@
   "name": "cfwf-core-ui-full",
   "version": "0.2.0",
   "private": true,
+  "description": "Crossed Word Friends core UI built with Next.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/crossedwfriends/cfwf-core-ui-full.git"
+  },
+  "license": "MIT",
+  "keywords": [
+    "crossword",
+    "puzzle",
+    "nextjs",
+    "typescript"
+  ],
+  "author": "Crossed Word Friends Team",
   "engines": {
     "node": ">=18"
   },
