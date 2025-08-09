@@ -138,11 +138,8 @@ export default function Grid({
 
   return (
     <div>
-      <div className="px-4 pt-3 pb-2 text-sm text-gray-500 flex items-center justify-between">
+      <div className="px-4 pt-3 pb-2 text-sm text-gray-500 flex items-center">
         <div>Clue #{activeNumber ?? '—'} • {dir.toUpperCase()}</div>
-        {!kbOpen && (
-          <button className="underline" onClick={toggleDir}>Toggle</button>
-        )}
       </div>
       <div className="px-2">
         <div className="grid grid-cols-15 border border-gray-300 dark:border-gray-700">
