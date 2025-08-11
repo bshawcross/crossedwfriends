@@ -1,10 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import {
-  base64URLStringToBuffer,
-  bufferToBase64URLString
-} from '@simplewebauthn/browser'
+import { toArrayBuffer, fromArrayBuffer } from '@/utils/base64url'
 
 export default function LoginPage() {
   const [phone, setPhone] = useState('')
@@ -26,11 +23,11 @@ export default function LoginPage() {
 
       const publicKey: PublicKeyCredentialRequestOptions = {
         ...optionsJSON,
-        challenge: base64URLStringToBuffer(optionsJSON.challenge),
+        challenge: toArrayBuffer(optionsJSON.challenge),
         allowCredentials: optionsJSON.allowCredentials?.map(
           (cred: { id: string; type: string }) => ({
             ...cred,
-            id: base64URLStringToBuffer(cred.id)
+            id: toArrayBuffer(cred.id)
           })
         )
       }
@@ -42,17 +39,17 @@ export default function LoginPage() {
       const { id, rawId, response, type, authenticatorAttachment } = credential
       const assertionResponse = {
         id,
-        rawId: bufferToBase64URLString(rawId),
+        rawId: fromArrayBuffer(rawId),
         response: {
-          authenticatorData: bufferToBase64URLString(
+          authenticatorData: fromArrayBuffer(
             (response as AuthenticatorAssertionResponse).authenticatorData
           ),
-          clientDataJSON: bufferToBase64URLString(response.clientDataJSON),
-          signature: bufferToBase64URLString(
+          clientDataJSON: fromArrayBuffer(response.clientDataJSON),
+          signature: fromArrayBuffer(
             (response as AuthenticatorAssertionResponse).signature
           ),
           userHandle: response.userHandle
-            ? bufferToBase64URLString(response.userHandle)
+            ? fromArrayBuffer(response.userHandle)
             : null
         },
         type,
