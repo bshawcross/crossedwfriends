@@ -1,11 +1,19 @@
 'use client'
-import { useEffect, useMemo, useRef, useState } from 'react'
-import clsx from 'clsx'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import type { Cell } from '@/lib/puzzle'
 import { coordsToIndex } from '@/lib/puzzle'
+import GridCell from './GridCell'
+import KeyboardControls from './KeyboardControls'
+import {
+  GRID_SIZE,
+  moveCursor,
+  getWordCells,
+  findNextWordStart,
+  findFirstWordStart,
+  type Direction,
+} from '@/utils/grid'
 
-type Direction = 'across' | 'down'
-const SIZE = 15
+const SIZE = GRID_SIZE
 
 export default function Grid({
   cells, setCells, onActiveChange, jump, kbOpen
@@ -39,7 +47,7 @@ export default function Grid({
   }, [cursor])
 
 
-  const activeWord = useMemo(() => getWordCells(cells, cursor, dir), [cells, cursor, dir])
+  const activeWord = useMemo(() => getWordCells(cells, cursor, dir, SIZE), [cells, cursor, dir])
   const activeNumber = activeWord[0]?.clueNumber ?? null
 
   useEffect(() => {
@@ -61,18 +69,7 @@ export default function Grid({
     [activeWord]
   )
   function move(dr: number, dc: number) {
-    let r = clamp(cursor.row + dr, 0, SIZE - 1)
-    let c = clamp(cursor.col + dc, 0, SIZE - 1)
-    let idx = coordsToIndex(r, c, SIZE)
-    if (cells[idx].isBlack) {
-      for (let i = 0; i < 3; i++) {
-        r += dr; c += dc
-        if (r < 0 || r >= SIZE || c < 0 || c >= SIZE) break
-        idx = coordsToIndex(r, c, SIZE)
-        if (!cells[idx].isBlack) break
-      }
-    }
-    setCursor({ row: r, col: c })
+    setCursor(moveCursor(cells, cursor, dr, dc, SIZE))
   }
 
   function handleTap(r: number, c: number) {
@@ -100,12 +97,12 @@ export default function Grid({
 
   function advanceToNextWord(current: Cell[]) {
     const curNum = activeNumber ?? 0
-    const nextStart = findNextWordStart(current, curNum, dir)
+    const nextStart = findNextWordStart(current, curNum, dir, SIZE)
     if (nextStart) {
       setCursor({ row: nextStart.row, col: nextStart.col })
     } else {
       const other: Direction = dir === 'across' ? 'down' : 'across'
-      const first = findFirstWordStart(current, other)
+      const first = findFirstWordStart(current, other, SIZE)
       setDir(other)
       if (first) setCursor({ row: first.row, col: first.col })
     }
@@ -145,103 +142,21 @@ export default function Grid({
             const isCursor = cell.row === cursor.row && cell.col === cursor.col
             const isHL = highlighted.has(id)
             return (
-              <div id={`cell_${id}`} key={i} onClick={() => handleTap(cell.row, cell.col)}
-                className={clsx(
-                  "relative aspect-square w-full border border-gray-300 dark:border-gray-700",
-                  cell.isBlack ? "bg-black" : "bg-white dark:bg-neutral-900",
-                  isHL && !cell.isBlack ? "bg-yellow-50 dark:bg-yellow-900/20" : "",
-                  isCursor && !cell.isBlack ? "ring-2 ring-blue-500" : ""
-                )}>
-                {!cell.isBlack && (
-                  <>
-                    {cell.clueNumber && <span className="absolute top-0.5 left-0.5 text-[10px] text-gray-500">{cell.clueNumber}</span>}
-                    <input
-                      ref={el => inputsRef.current[i] = el}
-                      inputMode="text" autoCapitalize="characters" autoCorrect="off" maxLength={1}
-                      value={cell.userInput || ''} onChange={e => handleChange(cell.row, cell.col, e.target.value)}
-                      onKeyDown={e => onKeyDown(e, cell.row, cell.col)}
-                      className="absolute inset-0 w-full h-full bg-transparent text-lg font-semibold text-center outline-none caret-transparent selection:bg-transparent"
-                    />
-                  </>
-                )}
-              </div>
+              <GridCell
+                key={i}
+                cell={cell}
+                isCursor={isCursor}
+                isHighlighted={isHL}
+                onTap={handleTap}
+                onChange={handleChange}
+                onKeyDown={onKeyDown}
+                inputRef={el => inputsRef.current[i] = el}
+              />
             )
           })}
         </div>
-        {!kbOpen && (
-          <div className="mt-2 flex justify-end px-1">
-            <button onClick={checkWord} className="px-3 py-1.5 text-sm border rounded-md border-gray-300 dark:border-gray-700">
-              Check
-            </button>
-          </div>
-        )}
       </div>
-      {!kbOpen && (
-        <div className="px-4 text-sm text-gray-500 mt-2">
-          Tip: tap a cell to type • tap again to switch direction
-        </div>
-      )}
+      <KeyboardControls onCheck={checkWord} kbOpen={kbOpen} />
     </div>
   )
-}
-
-function getWordCells(cells: Cell[], start: { row: number, col: number }, dir: Direction) {
-  const out: Cell[] = []
-  const step = dir === 'across'
-    ? (r: number, c: number) => ({ r, c: c + 1 })
-    : (r: number, c: number) => ({ r: r + 1, c })
-  let { row, col } = start
-  while (true) {
-    const prev = dir === 'across' ? { row, col: col - 1 } : { row: row - 1, col }
-    if (prev.col < 0 || prev.row < 0) break
-    const i = coordsToIndex(prev.row, prev.col, SIZE)
-    if (cells[i].isBlack) break
-    row = prev.row; col = prev.col
-  }
-  while (row < SIZE && col < SIZE && !cells[coordsToIndex(row, col, SIZE)].isBlack) {
-    out.push(cells[coordsToIndex(row, col, SIZE)])
-    const nxt = step(row, col); row = nxt.r; col = nxt.c
-  }
-  return out
-}
-
-function clamp(n: number, min: number, max: number) {
-  return Math.max(min, Math.min(max, n))
-}
-
-function getWordStarts(cells: Cell[], dir: Direction) {
-  const out: { row: number; col: number; number: number }[] = []
-  for (let r = 0; r < SIZE; r++) {
-    for (let c = 0; c < SIZE; c++) {
-      const idx = coordsToIndex(r, c, SIZE)
-      const cell = cells[idx]
-      if (cell.isBlack || !cell.clueNumber) continue
-      if (
-        dir === 'across' &&
-        (c === 0 || cells[coordsToIndex(r, c - 1, SIZE)].isBlack) &&
-        c + 1 < SIZE && !cells[coordsToIndex(r, c + 1, SIZE)].isBlack
-      ) {
-        out.push({ row: r, col: c, number: cell.clueNumber })
-      }
-      if (
-        dir === 'down' &&
-        (r === 0 || cells[coordsToIndex(r - 1, c, SIZE)].isBlack) &&
-        r + 1 < SIZE && !cells[coordsToIndex(r + 1, c, SIZE)].isBlack
-      ) {
-        out.push({ row: r, col: c, number: cell.clueNumber })
-      }
-    }
-  }
-  return out.sort((a, b) => a.number - b.number)
-}
-
-function findNextWordStart(cells: Cell[], currentNumber: number, dir: Direction) {
-  const starts = getWordStarts(cells, dir)
-  for (const s of starts) if (s.number > currentNumber) return s
-  return null
-}
-
-function findFirstWordStart(cells: Cell[], dir: Direction) {
-  const starts = getWordStarts(cells, dir)
-  return starts[0] || null
 }
