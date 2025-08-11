@@ -1,10 +1,10 @@
-export type TopicWord = { answer: string; clue: string };
+import { WordEntry } from "./puzzle";
 
 const isCrosswordFriendly = (word: string) => /^[A-Za-z]{3,15}$/.test(word);
 
 const parseDefinition = (def: string) => def.split('\t').pop() ?? '';
 
-export async function getSeasonalWords(date: Date): Promise<TopicWord[]> {
+export async function getSeasonalWords(date: Date): Promise<WordEntry[]> {
   const month = date.getUTCMonth() + 1;
   const topics: Record<number, string> = {
     1: 'winter',
@@ -27,7 +27,7 @@ export async function getSeasonalWords(date: Date): Promise<TopicWord[]> {
     return (data || [])
       .filter((w: any) => w.word && w.defs && w.defs.length > 0)
       .map((w: any) => ({ answer: w.word.toUpperCase(), clue: parseDefinition(w.defs[0]) }))
-      .filter((p: TopicWord) => isCrosswordFriendly(p.answer));
+      .filter((p: WordEntry) => isCrosswordFriendly(p.answer));
   } catch (e) {
     console.error('getSeasonalWords failed', e);
     return [];
@@ -43,7 +43,7 @@ const decodeHTML = (s: string) => s
   .replace(/&ldquo;/g, '“')
   .replace(/&rdquo;/g, '”');
 
-export async function getFunFactWords(): Promise<TopicWord[]> {
+export async function getFunFactWords(): Promise<WordEntry[]> {
   try {
     const res = await fetch('https://opentdb.com/api.php?amount=20&type=multiple');
     const json = await res.json();
@@ -52,14 +52,14 @@ export async function getFunFactWords(): Promise<TopicWord[]> {
         answer: decodeHTML(q.correct_answer).replace(/[^A-Za-z]/g, '').toUpperCase(),
         clue: decodeHTML(q.question)
       }))
-      .filter((p: TopicWord) => isCrosswordFriendly(p.answer));
+      .filter((p: WordEntry) => isCrosswordFriendly(p.answer));
   } catch (e) {
     console.error('getFunFactWords failed', e);
     return [];
   }
 }
 
-export async function getCurrentEventWords(): Promise<TopicWord[]> {
+export async function getCurrentEventWords(): Promise<WordEntry[]> {
   const now = new Date();
   const year = now.getUTCFullYear();
   const month = String(now.getUTCMonth() + 1).padStart(2, '0');
@@ -68,7 +68,7 @@ export async function getCurrentEventWords(): Promise<TopicWord[]> {
     const res = await fetch(`https://wikimedia.org/api/rest_v1/metrics/pageviews/top/en.wikipedia/all-access/${year}/${month}/${day}`);
     const json = await res.json();
     const articles = json.items?.[0]?.articles || [];
-    const out: TopicWord[] = [];
+    const out: WordEntry[] = [];
     for (const a of articles) {
       const title = a.article as string;
       const normalized = title.replace(/_/g, ' ');
