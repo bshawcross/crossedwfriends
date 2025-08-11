@@ -1,10 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import {
-  base64URLStringToBuffer,
-  bufferToBase64URLString
-} from '@simplewebauthn/browser'
+import { toArrayBuffer, fromArrayBuffer } from '@/utils/base64url'
 
 export default function RegisterPage() {
   const [phone, setPhone] = useState('')
@@ -26,15 +23,15 @@ export default function RegisterPage() {
 
       const publicKey: PublicKeyCredentialCreationOptions = {
         ...optionsJSON,
-        challenge: base64URLStringToBuffer(optionsJSON.challenge),
+        challenge: toArrayBuffer(optionsJSON.challenge),
         user: {
           ...optionsJSON.user,
-          id: base64URLStringToBuffer(optionsJSON.user.id)
+          id: toArrayBuffer(optionsJSON.user.id)
         },
         excludeCredentials: optionsJSON.excludeCredentials?.map(
           (cred: { id: string; type: string }) => ({
             ...cred,
-            id: base64URLStringToBuffer(cred.id)
+            id: toArrayBuffer(cred.id)
           })
         )
       }
@@ -47,12 +44,12 @@ export default function RegisterPage() {
         credential
       const attestationResponse = {
         id,
-        rawId: bufferToBase64URLString(rawId),
+        rawId: fromArrayBuffer(rawId),
         response: {
-          attestationObject: bufferToBase64URLString(
+          attestationObject: fromArrayBuffer(
             (response as AuthenticatorAttestationResponse).attestationObject
           ),
-          clientDataJSON: bufferToBase64URLString(response.clientDataJSON)
+          clientDataJSON: fromArrayBuffer(response.clientDataJSON)
         },
         type,
         authenticatorAttachment,
