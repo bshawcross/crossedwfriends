@@ -24,7 +24,6 @@ export default function Grid({
   useEffect(() => {
     const first = cells.findIndex(c => !c.isBlack)
     if (first >= 0) setCursor({ row: Math.floor(first / SIZE), col: first % SIZE })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
@@ -45,7 +44,6 @@ export default function Grid({
 
   useEffect(() => {
     onActiveChange?.({ number: activeNumber, dir })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeNumber, dir])
 
   useEffect(() => {
@@ -53,7 +51,6 @@ export default function Grid({
     setDir(jump.dir)
     const headIdx = cells.findIndex(c => !c.isBlack && c.clueNumber === jump.number)
     if (headIdx >= 0) setCursor({ row: Math.floor(headIdx / SIZE), col: headIdx % SIZE })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [jump])
 
   function toggleDir() {
