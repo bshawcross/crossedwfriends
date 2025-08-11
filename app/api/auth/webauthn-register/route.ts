@@ -6,24 +6,24 @@ import {
 import { userStore, rpID, rpName, expectedOrigin } from '@/lib/webauthn';
 
 /**
- * Start WebAuthn registration for a user. Expect a `username` query parameter.
+ * Start WebAuthn registration for a user. Expect a `phone` query parameter.
  * Returns PublicKeyCredentialCreationOptions with credential IDs encoded for the client.
  */
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
-  const username = searchParams.get('username') ?? '';
+  const phone = searchParams.get('phone') ?? '';
 
-  let user = userStore.get(username);
+  let user = userStore.get(phone);
   if (!user) {
-    user = { id: username, username, credentials: [] };
-    userStore.set(username, user);
+    user = { id: phone, phone, credentials: [] };
+    userStore.set(phone, user);
   }
 
   const options = await generateRegistrationOptions({
     rpName,
     rpID,
     userID: user.id,
-    userName: user.username,
+    userName: user.phone,
     attestationType: 'none',
     excludeCredentials: user.credentials.map(cred => ({
       id: cred.credentialID,
@@ -44,16 +44,16 @@ export async function GET(req: Request) {
 
 /**
  * Verify the registration response sent back from the browser.
- * Body should contain `username` and the attestation `response` from the browser.
+ * Body should contain `phone` and the attestation `response` from the browser.
  */
 export async function POST(req: Request) {
   const body = await req.json();
-  const { username, attestationResponse } = body as {
-    username: string;
+  const { phone, attestationResponse } = body as {
+    phone: string;
     attestationResponse: any;
   };
 
-  const user = userStore.get(username);
+  const user = userStore.get(phone);
   if (!user) {
     return NextResponse.json({ error: 'User not found' }, { status: 400 });
   }

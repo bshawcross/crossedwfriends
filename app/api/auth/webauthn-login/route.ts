@@ -6,13 +6,13 @@ import {
 import { userStore, rpID, expectedOrigin } from '@/lib/webauthn';
 
 /**
- * Initiate authentication. Provide a `username` query parameter.
+ * Initiate authentication. Provide a `phone` query parameter.
  */
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
-  const username = searchParams.get('username') ?? '';
+  const phone = searchParams.get('phone') ?? '';
 
-  const user = userStore.get(username);
+  const user = userStore.get(phone);
   if (!user) {
     return NextResponse.json({ error: 'User not found' }, { status: 400 });
   }
@@ -41,17 +41,17 @@ export async function GET(req: Request) {
 }
 
 /**
- * Verify authentication response from the browser. Expects `username` and
+ * Verify authentication response from the browser. Expects `phone` and
  * `assertionResponse` in the request body.
  */
 export async function POST(req: Request) {
   const body = await req.json();
-  const { username, assertionResponse } = body as {
-    username: string;
+  const { phone, assertionResponse } = body as {
+    phone: string;
     assertionResponse: any;
   };
 
-  const user = userStore.get(username);
+  const user = userStore.get(phone);
   if (!user) {
     return NextResponse.json({ error: 'User not found' }, { status: 400 });
   }

@@ -9,15 +9,19 @@ describe('webauthn-login route', () => {
   });
 
   it('GET returns error for missing user', async () => {
-    const res = await loginGet(new Request('http://localhost/api/auth/webauthn-login?username=missing'));
+    const res = await loginGet(
+      new Request('http://localhost/api/auth/webauthn-login?phone=missing')
+    );
     expect(res.status).toBe(400);
     const data = await res.json();
     expect(data.error).toMatch(/User not found/);
   });
 
   it('GET returns authentication options for existing user', async () => {
-    userStore.set('bob', { id: 'bob', username: 'bob', credentials: [] });
-    const res = await loginGet(new Request('http://localhost/api/auth/webauthn-login?username=bob'));
+    userStore.set('bob', { id: 'bob', phone: 'bob', credentials: [] });
+    const res = await loginGet(
+      new Request('http://localhost/api/auth/webauthn-login?phone=bob')
+    );
     expect(res.status).toBe(200);
     const data = await res.json();
     expect(data).toHaveProperty('challenge');
@@ -28,7 +32,7 @@ describe('webauthn-login route', () => {
       new Request('http://localhost/api/auth/webauthn-login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: 'missing', assertionResponse: {} }),
+        body: JSON.stringify({ phone: 'missing', assertionResponse: {} }),
       })
     );
     expect(res.status).toBe(400);

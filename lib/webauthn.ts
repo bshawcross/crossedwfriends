@@ -11,12 +11,12 @@ export interface Credential {
 
 export interface User {
   id: string;
-  username: string;
+  phone: string;
   credentials: Credential[];
   currentChallenge?: string;
 }
 
-/** In memory store keyed by username */
+/** In memory store keyed by phone */
 export const userStore = new Map<string, User>();
 
 export const rpName = 'Crossed with Friends';
