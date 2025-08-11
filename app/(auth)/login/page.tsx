@@ -1,30 +1,81 @@
 'use client'
 
 import { useState } from 'react'
+import {
+  base64URLStringToBuffer,
+  bufferToBase64URLString
+} from '@simplewebauthn/browser'
 
 export default function LoginPage() {
   const [phone, setPhone] = useState('')
+  const [success, setSuccess] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
+    setSuccess(null)
+    setError(null)
     try {
-      const challenge = new Uint8Array(32)
-      crypto.getRandomValues(challenge)
-      const credential = await navigator.credentials.get({
-        publicKey: {
-          challenge,
-          timeout: 60000,
-          userVerification: 'preferred'
-        }
-      })
-      console.log('login credential', credential)
-      await fetch('/api/auth/webauthn-login', {
+      const optionsRes = await fetch(
+        `/api/auth/webauthn-login?phone=${encodeURIComponent(phone)}`
+      )
+      if (!optionsRes.ok) {
+        throw new Error('Failed to get authentication options')
+      }
+      const optionsJSON = await optionsRes.json()
+
+      const publicKey: PublicKeyCredentialRequestOptions = {
+        ...optionsJSON,
+        challenge: base64URLStringToBuffer(optionsJSON.challenge),
+        allowCredentials: optionsJSON.allowCredentials?.map(
+          (cred: { id: string; type: string }) => ({
+            ...cred,
+            id: base64URLStringToBuffer(cred.id)
+          })
+        )
+      }
+
+      const credential = (await navigator.credentials.get({
+        publicKey
+      })) as PublicKeyCredential
+
+      const { id, rawId, response, type, authenticatorAttachment } = credential
+      const assertionResponse = {
+        id,
+        rawId: bufferToBase64URLString(rawId),
+        response: {
+          authenticatorData: bufferToBase64URLString(
+            (response as AuthenticatorAssertionResponse).authenticatorData
+          ),
+          clientDataJSON: bufferToBase64URLString(response.clientDataJSON),
+          signature: bufferToBase64URLString(
+            (response as AuthenticatorAssertionResponse).signature
+          ),
+          userHandle: response.userHandle
+            ? bufferToBase64URLString(response.userHandle)
+            : null
+        },
+        type,
+        authenticatorAttachment,
+        clientExtensionResults: credential.getClientExtensionResults()
+      }
+
+      const verifyRes = await fetch('/api/auth/webauthn-login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone })
+        body: JSON.stringify({ phone, assertionResponse })
       })
+      if (!verifyRes.ok) {
+        const { error: errMessage } = await verifyRes.json()
+        throw new Error(errMessage || 'Login failed')
+      }
+      const { verified } = await verifyRes.json()
+      if (!verified) {
+        throw new Error('Login verification failed')
+      }
+      setSuccess('Logged in successfully')
     } catch (err) {
-      console.error('Login failed', err)
+      setError((err as Error).message)
     }
   }
 
@@ -43,6 +94,8 @@ export default function LoginPage() {
           Login with Passkey
         </button>
       </form>
+      {success && <p className="mt-4 text-green-600">{success}</p>}
+      {error && <p className="mt-4 text-red-600">{error}</p>}
     </main>
   )
 }
