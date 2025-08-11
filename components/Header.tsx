@@ -1,6 +1,6 @@
 'use client'
 
-import { ReactNode } from 'react'
+import { ReactNode, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import clsx from 'clsx'
 
@@ -12,6 +12,25 @@ type HeaderProps = {
 
 export default function Header({ title, subtitle, children }: HeaderProps) {
   const router = useRouter()
+  const [timeLeft, setTimeLeft] = useState('')
+
+  useEffect(() => {
+    function updateCountdown() {
+      const now = new Date()
+      const next = new Date(now)
+      next.setHours(24, 0, 0, 0)
+      const diff = next.getTime() - now.getTime()
+      const hours = Math.floor(diff / (1000 * 60 * 60))
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000)
+      const pad = (n: number) => n.toString().padStart(2, '0')
+      setTimeLeft(`${pad(hours)}:${pad(minutes)}:${pad(seconds)}`)
+    }
+
+    updateCountdown()
+    const id = setInterval(updateCountdown, 1000)
+    return () => clearInterval(id)
+  }, [])
 
   async function handleLogout() {
     try {
@@ -34,9 +53,12 @@ export default function Header({ title, subtitle, children }: HeaderProps) {
         {subtitle && <p className="text-sm text-gray-500">{subtitle}</p>}
         {children}
       </div>
-      <button onClick={handleLogout} className="text-sm text-blue-600">
-        Logout
-      </button>
+      <div className="flex flex-col items-end">
+        <button onClick={handleLogout} className="text-sm text-blue-600">
+          Logout
+        </button>
+        <span className="text-xs mt-1">{timeLeft}</span>
+      </div>
     </header>
   )
 }
