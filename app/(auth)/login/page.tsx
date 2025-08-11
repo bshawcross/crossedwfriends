@@ -18,7 +18,7 @@ export default function LoginPage() {
         }
       })
       console.log('login credential', credential)
-      await fetch('/api/auth/login', {
+      await fetch('/api/auth/webauthn-login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone })
