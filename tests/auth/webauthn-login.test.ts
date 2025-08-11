@@ -1,11 +1,11 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { GET as loginGet, POST as loginPost } from '../../app/api/auth/webauthn-login/route';
-import { userStore } from '../../lib/webauthn';
+import { prisma } from '../../lib/webauthn';
 
 
 describe('webauthn-login route', () => {
-  beforeEach(() => {
-    userStore.clear();
+  beforeEach(async () => {
+    await prisma.user.deleteMany();
   });
 
   it('GET returns error for missing user', async () => {
@@ -18,7 +18,7 @@ describe('webauthn-login route', () => {
   });
 
   it('GET returns authentication options for existing user', async () => {
-    userStore.set('bob', { id: 'bob', phone: 'bob', credentials: [] });
+    await prisma.user.create({ data: { phoneNumber: 'bob' } });
     const res = await loginGet(
       new Request('http://localhost/api/auth/webauthn-login?phone=bob')
     );

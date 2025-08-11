@@ -1,11 +1,11 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { GET as registerGet, POST as registerPost } from '../../app/api/auth/webauthn-register/route';
-import { userStore } from '../../lib/webauthn';
+import { prisma } from '../../lib/webauthn';
 
 
 describe('webauthn-register route', () => {
-  beforeEach(() => {
-    userStore.clear();
+  beforeEach(async () => {
+    await prisma.user.deleteMany();
   });
 
   it('GET returns registration options', async () => {

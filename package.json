@@ -20,14 +20,15 @@
   },
   "packageManager": "npm@10.x",
   "scripts": {
-  "dev": "next dev --hostname 0.0.0.0 -p 3000",
-  "build": "next build",
-  "start": "next start",
-  "test": "vitest run && node --import tsx --test test/*.test.*",
-  "lint": "eslint .",
-  "generate:daily": "tsx scripts/generateDaily.ts"
-},
-
+    "dev": "next dev --hostname 0.0.0.0 -p 3000",
+    "build": "next build",
+    "start": "next start",
+    "test": "vitest run && node --import tsx --test test/*.test.*",
+    "lint": "eslint .",
+    "generate:daily": "tsx scripts/generateDaily.ts",
+    "db:migrate": "prisma migrate deploy",
+    "db:seed": "prisma db seed"
+  },
   "dependencies": {
     "@prisma/client": "^6.13.0",
     "@simplewebauthn/browser": "^9.0.1",
@@ -56,5 +57,8 @@
     "tsx": "^4.7.1",
     "typescript": "5.4.5",
     "vitest": "^3.2.4"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
   }
 }

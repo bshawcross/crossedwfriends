@@ -16,4 +16,5 @@ model User {
   credentialId Bytes?
   publicKey    Bytes?
   counter      Int?
+  currentChallenge String?
 }
