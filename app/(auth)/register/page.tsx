@@ -25,7 +25,7 @@ export default function RegisterPage() {
         }
       })
       console.log('registration credential', credential)
-      await fetch('/api/auth/register', {
+      await fetch('/api/auth/webauthn-register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone })
