@@ -24,7 +24,7 @@ export async function GET(req: Request) {
     type: 'public-key',
   }));
 
-  const options = generateAuthenticationOptions({
+  const options = await generateAuthenticationOptions({
     rpID,
     allowCredentials: allowCreds,
     userVerification: 'preferred',

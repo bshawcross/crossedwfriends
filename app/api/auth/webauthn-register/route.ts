@@ -19,7 +19,7 @@ export async function GET(req: Request) {
     userStore.set(username, user);
   }
 
-  const options = generateRegistrationOptions({
+  const options = await generateRegistrationOptions({
     rpName,
     rpID,
     userID: user.id,
