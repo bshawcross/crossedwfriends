@@ -1,4 +1,9 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { execSync } from 'child_process';
+import { describe, it, expect, beforeEach, afterAll } from 'vitest';
+const dbFile = `../tests/test-${process.env.VITEST_POOL_ID || '0'}.db`;
+process.env.DATABASE_URL = `file:${dbFile}`;
+execSync('npx prisma migrate deploy', { stdio: 'ignore' });
+
 import { GET as loginGet, POST as loginPost } from '../../app/api/auth/webauthn-login/route';
 import { prisma } from '../../lib/webauthn';
 
@@ -6,6 +11,10 @@ import { prisma } from '../../lib/webauthn';
 describe('webauthn-login route', () => {
   beforeEach(async () => {
     await prisma.user.deleteMany();
+  });
+
+  afterAll(async () => {
+    await prisma.$disconnect();
   });
 
   it('GET returns error for missing user', async () => {
