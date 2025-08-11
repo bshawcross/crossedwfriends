@@ -9,7 +9,9 @@ describe('webauthn-register route', () => {
   });
 
   it('GET returns registration options', async () => {
-    const res = await registerGet(new Request('http://localhost/api/auth/webauthn-register?username=alice'));
+    const res = await registerGet(
+      new Request('http://localhost/api/auth/webauthn-register?phone=alice')
+    );
     expect(res.status).toBe(200);
     const data = await res.json();
     expect(data).toHaveProperty('challenge');
@@ -20,7 +22,7 @@ describe('webauthn-register route', () => {
       new Request('http://localhost/api/auth/webauthn-register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: 'missing', attestationResponse: {} }),
+        body: JSON.stringify({ phone: 'missing', attestationResponse: {} }),
       })
     );
     expect(res.status).toBe(400);
