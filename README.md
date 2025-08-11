@@ -44,3 +44,6 @@ You can load it in your shell with `source .env` or by copying it to `.env.local
   ```bash
   npm run lint
   ```
+
+- WebAuthn authentication only accepts platform biometrics (e.g., Face ID).
+  External security keys are not supported.

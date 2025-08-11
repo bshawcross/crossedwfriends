@@ -33,7 +33,11 @@ export default function RegisterPage() {
             ...cred,
             id: toArrayBuffer(cred.id)
           })
-        )
+        ),
+        authenticatorSelection: {
+          authenticatorAttachment: 'platform',
+          userVerification: 'required'
+        }
       }
 
       const credential = (await navigator.credentials.create({

@@ -15,6 +15,8 @@ describe('webauthn-register route', () => {
     expect(res.status).toBe(200);
     const data = await res.json();
     expect(data).toHaveProperty('challenge');
+    expect(data.authenticatorSelection.authenticatorAttachment).toBe('platform');
+    expect(data.authenticatorSelection.userVerification).toBe('required');
   });
 
   it('POST returns error for unknown user', async () => {
