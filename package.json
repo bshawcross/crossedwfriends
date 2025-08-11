@@ -23,7 +23,7 @@
   "dev": "next dev --hostname 0.0.0.0 -p 3000",
   "build": "next build",
   "start": "next start",
-  "test": "vitest run",
+  "test": "vitest run && node --import tsx --test test/*.test.*",
   "lint": "eslint .",
   "generate:daily": "tsx scripts/generateDaily.ts"
 },
