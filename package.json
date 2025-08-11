@@ -20,13 +20,14 @@
   },
   "packageManager": "npm@10.x",
   "scripts": {
-    "dev": "next dev --hostname 0.0.0.0 -p 3000",
-    "build": "next build",
-    "start": "next start",
-    "test": "vitest run",
-    "lint": "eslint .",
-    "generate:daily": "tsx scripts/generateDaily.ts"
-  },
+  "dev": "next dev --hostname 0.0.0.0 -p 3000",
+  "build": "next build",
+  "start": "next start",
+  "test": "vitest run && node --import tsx --test test/*.test.*",
+  "lint": "eslint .",
+  "generate:daily": "tsx scripts/generateDaily.ts"
+},
+
   "dependencies": {
     "@simplewebauthn/browser": "^9.0.1",
     "@simplewebauthn/server": "^9.0.3",
