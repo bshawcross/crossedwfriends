@@ -1,13 +1,19 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 import { generateDaily } from '../lib/puzzle';
-import { topicSources } from '../topicSources';
+import { getSeasonalWords, getFunFactWords, getCurrentEventWords } from '../lib/topics';
 import { yyyyMmDd } from '../utils/date';
 
 async function main() {
   const date = yyyyMmDd();
-  const seed = `${date}:${topicSources.join(',')}`;
-  const puzzle = generateDaily(seed);
+  const seed = `${date}:seasonal,funFacts,currentEvents`;
+  const [seasonal, funFacts, currentEvents] = await Promise.all([
+    getSeasonalWords(new Date()),
+    getFunFactWords(),
+    getCurrentEventWords()
+  ]);
+  const wordList = [...seasonal, ...funFacts, ...currentEvents];
+  const puzzle = generateDaily(seed, wordList);
 
   const puzzlesDir = path.join(process.cwd(), 'puzzles');
   await fs.mkdir(puzzlesDir, { recursive: true });
