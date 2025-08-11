@@ -29,6 +29,7 @@
 },
 
   "dependencies": {
+    "@prisma/client": "^6.13.0",
     "@simplewebauthn/browser": "^9.0.1",
     "@simplewebauthn/server": "^9.0.3",
     "clsx": "2.1.1",
