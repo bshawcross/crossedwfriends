@@ -1,4 +1,10 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { execSync } from 'child_process';
+import { describe, it, expect, beforeEach, afterAll } from 'vitest';
+// Use a per-worker SQLite DB to avoid test interference
+const dbFile = `../tests/test-${process.env.VITEST_POOL_ID || '0'}.db`;
+process.env.DATABASE_URL = `file:${dbFile}`;
+execSync('npx prisma migrate deploy', { stdio: 'ignore' });
+
 import { GET as registerGet, POST as registerPost } from '../../app/api/auth/webauthn-register/route';
 import { prisma } from '../../lib/webauthn';
 
@@ -6,6 +12,10 @@ import { prisma } from '../../lib/webauthn';
 describe('webauthn-register route', () => {
   beforeEach(async () => {
     await prisma.user.deleteMany();
+  });
+
+  afterAll(async () => {
+    await prisma.$disconnect();
   });
 
   it('GET returns registration options', async () => {

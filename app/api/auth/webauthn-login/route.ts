@@ -88,7 +88,7 @@ export async function POST(req: Request) {
     expectedRPID: rpID,
     authenticator: {
       credentialID: storedId,
-      publicKey: Buffer.isBuffer(user.publicKey)
+      credentialPublicKey: Buffer.isBuffer(user.publicKey)
         ? user.publicKey
         : Buffer.from(user.publicKey as any, 'base64url'),
       counter: user.counter ?? 0,
