@@ -20,13 +20,13 @@
   },
   "packageManager": "npm@10.x",
   "scripts": {
-  "dev": "next dev --hostname 0.0.0.0 -p 3000",
-  "build": "next build",
-  "start": "next start",
-  "test": "vitest run",
-  "lint": "eslint .",
-  "generate:daily": "tsx scripts/generateDaily.ts"
-},
+    "dev": "next dev --hostname 0.0.0.0 -p 3000",
+    "build": "next build",
+    "start": "next start",
+    "test": "vitest run",
+    "lint": "eslint .",
+    "generate:daily": "tsx scripts/generateDaily.ts"
+  },
   "dependencies": {
     "@simplewebauthn/browser": "^9.0.1",
     "@simplewebauthn/server": "^9.0.3",
@@ -37,6 +37,7 @@
     "react-dom": "18.2.0"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.6.4",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
     "@types/node": "20.12.12",
