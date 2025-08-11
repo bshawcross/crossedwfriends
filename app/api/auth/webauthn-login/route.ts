@@ -27,7 +27,11 @@ export async function GET(req: Request) {
   const options = await generateAuthenticationOptions({
     rpID,
     allowCredentials: allowCreds,
-    userVerification: 'preferred',
+    userVerification: 'required',
+    authenticatorSelection: {
+      authenticatorAttachment: 'platform',
+      userVerification: 'required',
+    },
   });
   user.currentChallenge = options.challenge;
 

@@ -25,6 +25,10 @@ export async function GET(req: Request) {
     userID: user.id,
     userName: user.phone,
     attestationType: 'none',
+    authenticatorSelection: {
+      authenticatorAttachment: 'platform',
+      userVerification: 'required',
+    },
     excludeCredentials: user.credentials.map(cred => ({
       id: cred.credentialID,
       type: 'public-key',

@@ -29,7 +29,8 @@ export default function LoginPage() {
             ...cred,
             id: toArrayBuffer(cred.id)
           })
-        )
+        ),
+        userVerification: 'required'
       }
 
       const credential = (await navigator.credentials.get({
