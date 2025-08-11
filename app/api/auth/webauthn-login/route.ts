@@ -3,7 +3,13 @@ import {
   generateAuthenticationOptions,
   verifyAuthenticationResponse,
 } from '@simplewebauthn/server';
-import { userStore, rpID, expectedOrigin } from '@/lib/webauthn';
+import {
+  getUser,
+  setChallenge,
+  updateCounter,
+  rpID,
+  expectedOrigin,
+} from '@/lib/webauthn';
 
 /**
  * Initiate authentication. Provide a `phone` query parameter.
@@ -12,17 +18,21 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const phone = searchParams.get('phone') ?? '';
 
-  const user = userStore.get(phone);
+  const user = await getUser(phone);
   if (!user) {
     return NextResponse.json({ error: 'User not found' }, { status: 400 });
   }
 
-  const allowCreds = user.credentials.map(c => ({
-    id: Buffer.isBuffer(c.credentialID)
-      ? c.credentialID
-      : Buffer.from(c.credentialID as any, 'base64url'),
-    type: 'public-key',
-  }));
+  const allowCreds = user.credentialId
+    ? [
+        {
+          id: Buffer.isBuffer(user.credentialId)
+            ? user.credentialId
+            : Buffer.from(user.credentialId as any, 'base64url'),
+          type: 'public-key',
+        },
+      ]
+    : [];
 
   const options = await generateAuthenticationOptions({
     rpID,
@@ -33,7 +43,7 @@ export async function GET(req: Request) {
       userVerification: 'required',
     },
   });
-  user.currentChallenge = options.challenge;
+  await setChallenge(phone, options.challenge);
 
   // Encode IDs for the client
   options.allowCredentials = options.allowCredentials?.map(c => ({
@@ -55,19 +65,19 @@ export async function POST(req: Request) {
     assertionResponse: any;
   };
 
-  const user = userStore.get(phone);
+  const user = await getUser(phone);
   if (!user) {
     return NextResponse.json({ error: 'User not found' }, { status: 400 });
   }
+  if (!user.credentialId || !user.publicKey) {
+    return NextResponse.json({ error: 'Authenticator not registered' }, { status: 400 });
+  }
 
   const idBuffer = Buffer.from(assertionResponse.rawId, 'base64url');
-  const authenticator = user.credentials.find(c => {
-    const stored = Buffer.isBuffer(c.credentialID)
-      ? c.credentialID
-      : Buffer.from(c.credentialID as any, 'base64url');
-    return stored.equals(idBuffer);
-  });
-  if (!authenticator) {
+  const storedId = Buffer.isBuffer(user.credentialId)
+    ? user.credentialId
+    : Buffer.from(user.credentialId as any, 'base64url');
+  if (!storedId.equals(idBuffer)) {
     return NextResponse.json({ error: 'Authenticator not registered' }, { status: 400 });
   }
 
@@ -77,15 +87,16 @@ export async function POST(req: Request) {
     expectedOrigin,
     expectedRPID: rpID,
     authenticator: {
-      ...authenticator,
-      credentialID: Buffer.isBuffer(authenticator.credentialID)
-        ? authenticator.credentialID
-        : Buffer.from(authenticator.credentialID as any, 'base64url'),
+      credentialID: storedId,
+      publicKey: Buffer.isBuffer(user.publicKey)
+        ? user.publicKey
+        : Buffer.from(user.publicKey as any, 'base64url'),
+      counter: user.counter ?? 0,
     },
   });
 
   if (verification.verified) {
-    authenticator.counter = verification.authenticationInfo.newCounter;
+    await updateCounter(phone, verification.authenticationInfo.newCounter);
   }
 
   return NextResponse.json({ verified: verification.verified });

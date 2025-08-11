@@ -3,7 +3,15 @@ import {
   generateRegistrationOptions,
   verifyRegistrationResponse,
 } from '@simplewebauthn/server';
-import { userStore, rpID, rpName, expectedOrigin } from '@/lib/webauthn';
+import {
+  getOrCreateUser,
+  getUser,
+  setChallenge,
+  saveCredential,
+  rpID,
+  rpName,
+  expectedOrigin,
+} from '@/lib/webauthn';
 
 /**
  * Start WebAuthn registration for a user. Expect a `phone` query parameter.
@@ -13,29 +21,29 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const phone = searchParams.get('phone') ?? '';
 
-  let user = userStore.get(phone);
-  if (!user) {
-    user = { id: phone, phone, credentials: [] };
-    userStore.set(phone, user);
-  }
+  const user = await getOrCreateUser(phone);
 
   const options = await generateRegistrationOptions({
     rpName,
     rpID,
     userID: user.id,
-    userName: user.phone,
+    userName: user.phoneNumber,
     attestationType: 'none',
     authenticatorSelection: {
       authenticatorAttachment: 'platform',
       userVerification: 'required',
     },
-    excludeCredentials: user.credentials.map(cred => ({
-      id: cred.credentialID,
-      type: 'public-key',
-    })),
+    excludeCredentials: user.credentialId
+      ? [
+          {
+            id: user.credentialId,
+            type: 'public-key',
+          },
+        ]
+      : [],
   });
 
-  user.currentChallenge = options.challenge;
+  await setChallenge(phone, options.challenge);
 
   // Encode credential IDs for transport to client
   options.excludeCredentials = options.excludeCredentials?.map(c => ({
@@ -57,7 +65,7 @@ export async function POST(req: Request) {
     attestationResponse: any;
   };
 
-  const user = userStore.get(phone);
+  const user = await getUser(phone);
   if (!user) {
     return NextResponse.json({ error: 'User not found' }, { status: 400 });
   }
@@ -71,8 +79,7 @@ export async function POST(req: Request) {
 
   if (verification.verified && verification.registrationInfo) {
     const { credentialID, credentialPublicKey, counter } = verification.registrationInfo;
-    // Store raw credential ID Buffer
-    user.credentials.push({
+    await saveCredential(phone, {
       credentialID,
       publicKey: credentialPublicKey,
       counter,
