@@ -5,6 +5,8 @@ out/
 dist/
 coverage/
 *.log
+.cache/
+tests/*.db
 
 # Editor/OS
 .vscode/

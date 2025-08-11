@@ -1,4 +1,6 @@
 import { WordEntry } from "./puzzle";
+import { getCached } from "./cache";
+import { yyyyMmDd } from "../utils/date";
 
 const isCrosswordFriendly = (word: string) => /^[A-Za-z]{3,15}$/.test(word);
 
@@ -21,17 +23,18 @@ export async function getSeasonalWords(date: Date): Promise<WordEntry[]> {
     12: 'christmas'
   };
   const topic = topics[month] ?? 'season';
-  try {
+  const key = `seasonal-${yyyyMmDd(date)}`;
+  const result = await getCached<WordEntry[]>(key, async () => {
     const res = await fetch(`https://api.datamuse.com/words?topics=${encodeURIComponent(topic)}&md=d&max=50`);
+    if (!res.ok) throw new Error(`Datamuse request failed: ${res.status}`);
     const data = await res.json();
     return (data || [])
       .filter((w: any) => w.word && w.defs && w.defs.length > 0)
       .map((w: any) => ({ answer: w.word.toUpperCase(), clue: parseDefinition(w.defs[0]) }))
       .filter((p: WordEntry) => isCrosswordFriendly(p.answer));
-  } catch (e) {
-    console.error('getSeasonalWords failed', e);
-    return [];
-  }
+  });
+  if (!result) console.error('getSeasonalWords failed');
+  return result ?? [];
 }
 
 const decodeHTML = (s: string) => s
@@ -44,8 +47,10 @@ const decodeHTML = (s: string) => s
   .replace(/&rdquo;/g, '”');
 
 export async function getFunFactWords(): Promise<WordEntry[]> {
-  try {
+  const key = `funfact-${yyyyMmDd()}`;
+  const result = await getCached<WordEntry[]>(key, async () => {
     const res = await fetch('https://opentdb.com/api.php?amount=20&type=multiple');
+    if (!res.ok) throw new Error(`OpenTDB request failed: ${res.status}`);
     const json = await res.json();
     return (json.results || [])
       .map((q: any) => ({
@@ -53,19 +58,20 @@ export async function getFunFactWords(): Promise<WordEntry[]> {
         clue: decodeHTML(q.question)
       }))
       .filter((p: WordEntry) => isCrosswordFriendly(p.answer));
-  } catch (e) {
-    console.error('getFunFactWords failed', e);
-    return [];
-  }
+  });
+  if (!result) console.error('getFunFactWords failed');
+  return result ?? [];
 }
 
 export async function getCurrentEventWords(): Promise<WordEntry[]> {
   const now = new Date();
-  const year = now.getUTCFullYear();
-  const month = String(now.getUTCMonth() + 1).padStart(2, '0');
-  const day = String(now.getUTCDate()).padStart(2, '0');
-  try {
+  const key = `current-${yyyyMmDd(now)}`;
+  const result = await getCached<WordEntry[]>(key, async () => {
+    const year = now.getUTCFullYear();
+    const month = String(now.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(now.getUTCDate()).padStart(2, '0');
     const res = await fetch(`https://wikimedia.org/api/rest_v1/metrics/pageviews/top/en.wikipedia/all-access/${year}/${month}/${day}`);
+    if (!res.ok) throw new Error(`Wikimedia request failed: ${res.status}`);
     const json = await res.json();
     const articles = json.items?.[0]?.articles || [];
     const out: WordEntry[] = [];
@@ -83,8 +89,7 @@ export async function getCurrentEventWords(): Promise<WordEntry[]> {
       if (out.length >= 10) break;
     }
     return out;
-  } catch (e) {
-    console.error('getCurrentEventWords failed', e);
-    return [];
-  }
+  });
+  if (!result) console.error('getCurrentEventWords failed');
+  return result ?? [];
 }
