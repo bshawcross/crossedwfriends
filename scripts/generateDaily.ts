@@ -8,10 +8,11 @@ import { logInfo, logError } from '../utils/logger';
 async function main() {
   const date = yyyyMmDd();
   const seed = `${date}:seasonal,funFacts,currentEvents`;
+  const puzzleDate = new Date(`${date}T00:00:00Z`);
   const [seasonal, funFacts, currentEvents] = await Promise.all([
-    getSeasonalWords(new Date()),
+    getSeasonalWords(puzzleDate),
     getFunFactWords(),
-    getCurrentEventWords()
+    getCurrentEventWords(puzzleDate)
   ]);
   const wordList = [...seasonal, ...funFacts, ...currentEvents];
   const puzzle = generateDaily(seed, wordList);

@@ -86,15 +86,13 @@ describe("getFunFactWords", () => {
 describe("getCurrentEventWords", () => {
   it("returns normalized WordEntry[]", async () => {
     mockFetch((url) => {
-      if (url.includes("metrics/pageviews")) {
+      if (url.includes("/feed/news")) {
         return Promise.resolve({
           ok: true,
-          json: async () => ({
-            items: [{ articles: [{ article: "Foo_Bar" }] }]
-          })
+          json: async () => ({ stories: [{ links: [{ title: "Foo Bar" }] }] })
         });
       }
-      if (url.includes("page/summary/Foo_Bar")) {
+      if (url.includes("page/summary/Foo%20Bar")) {
         return Promise.resolve({
           ok: true,
           json: async () => ({ extract: "Example summary" })
@@ -103,19 +101,19 @@ describe("getCurrentEventWords", () => {
       return Promise.reject(new Error("unknown url"));
     });
     const { getCurrentEventWords } = await import("../../lib/topics");
-    const result = await getCurrentEventWords();
+    const result = await getCurrentEventWords(new Date("2024-01-01"));
     expect(result).toEqual([{ answer: "FOOBAR", clue: "Example summary" }]);
   });
 
   it("returns [] on failure", async () => {
     mockFetch((url) => {
-      if (url.includes("metrics/pageviews")) {
+      if (url.includes("/feed/news")) {
         return Promise.resolve({ ok: false, status: 500 });
       }
       return Promise.resolve({ ok: true, json: async () => ({}) });
     });
     const { getCurrentEventWords } = await import("../../lib/topics");
-    const result = await getCurrentEventWords();
+    const result = await getCurrentEventWords(new Date("2024-01-01"));
     expect(result).toEqual([]);
   });
 });
