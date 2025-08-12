@@ -6,6 +6,7 @@ import ClueBar from '@/components/ClueBar'
 import ClueList from '@/components/ClueList'
 import usePuzzle from '@/hooks/usePuzzle'
 import useKeyboardViewport from '@/hooks/useKeyboardViewport'
+import { GRID_SIZE } from '@/utils/grid'
 import { useMemo, useState, useRef, useEffect } from 'react'
 
 export default function Page() {
@@ -37,11 +38,11 @@ export default function Page() {
     setJump({ number, dir, nonce: Date.now() })
   }
 
-  if (!puzzle) {
+  if (!puzzle || (puzzle as any).error || cells.length !== GRID_SIZE * GRID_SIZE) {
     return (
       <main className="pb-28">
-        <Header title="Loading…" subtitle="Fetching puzzle" />
-        <div className="p-4 text-sm text-gray-500">One moment…</div>
+        <Header title="Puzzle not found" subtitle="" />
+        <div className="p-4 text-sm text-gray-500">Puzzle not found</div>
       </main>
     )
   }
