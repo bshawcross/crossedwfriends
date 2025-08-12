@@ -85,33 +85,26 @@ describe("getFunFactWords", () => {
 
 describe("getCurrentEventWords", () => {
   it("returns normalized WordEntry[]", async () => {
-    mockFetch((url) => {
-      if (url.includes("/feed/news")) {
-        return Promise.resolve({
-          ok: true,
-          json: async () => ({ stories: [{ links: [{ title: "Foo Bar" }] }] })
-        });
-      }
-      if (url.includes("page/summary/Foo%20Bar")) {
-        return Promise.resolve({
-          ok: true,
-          json: async () => ({ extract: "Example summary" })
-        });
-      }
-      return Promise.reject(new Error("unknown url"));
-    });
+    const rss = `<?xml version="1.0"?>
+<rss><channel>
+  <item>
+    <title>Alpha Beta</title>
+    <description>Gamma Delta</description>
+  </item>
+</channel></rss>`;
+    mockFetch(() => Promise.resolve({ ok: true, text: async () => rss }));
     const { getCurrentEventWords } = await import("../../lib/topics");
     const result = await getCurrentEventWords(new Date("2024-01-01"));
-    expect(result).toEqual([{ answer: "FOOBAR", clue: "Example summary" }]);
+    expect(result).toEqual([
+      { answer: "ALPHA", clue: "Gamma Delta" },
+      { answer: "BETA", clue: "Gamma Delta" },
+      { answer: "GAMMA", clue: "Gamma Delta" },
+      { answer: "DELTA", clue: "Gamma Delta" }
+    ]);
   });
 
   it("returns [] on failure", async () => {
-    mockFetch((url) => {
-      if (url.includes("/feed/news")) {
-        return Promise.resolve({ ok: false, status: 500 });
-      }
-      return Promise.resolve({ ok: true, json: async () => ({}) });
-    });
+    mockFetch(() => Promise.resolve({ ok: false, status: 500 }));
     const { getCurrentEventWords } = await import("../../lib/topics");
     const result = await getCurrentEventWords(new Date("2024-01-01"));
     expect(result).toEqual([]);

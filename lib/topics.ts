@@ -84,47 +84,47 @@ export async function getFunFactWords(): Promise<WordEntry[]> {
   return result ?? [];
 }
 
+function extractTag(block: string, tag: string): string {
+  const re = new RegExp(`<${tag}>(?:<!\\[CDATA\\[(.*?)\\]\\]>|([^<]*))</${tag}>`, 'i');
+  const match = block.match(re);
+  const content = match?.[1] ?? match?.[2] ?? '';
+  return decodeHTML(content.trim());
+}
+
 export async function getCurrentEventWords(date: Date): Promise<WordEntry[]> {
   const key = `current-${yyyyMmDd(date)}`;
   const result = await getCached<WordEntry[]>(key, async () => {
-    const url = 'https://en.wikipedia.org/api/rest_v1/feed/news';
+    const url = 'https://news.google.com/rss?hl=en-US&gl=US&ceid=US:en';
     let res: Response;
     try {
       res = await fetch(url);
     } catch (e) {
-      logError('api_fetch_failed', { source: 'wikinews', url, error: (e as Error).message });
+      logError('api_fetch_failed', { source: 'google-news', url, error: (e as Error).message });
       throw e;
     }
     if (!res.ok) {
-      logError('api_status_error', { source: 'wikinews', url, status: res.status });
-      throw new Error(`Wikinews request failed: ${res.status}`);
+      logError('api_status_error', { source: 'google-news', url, status: res.status });
+      throw new Error(`Google News request failed: ${res.status}`);
     }
-    const json = await res.json();
-    const titles: string[] = (json.stories || [])
-      .flatMap((s: any) => (s.links || []).map((l: any) => l.title))
-      .filter((t: any): t is string => typeof t === 'string');
+    const xml = await res.text();
     const out: WordEntry[] = [];
-    for (const title of titles) {
-      const normalized = title.replace(/_/g, ' ');
-      const answer = normalized.replace(/[^A-Za-z]/g, '').toUpperCase();
-      if (!isCrosswordFriendly(answer)) continue;
-      const sumUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`;
-      let sumRes: Response;
-      try {
-        sumRes = await fetch(sumUrl);
-      } catch (e) {
-        logError('api_fetch_failed', { source: 'wikipedia-summary', url: sumUrl, error: (e as Error).message });
-        continue;
+    const seen = new Set<string>();
+    const itemRe = /<item>([\s\S]*?)<\/item>/g;
+    let m: RegExpExecArray | null;
+    while ((m = itemRe.exec(xml)) !== null && out.length < 10) {
+      const item = m[1];
+      const title = extractTag(item, 'title');
+      const description = extractTag(item, 'description');
+      const clue = description || title;
+      const words = `${title} ${description}`.split(/[^A-Za-z]+/g);
+      for (const w of words) {
+        if (!isCrosswordFriendly(w)) continue;
+        const ans = w.toUpperCase();
+        if (seen.has(ans)) continue;
+        out.push({ answer: ans, clue });
+        seen.add(ans);
+        if (out.length >= 10) break;
       }
-      if (!sumRes.ok) {
-        logError('api_status_error', { source: 'wikipedia-summary', url: sumUrl, status: sumRes.status });
-        continue;
-      }
-      const sumJson = await sumRes.json();
-      const clue = sumJson.extract || sumJson.description;
-      if (!clue) continue;
-      out.push({ answer, clue });
-      if (out.length >= 10) break;
     }
     return out;
   });
