@@ -38,7 +38,8 @@ export default function Page() {
     setJump({ number, dir, nonce: Date.now() })
   }
 
-  if (!puzzle || (puzzle as any).error || cells.length !== GRID_SIZE * GRID_SIZE) {
+  const validCells = cells.length === GRID_SIZE * GRID_SIZE
+  if (!puzzle || (puzzle as any).error || !validCells) {
     return (
       <main className="pb-28">
         <Header title="Puzzle not found" subtitle="" />
