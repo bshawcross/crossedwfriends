@@ -18,6 +18,7 @@ model User {
   counter          Int?
   currentChallenge String?
   memberships      GroupMember[]
+  messages         ChatMessage[]
 }
 
 model Group {
@@ -26,6 +27,7 @@ model Group {
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
   members   GroupMember[]
+  messages  ChatMessage[]
 }
 
 model GroupMember {
@@ -35,4 +37,16 @@ model GroupMember {
   userId  String
 
   @@id([groupId, userId])
+}
+
+model ChatMessage {
+  id        String   @id @default(cuid())
+  group     Group    @relation(fields: [groupId], references: [id])
+  groupId   String
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  content   String
+  createdAt DateTime @default(now())
+
+  @@index([groupId, createdAt])
 }
