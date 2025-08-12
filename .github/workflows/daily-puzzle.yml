@@ -14,7 +14,14 @@ jobs:
         with:
           node-version: 20
       - run: npm ci
-      - run: npm run generate:daily
+      - name: Run generator
+        run: npm run generate:daily 2>&1 | tee daily.log
+      - name: Upload logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: daily-puzzle-logs
+          path: daily.log
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "chore: add daily puzzle"

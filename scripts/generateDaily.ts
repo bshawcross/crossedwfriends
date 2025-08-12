@@ -3,6 +3,7 @@ import path from 'path';
 import { generateDaily } from '../lib/puzzle';
 import { getSeasonalWords, getFunFactWords, getCurrentEventWords } from '../lib/topics';
 import { yyyyMmDd } from '../utils/date';
+import { logInfo, logError } from '../utils/logger';
 
 async function main() {
   const date = yyyyMmDd();
@@ -16,13 +17,24 @@ async function main() {
   const puzzle = generateDaily(seed, wordList);
 
   const puzzlesDir = path.join(process.cwd(), 'puzzles');
-  await fs.mkdir(puzzlesDir, { recursive: true });
+  try {
+    await fs.mkdir(puzzlesDir, { recursive: true });
+  } catch (e) {
+    logError('mkdir_failed', { dir: puzzlesDir, error: (e as Error).message });
+    throw e;
+  }
+
   const filePath = path.join(puzzlesDir, `${date}.json`);
-  await fs.writeFile(filePath, JSON.stringify(puzzle, null, 2));
-  console.log(`Generated puzzle for ${date} at ${filePath}`);
+  try {
+    await fs.writeFile(filePath, JSON.stringify(puzzle, null, 2));
+    logInfo('puzzle_written', { date, filePath });
+  } catch (e) {
+    logError('write_failed', { filePath, error: (e as Error).message });
+    throw e;
+  }
 }
 
 main().catch((err) => {
-  console.error(err);
+  logError('generate_daily_failed', { error: (err as Error).message });
   process.exit(1);
 });
