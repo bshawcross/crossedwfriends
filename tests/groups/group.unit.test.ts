@@ -13,7 +13,12 @@ const dbFile = path.join(
 process.env.DATABASE_URL = `file:${dbFile}`;
 execSync('npx prisma migrate deploy', { stdio: 'ignore', cwd: projectRoot });
 
-import { addUserToGroup, removeUserFromGroup, prisma } from '../../lib/group';
+const {
+  addUserToGroup,
+  removeUserFromGroup,
+  updateGroupName,
+  prisma,
+} = await import('../../lib/group');
 
 describe('group service', () => {
   beforeEach(async () => {
@@ -50,6 +55,27 @@ describe('group service', () => {
   it('removeUserFromGroup throws if membership not found', async () => {
     const group = await prisma.group.create({ data: { name: 'no members' } });
     await expect(removeUserFromGroup(group.id, 'missing')).rejects.toThrow();
+  });
+
+  it('updateGroupName renames when user is member', async () => {
+    const group = await prisma.group.create({ data: { name: 'old' } });
+    await addUserToGroup(group.id, '333');
+    const user = await prisma.user.findUnique({ where: { phoneNumber: '333' } });
+    const updated = await updateGroupName(group.id, user!.id, 'new name');
+    expect(updated.name).toBe('new name');
+  });
+
+  it('updateGroupName throws for non-member', async () => {
+    const group = await prisma.group.create({ data: { name: 'old' } });
+    const user = await prisma.user.create({ data: { phoneNumber: '444' } });
+    await expect(updateGroupName(group.id, user.id, 'new')).rejects.toThrow();
+  });
+
+  it('updateGroupName validates name', async () => {
+    const group = await prisma.group.create({ data: { name: 'old' } });
+    await addUserToGroup(group.id, '555');
+    const user = await prisma.user.findUnique({ where: { phoneNumber: '555' } });
+    await expect(updateGroupName(group.id, user!.id, '')).rejects.toThrow();
   });
 });
 

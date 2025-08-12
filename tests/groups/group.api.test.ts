@@ -13,9 +13,16 @@ const dbFile = path.join(
 process.env.DATABASE_URL = `file:${dbFile}`;
 execSync('npx prisma migrate deploy', { stdio: 'ignore', cwd: projectRoot });
 
-import { POST as invitePost } from '../../app/api/groups/[groupId]/invite/route';
-import { DELETE as removeUserDelete } from '../../app/api/groups/[groupId]/users/[userId]/route';
-import { prisma } from '../../lib/group';
+const { POST: invitePost } = await import(
+  '../../app/api/groups/[groupId]/invite/route'
+);
+const { DELETE: removeUserDelete } = await import(
+  '../../app/api/groups/[groupId]/users/[userId]/route'
+);
+const { PATCH: groupPatch } = await import(
+  '../../app/api/groups/[groupId]/route'
+);
+const { prisma } = await import('../../lib/group');
 
 describe('group API routes', () => {
   beforeEach(async () => {
@@ -112,6 +119,61 @@ describe('group API routes', () => {
     expect(res.status).toBe(404);
     const data = await res.json();
     expect(data.error).toMatch(/not found/i);
+  });
+
+  it('PATCH renames group for member', async () => {
+    const group = await prisma.group.create({ data: { name: 'old api' } });
+    const user = await prisma.user.create({ data: { phoneNumber: '666' } });
+    await prisma.groupMember.create({ data: { groupId: group.id, userId: user.id } });
+    const res = await groupPatch(
+      new Request(`http://localhost/api/groups/${group.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-user-id': user.id,
+        },
+        body: JSON.stringify({ name: 'new api' }),
+      }),
+      { params: { groupId: group.id } }
+    );
+    expect(res.status).toBe(200);
+    const data = await res.json();
+    expect(data.name).toBe('new api');
+  });
+
+  it('PATCH rejects non-member', async () => {
+    const group = await prisma.group.create({ data: { name: 'old api' } });
+    const user = await prisma.user.create({ data: { phoneNumber: '777' } });
+    const res = await groupPatch(
+      new Request(`http://localhost/api/groups/${group.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-user-id': user.id,
+        },
+        body: JSON.stringify({ name: 'new api' }),
+      }),
+      { params: { groupId: group.id } }
+    );
+    expect(res.status).toBe(403);
+  });
+
+  it('PATCH validates name', async () => {
+    const group = await prisma.group.create({ data: { name: 'old api' } });
+    const user = await prisma.user.create({ data: { phoneNumber: '888' } });
+    await prisma.groupMember.create({ data: { groupId: group.id, userId: user.id } });
+    const res = await groupPatch(
+      new Request(`http://localhost/api/groups/${group.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-user-id': user.id,
+        },
+        body: JSON.stringify({ name: '' }),
+      }),
+      { params: { groupId: group.id } }
+    );
+    expect(res.status).toBe(400);
   });
 });
 
