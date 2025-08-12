@@ -11,10 +11,28 @@ datasource db {
 }
 
 model User {
-  id           String @id @default(cuid())
-  phoneNumber  String @unique
-  credentialId Bytes?
-  publicKey    Bytes?
-  counter      Int?
+  id               String        @id @default(cuid())
+  phoneNumber      String        @unique
+  credentialId     Bytes?
+  publicKey        Bytes?
+  counter          Int?
   currentChallenge String?
+  memberships      GroupMember[]
+}
+
+model Group {
+  id        String        @id @default(cuid())
+  name      String
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  members   GroupMember[]
+}
+
+model GroupMember {
+  group   Group  @relation(fields: [groupId], references: [id])
+  groupId String
+  user    User   @relation(fields: [userId], references: [id])
+  userId  String
+
+  @@id([groupId, userId])
 }
