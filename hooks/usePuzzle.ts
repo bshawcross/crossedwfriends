@@ -26,10 +26,18 @@ export default function usePuzzle() {
           return
         } catch {}
       }
-      const res = await fetch(`/api/puzzle/${seed}`)
-      const p = await res.json()
-      setPuzzle(p)
-      setCells(p.cells)
+      try {
+        const res = await fetch(`/api/puzzle/${seed}`)
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+        const p: Puzzle = await res.json()
+        if (!Array.isArray((p as any)?.cells)) throw new Error('Missing cells')
+        setPuzzle(p)
+        setCells(p.cells)
+      } catch (err) {
+        console.error('Failed to load puzzle', err)
+        setPuzzle(null)
+        setCells([])
+      }
     })()
   }, [demo, seed])
 
