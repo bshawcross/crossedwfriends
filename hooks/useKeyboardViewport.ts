@@ -6,7 +6,7 @@ import { KEYBOARD_INSET_THRESHOLD } from '@/utils/constants'
 type Dir = { number: number | null; dir: 'across' | 'down' }
 
 export default function useKeyboardViewport(
-  gridInnerRef: RefObject<HTMLDivElement>,
+  gridInnerRef: RefObject<HTMLDivElement | null>,
   clueBarH: number,
   active?: Dir
 ) {

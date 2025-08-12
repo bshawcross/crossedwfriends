@@ -4,9 +4,10 @@ import { updateGroupName, prisma } from '@/lib/group';
 
 export async function GET(
   req: Request,
-  { params }: { params: { groupId: string } }
+  { params }: { params: Promise<{ groupId: string }> }
 ) {
-  const group = await prisma.group.findUnique({ where: { id: params.groupId } });
+  const { groupId } = await params;
+  const group = await prisma.group.findUnique({ where: { id: groupId } });
   if (!group) {
     return NextResponse.json({ error: 'Group not found' }, { status: 404 });
   }
@@ -15,9 +16,9 @@ export async function GET(
 
 export async function PATCH(
   req: Request,
-  { params }: { params: { groupId: string } }
+  { params }: { params: Promise<{ groupId: string }> }
 ) {
-  const { groupId } = params;
+  const { groupId } = await params;
   let body: { name?: string };
   try {
     body = await req.json();

@@ -48,7 +48,10 @@ export async function GET(req: Request) {
   // Encode credential IDs for transport to client
   options.excludeCredentials = options.excludeCredentials?.map(c => ({
     ...c,
-    id: c.id.toString('base64url'),
+    id:
+      typeof c.id === 'string'
+        ? c.id
+        : (c.id as Buffer).toString('base64url'),
   }));
 
   return NextResponse.json(options);
@@ -80,8 +83,8 @@ export async function POST(req: Request) {
   if (verification.verified && verification.registrationInfo) {
     const { credentialID, credentialPublicKey, counter } = verification.registrationInfo;
     await saveCredential(phone, {
-      credentialID,
-      publicKey: credentialPublicKey,
+      credentialID: Buffer.from(credentialID),
+      publicKey: Buffer.from(credentialPublicKey),
       counter,
     });
   }

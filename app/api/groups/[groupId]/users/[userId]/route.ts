@@ -4,9 +4,9 @@ import { removeUserFromGroup } from '@/lib/group';
 
 export async function DELETE(
   req: Request,
-  { params }: { params: { groupId: string; userId: string } }
+  { params }: { params: Promise<{ groupId: string; userId: string }> }
 ) {
-  const { groupId, userId } = params;
+  const { groupId, userId } = await params;
 
   try {
     await removeUserFromGroup(groupId, userId);
