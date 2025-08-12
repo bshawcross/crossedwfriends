@@ -3,11 +3,12 @@ import { sendMessage, listMessages } from '@/lib/chat';
 
 export async function GET(
   req: Request,
-  { params }: { params: { groupId: string } }
+  { params }: { params: Promise<{ groupId: string }> }
 ) {
   const userId = req.headers.get('x-user-id') ?? '';
   try {
-    const messages = await listMessages(params.groupId, userId);
+    const { groupId } = await params;
+    const messages = await listMessages(groupId, userId);
     return NextResponse.json(messages);
   } catch (err) {
     if (err instanceof Error && /not a member/i.test(err.message)) {
@@ -19,7 +20,7 @@ export async function GET(
 
 export async function POST(
   req: Request,
-  { params }: { params: { groupId: string } }
+  { params }: { params: Promise<{ groupId: string }> }
 ) {
   const userId = req.headers.get('x-user-id') ?? '';
   let body: { content?: string };
@@ -33,7 +34,8 @@ export async function POST(
     return NextResponse.json({ error: 'Invalid content' }, { status: 400 });
   }
   try {
-    const message = await sendMessage(params.groupId, userId, content);
+    const { groupId } = await params;
+    const message = await sendMessage(groupId, userId, content);
     return NextResponse.json(message, { status: 201 });
   } catch (err) {
     if (err instanceof Error && /not a member/i.test(err.message)) {

@@ -4,9 +4,10 @@ import { prisma } from '@/lib/group';
 export default async function GroupSettingsPage({
   params,
 }: {
-  params: { groupId: string };
+  params: Promise<{ groupId: string }>;
 }) {
-  const group = await prisma.group.findUnique({ where: { id: params.groupId } });
+  const { groupId } = await params;
+  const group = await prisma.group.findUnique({ where: { id: groupId } });
   if (!group) {
     return <main className="p-4">Group not found</main>;
   }

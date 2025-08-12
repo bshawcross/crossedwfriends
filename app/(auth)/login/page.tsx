@@ -38,19 +38,16 @@ export default function LoginPage() {
       })) as PublicKeyCredential
 
       const { id, rawId, response, type, authenticatorAttachment } = credential
+      const authResponse = response as AuthenticatorAssertionResponse
       const assertionResponse = {
         id,
         rawId: fromArrayBuffer(rawId),
         response: {
-          authenticatorData: fromArrayBuffer(
-            (response as AuthenticatorAssertionResponse).authenticatorData
-          ),
+          authenticatorData: fromArrayBuffer(authResponse.authenticatorData),
           clientDataJSON: fromArrayBuffer(response.clientDataJSON),
-          signature: fromArrayBuffer(
-            (response as AuthenticatorAssertionResponse).signature
-          ),
-          userHandle: response.userHandle
-            ? fromArrayBuffer(response.userHandle)
+          signature: fromArrayBuffer(authResponse.signature),
+          userHandle: authResponse.userHandle
+            ? fromArrayBuffer(authResponse.userHandle)
             : null
         },
         type,

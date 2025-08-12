@@ -8,9 +8,9 @@ interface InviteBody {
 
 export async function POST(
   req: Request,
-  { params }: { params: { groupId: string } }
+  { params }: { params: Promise<{ groupId: string }> }
 ) {
-  const { groupId } = params;
+  const { groupId } = await params;
   let body: InviteBody;
 
   try {

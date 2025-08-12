@@ -29,7 +29,7 @@ export async function GET(req: Request) {
           id: Buffer.isBuffer(user.credentialId)
             ? user.credentialId
             : Buffer.from(user.credentialId as any, 'base64url'),
-          type: 'public-key',
+          type: 'public-key' as const,
         },
       ]
     : [];
@@ -38,17 +38,16 @@ export async function GET(req: Request) {
     rpID,
     allowCredentials: allowCreds,
     userVerification: 'required',
-    authenticatorSelection: {
-      authenticatorAttachment: 'platform',
-      userVerification: 'required',
-    },
   });
   await setChallenge(phone, options.challenge);
 
   // Encode IDs for the client
   options.allowCredentials = options.allowCredentials?.map(c => ({
     ...c,
-    id: c.id.toString('base64url'),
+    id:
+      typeof c.id === 'string'
+        ? c.id
+        : (c.id as Buffer).toString('base64url'),
   }));
 
   return NextResponse.json(options);
