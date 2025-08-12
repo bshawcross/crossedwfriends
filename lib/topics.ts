@@ -84,30 +84,27 @@ export async function getFunFactWords(): Promise<WordEntry[]> {
   return result ?? [];
 }
 
-export async function getCurrentEventWords(): Promise<WordEntry[]> {
-  const now = new Date();
-  const key = `current-${yyyyMmDd(now)}`;
+export async function getCurrentEventWords(date: Date): Promise<WordEntry[]> {
+  const key = `current-${yyyyMmDd(date)}`;
   const result = await getCached<WordEntry[]>(key, async () => {
-    const year = now.getUTCFullYear();
-    const month = String(now.getUTCMonth() + 1).padStart(2, '0');
-    const day = String(now.getUTCDate()).padStart(2, '0');
-    const url = `https://wikimedia.org/api/rest_v1/metrics/pageviews/top/en.wikipedia/all-access/${year}/${month}/${day}`;
+    const url = 'https://en.wikipedia.org/api/rest_v1/feed/news';
     let res: Response;
     try {
       res = await fetch(url);
     } catch (e) {
-      logError('api_fetch_failed', { source: 'wikimedia', url, error: (e as Error).message });
+      logError('api_fetch_failed', { source: 'wikinews', url, error: (e as Error).message });
       throw e;
     }
     if (!res.ok) {
-      logError('api_status_error', { source: 'wikimedia', url, status: res.status });
-      throw new Error(`Wikimedia request failed: ${res.status}`);
+      logError('api_status_error', { source: 'wikinews', url, status: res.status });
+      throw new Error(`Wikinews request failed: ${res.status}`);
     }
     const json = await res.json();
-    const articles = json.items?.[0]?.articles || [];
+    const titles: string[] = (json.stories || [])
+      .flatMap((s: any) => (s.links || []).map((l: any) => l.title))
+      .filter((t: any): t is string => typeof t === 'string');
     const out: WordEntry[] = [];
-    for (const a of articles) {
-      const title = a.article as string;
+    for (const title of titles) {
       const normalized = title.replace(/_/g, ' ');
       const answer = normalized.replace(/[^A-Za-z]/g, '').toUpperCase();
       if (!isCrosswordFriendly(answer)) continue;

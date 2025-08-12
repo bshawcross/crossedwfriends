@@ -42,6 +42,8 @@ describe('generateDaily script', () => {
     expect(puzzle.id).toBe('2024-01-02:seasonal,funFacts,currentEvents');
     expect(puzzle.title).toBe('Daily Placeholder');
     expect(puzzle.cells).toHaveLength(225);
+    expect(seasonalMock).toHaveBeenCalledWith(new Date('2024-01-02T00:00:00Z'));
+    expect(currentMock).toHaveBeenCalledWith(new Date('2024-01-02T00:00:00Z'));
 
     process.chdir(originalCwd);
   });
