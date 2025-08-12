@@ -47,3 +47,7 @@ You can load it in your shell with `source .env` or by copying it to `.env.local
 
 - WebAuthn authentication only accepts platform biometrics (e.g., Face ID).
   External security keys are not supported.
+
+## Browser testing
+
+- Confirmed in a clean incognito browser session with extensions disabled that no hydration errors related to `data-gr-*` attributes appear.
