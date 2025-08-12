@@ -15,4 +15,21 @@ export async function removeUserFromGroup(groupId: string, userId: string) {
   });
 }
 
+export async function updateGroupName(
+  groupId: string,
+  userId: string,
+  name: string
+) {
+  if (!name || !name.trim()) {
+    throw new Error('Name required');
+  }
+  const membership = await prisma.groupMember.findUnique({
+    where: { groupId_userId: { groupId, userId } },
+  });
+  if (!membership) {
+    throw new Error('Not a member');
+  }
+  return prisma.group.update({ where: { id: groupId }, data: { name } });
+}
+
 export { prisma };
