@@ -25,24 +25,52 @@ You can load it in your shell with `source .env` or by copying it to `.env.local
    npx prisma generate
    ```
 
+## Puzzle quality gate
+
+Daily puzzles are produced with a deterministic generation pipeline.
+Run the generator to build the puzzle for today:
+
+```bash
+pnpm gen:daily
+```
+
+The script assembles word lists, creates a puzzle seeded by the date,
+and then runs `validatePuzzle` to enforce structural rules. Validators
+ensure every clue is normalized by `cleanClue`, answers obey the policy
+from `isAnswerAllowed`, and the grid passes symmetry and length checks.
+
+The answer policy draws from two word lists:
+
+- `data/allowlist.json` – two-letter answers explicitly permitted.
+- `data/denylist.json` – answers that should never appear.
+
+To modify these lists, edit the JSON arrays and add the new entry in
+uppercase. After any change, regenerate and verify:
+
+```bash
+pnpm gen:daily
+pnpm test
+pnpm lint
+```
+
 ## Project tips
 
 - Generate the daily puzzle data locally with:
 
   ```bash
-  npm run generate:daily
+  pnpm gen:daily
   ```
 
 - Run the test suite with:
 
   ```bash
-  npm test
+  pnpm test
   ```
 
 - Lint the codebase with:
   
   ```bash
-  npm run lint
+  pnpm lint
   ```
 
 - WebAuthn authentication only accepts platform biometrics (e.g., Face ID).
