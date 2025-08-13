@@ -1,0 +1,2456 @@
+{
+  "id": "2025-08-13:seasonal,funFacts,currentEvents",
+  "title": "Daily Placeholder",
+  "theme": "seasonal/current-events",
+  "across": [
+    {
+      "number": 3,
+      "text": "OK clue 2",
+      "length": 2,
+      "enumeration": "(2)"
+    },
+    {
+      "number": 4,
+      "text": "OK clue 4",
+      "length": 2,
+      "enumeration": "(2)"
+    },
+    {
+      "number": 5,
+      "text": "OK clue 6",
+      "length": 2,
+      "enumeration": "(2)"
+    },
+    {
+      "number": 6,
+      "text": "OK clue 8",
+      "length": 2,
+      "enumeration": "(2)"
+    },
+    {
+      "number": 7,
+      "text": "OK clue 10",
+      "length": 2,
+      "enumeration": "(2)"
+    },
+    {
+      "number": 9,
+      "text": "AX clue 13",
+      "length": 2,
+      "enumeration": "(2)"
+    },
+    {
+      "number": 10,
+      "text": "AX clue 15",
+      "length": 2,
+      "enumeration": "(2)"
+    },
+    {
+      "number": 11,
+      "text": "AX clue 17",
+      "length": 2,
+      "enumeration": "(2)"
+    },
+    {
+      "number": 12,
+      "text": "AX clue 19",
+      "length": 2,
+      "enumeration": "(2)"
+    },
+    {
+      "number": 13,
+      "text": "AX clue 21",
+      "length": 2,
+      "enumeration": "(2)"
+    },
+    {
+      "number": 14,
+      "text": "AX clue 23",
+      "length": 2,
+      "enumeration": "(2)"
+    },
+    {
+      "number": 15,
+      "text": "AX clue 25",
+      "length": 2,
+      "enumeration": "(2)"
+    },
+    {
+      "number": 16,
+      "text": "AX clue 27",
+      "length": 2,
+      "enumeration": "(2)"
+    },
+    {
+      "number": 17,
+      "text": "AX clue 29",
+      "length": 2,
+      "enumeration": "(2)"
+    },
+    {
+      "number": 18,
+      "text": "AX clue 31",
+      "length": 2,
+      "enumeration": "(2)"
+    },
+    {
+      "number": 19,
+      "text": "OK clue 32",
+      "length": 2,
+      "enumeration": "(2)"
+    },
+    {
+      "number": 20,
+      "text": "OK clue 34",
+      "length": 2,
+      "enumeration": "(2)"
+    },
+    {
+      "number": 22,
+      "text": "OK clue 36",
+      "length": 2,
+      "enumeration": "(2)"
+    },
+    {
+      "number": 23,
+      "text": "OK clue 38",
+      "length": 2,
+      "enumeration": "(2)"
+    },
+    {
+      "number": 24,
+      "text": "OK clue 40",
+      "length": 2,
+      "enumeration": "(2)"
+    },
+    {
+      "number": 25,
+      "text": "OK clue 42",
+      "length": 2,
+      "enumeration": "(2)"
+    },
+    {
+      "number": 26,
+      "text": "OK clue 44",
+      "length": 2,
+      "enumeration": "(2)"
+    },
+    {
+      "number": 27,
+      "text": "OK clue 46",
+      "length": 2,
+      "enumeration": "(2)"
+    },
+    {
+      "number": 28,
+      "text": "OK clue 48",
+      "length": 2,
+      "enumeration": "(2)"
+    },
+    {
+      "number": 29,
+      "text": "OK clue 50",
+      "length": 2,
+      "enumeration": "(2)"
+    },
+    {
+      "number": 30,
+      "text": "OK clue 52",
+      "length": 2,
+      "enumeration": "(2)"
+    },
+    {
+      "number": 31,
+      "text": "OK clue 54",
+      "length": 2,
+      "enumeration": "(2)"
+    },
+    {
+      "number": 32,
+      "text": "OK clue 56",
+      "length": 2,
+      "enumeration": "(2)"
+    },
+    {
+      "number": 33,
+      "text": "OK clue 58",
+      "length": 2,
+      "enumeration": "(2)"
+    },
+    {
+      "number": 34,
+      "text": "OK clue 60",
+      "length": 2,
+      "enumeration": "(2)"
+    },
+    {
+      "number": 35,
+      "text": "OK clue 62",
+      "length": 2,
+      "enumeration": "(2)"
+    },
+    {
+      "number": 37,
+      "text": "AX clue 65",
+      "length": 2,
+      "enumeration": "(2)"
+    },
+    {
+      "number": 38,
+      "text": "AX clue 67",
+      "length": 2,
+      "enumeration": "(2)"
+    },
+    {
+      "number": 39,
+      "text": "OK clue 68",
+      "length": 2,
+      "enumeration": "(2)"
+    }
+  ],
+  "down": [
+    {
+      "number": 1,
+      "text": "OK clue 0",
+      "length": 2,
+      "enumeration": "(2)"
+    },
+    {
+      "number": 2,
+      "text": "AX clue 1",
+      "length": 2,
+      "enumeration": "(2)"
+    },
+    {
+      "number": 3,
+      "text": "AX clue 3",
+      "length": 2,
+      "enumeration": "(2)"
+    },
+    {
+      "number": 4,
+      "text": "AX clue 5",
+      "length": 2,
+      "enumeration": "(2)"
+    },
+    {
+      "number": 5,
+      "text": "AX clue 7",
+      "length": 2,
+      "enumeration": "(2)"
+    },
+    {
+      "number": 6,
+      "text": "AX clue 9",
+      "length": 2,
+      "enumeration": "(2)"
+    },
+    {
+      "number": 7,
+      "text": "AX clue 11",
+      "length": 2,
+      "enumeration": "(2)"
+    },
+    {
+      "number": 8,
+      "text": "OK clue 12",
+      "length": 2,
+      "enumeration": "(2)"
+    },
+    {
+      "number": 9,
+      "text": "OK clue 14",
+      "length": 2,
+      "enumeration": "(2)"
+    },
+    {
+      "number": 10,
+      "text": "OK clue 16",
+      "length": 2,
+      "enumeration": "(2)"
+    },
+    {
+      "number": 11,
+      "text": "OK clue 18",
+      "length": 2,
+      "enumeration": "(2)"
+    },
+    {
+      "number": 12,
+      "text": "OK clue 20",
+      "length": 2,
+      "enumeration": "(2)"
+    },
+    {
+      "number": 13,
+      "text": "OK clue 22",
+      "length": 2,
+      "enumeration": "(2)"
+    },
+    {
+      "number": 14,
+      "text": "OK clue 24",
+      "length": 2,
+      "enumeration": "(2)"
+    },
+    {
+      "number": 15,
+      "text": "OK clue 26",
+      "length": 2,
+      "enumeration": "(2)"
+    },
+    {
+      "number": 16,
+      "text": "OK clue 28",
+      "length": 2,
+      "enumeration": "(2)"
+    },
+    {
+      "number": 17,
+      "text": "OK clue 30",
+      "length": 2,
+      "enumeration": "(2)"
+    },
+    {
+      "number": 19,
+      "text": "AX clue 33",
+      "length": 2,
+      "enumeration": "(2)"
+    },
+    {
+      "number": 21,
+      "text": "AX clue 35",
+      "length": 2,
+      "enumeration": "(2)"
+    },
+    {
+      "number": 22,
+      "text": "AX clue 37",
+      "length": 2,
+      "enumeration": "(2)"
+    },
+    {
+      "number": 23,
+      "text": "AX clue 39",
+      "length": 2,
+      "enumeration": "(2)"
+    },
+    {
+      "number": 24,
+      "text": "AX clue 41",
+      "length": 2,
+      "enumeration": "(2)"
+    },
+    {
+      "number": 25,
+      "text": "AX clue 43",
+      "length": 2,
+      "enumeration": "(2)"
+    },
+    {
+      "number": 26,
+      "text": "AX clue 45",
+      "length": 2,
+      "enumeration": "(2)"
+    },
+    {
+      "number": 27,
+      "text": "AX clue 47",
+      "length": 2,
+      "enumeration": "(2)"
+    },
+    {
+      "number": 28,
+      "text": "AX clue 49",
+      "length": 2,
+      "enumeration": "(2)"
+    },
+    {
+      "number": 29,
+      "text": "AX clue 51",
+      "length": 2,
+      "enumeration": "(2)"
+    },
+    {
+      "number": 30,
+      "text": "AX clue 53",
+      "length": 2,
+      "enumeration": "(2)"
+    },
+    {
+      "number": 31,
+      "text": "AX clue 55",
+      "length": 2,
+      "enumeration": "(2)"
+    },
+    {
+      "number": 32,
+      "text": "AX clue 57",
+      "length": 2,
+      "enumeration": "(2)"
+    },
+    {
+      "number": 33,
+      "text": "AX clue 59",
+      "length": 2,
+      "enumeration": "(2)"
+    },
+    {
+      "number": 34,
+      "text": "AX clue 61",
+      "length": 2,
+      "enumeration": "(2)"
+    },
+    {
+      "number": 35,
+      "text": "AX clue 63",
+      "length": 2,
+      "enumeration": "(2)"
+    },
+    {
+      "number": 36,
+      "text": "OK clue 64",
+      "length": 2,
+      "enumeration": "(2)"
+    },
+    {
+      "number": 37,
+      "text": "OK clue 66",
+      "length": 2,
+      "enumeration": "(2)"
+    },
+    {
+      "number": 39,
+      "text": "AX clue 69",
+      "length": 2,
+      "enumeration": "(2)"
+    }
+  ],
+  "cells": [
+    {
+      "row": 0,
+      "col": 0,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 0,
+      "col": 1,
+      "isBlack": false,
+      "answer": "O",
+      "clueNumber": 1,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 0,
+      "col": 2,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 0,
+      "col": 3,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 0,
+      "col": 4,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 0,
+      "col": 5,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 0,
+      "col": 6,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 0,
+      "col": 7,
+      "isBlack": false,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 0,
+      "col": 8,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 0,
+      "col": 9,
+      "isBlack": false,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 0,
+      "col": 10,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 0,
+      "col": 11,
+      "isBlack": false,
+      "answer": "A",
+      "clueNumber": 2,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 0,
+      "col": 12,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 0,
+      "col": 13,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 0,
+      "col": 14,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 1,
+      "col": 0,
+      "isBlack": false,
+      "answer": "A",
+      "clueNumber": 3,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 1,
+      "col": 1,
+      "isBlack": false,
+      "answer": "K",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 1,
+      "col": 2,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 1,
+      "col": 3,
+      "isBlack": false,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 1,
+      "col": 4,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 1,
+      "col": 5,
+      "isBlack": false,
+      "answer": "A",
+      "clueNumber": 4,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 1,
+      "col": 6,
+      "isBlack": false,
+      "answer": "K",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 1,
+      "col": 7,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 1,
+      "col": 8,
+      "isBlack": false,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 1,
+      "col": 9,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 1,
+      "col": 10,
+      "isBlack": false,
+      "answer": "A",
+      "clueNumber": 5,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 1,
+      "col": 11,
+      "isBlack": false,
+      "answer": "K",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 1,
+      "col": 12,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 1,
+      "col": 13,
+      "isBlack": false,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 1,
+      "col": 14,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 2,
+      "col": 0,
+      "isBlack": false,
+      "answer": "X",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 2,
+      "col": 1,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 2,
+      "col": 2,
+      "isBlack": false,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 2,
+      "col": 3,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 2,
+      "col": 4,
+      "isBlack": false,
+      "answer": "A",
+      "clueNumber": 6,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 2,
+      "col": 5,
+      "isBlack": false,
+      "answer": "K",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 2,
+      "col": 6,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 2,
+      "col": 7,
+      "isBlack": false,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 2,
+      "col": 8,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 2,
+      "col": 9,
+      "isBlack": false,
+      "answer": "A",
+      "clueNumber": 7,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 2,
+      "col": 10,
+      "isBlack": false,
+      "answer": "K",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 2,
+      "col": 11,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 2,
+      "col": 12,
+      "isBlack": false,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 2,
+      "col": 13,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 2,
+      "col": 14,
+      "isBlack": false,
+      "answer": "O",
+      "clueNumber": 8,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 3,
+      "col": 0,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 3,
+      "col": 1,
+      "isBlack": false,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 3,
+      "col": 2,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 3,
+      "col": 3,
+      "isBlack": false,
+      "answer": "O",
+      "clueNumber": 9,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 3,
+      "col": 4,
+      "isBlack": false,
+      "answer": "X",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 3,
+      "col": 5,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 3,
+      "col": 6,
+      "isBlack": false,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 3,
+      "col": 7,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 3,
+      "col": 8,
+      "isBlack": false,
+      "answer": "O",
+      "clueNumber": 10,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 3,
+      "col": 9,
+      "isBlack": false,
+      "answer": "X",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 3,
+      "col": 10,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 3,
+      "col": 11,
+      "isBlack": false,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 3,
+      "col": 12,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 3,
+      "col": 13,
+      "isBlack": false,
+      "answer": "O",
+      "clueNumber": 11,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 3,
+      "col": 14,
+      "isBlack": false,
+      "answer": "X",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 4,
+      "col": 0,
+      "isBlack": false,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 4,
+      "col": 1,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 4,
+      "col": 2,
+      "isBlack": false,
+      "answer": "O",
+      "clueNumber": 12,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 4,
+      "col": 3,
+      "isBlack": false,
+      "answer": "X",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 4,
+      "col": 4,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 4,
+      "col": 5,
+      "isBlack": false,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 4,
+      "col": 6,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 4,
+      "col": 7,
+      "isBlack": false,
+      "answer": "O",
+      "clueNumber": 13,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 4,
+      "col": 8,
+      "isBlack": false,
+      "answer": "X",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 4,
+      "col": 9,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 4,
+      "col": 10,
+      "isBlack": false,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 4,
+      "col": 11,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 4,
+      "col": 12,
+      "isBlack": false,
+      "answer": "O",
+      "clueNumber": 14,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 4,
+      "col": 13,
+      "isBlack": false,
+      "answer": "X",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 4,
+      "col": 14,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 5,
+      "col": 0,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 5,
+      "col": 1,
+      "isBlack": false,
+      "answer": "O",
+      "clueNumber": 15,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 5,
+      "col": 2,
+      "isBlack": false,
+      "answer": "X",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 5,
+      "col": 3,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 5,
+      "col": 4,
+      "isBlack": false,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 5,
+      "col": 5,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 5,
+      "col": 6,
+      "isBlack": false,
+      "answer": "O",
+      "clueNumber": 16,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 5,
+      "col": 7,
+      "isBlack": false,
+      "answer": "X",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 5,
+      "col": 8,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 5,
+      "col": 9,
+      "isBlack": false,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 5,
+      "col": 10,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 5,
+      "col": 11,
+      "isBlack": false,
+      "answer": "O",
+      "clueNumber": 17,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 5,
+      "col": 12,
+      "isBlack": false,
+      "answer": "X",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 5,
+      "col": 13,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 5,
+      "col": 14,
+      "isBlack": false,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 6,
+      "col": 0,
+      "isBlack": false,
+      "answer": "A",
+      "clueNumber": 18,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 6,
+      "col": 1,
+      "isBlack": false,
+      "answer": "X",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 6,
+      "col": 2,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 6,
+      "col": 3,
+      "isBlack": false,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 6,
+      "col": 4,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 6,
+      "col": 5,
+      "isBlack": false,
+      "answer": "A",
+      "clueNumber": 19,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 6,
+      "col": 6,
+      "isBlack": false,
+      "answer": "K",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 6,
+      "col": 7,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 6,
+      "col": 8,
+      "isBlack": false,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 6,
+      "col": 9,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 6,
+      "col": 10,
+      "isBlack": false,
+      "answer": "O",
+      "clueNumber": 20,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 6,
+      "col": 11,
+      "isBlack": false,
+      "answer": "K",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 6,
+      "col": 12,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 6,
+      "col": 13,
+      "isBlack": false,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 6,
+      "col": 14,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 7,
+      "col": 0,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 7,
+      "col": 1,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 7,
+      "col": 2,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 7,
+      "col": 3,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 7,
+      "col": 4,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 7,
+      "col": 5,
+      "isBlack": false,
+      "answer": "X",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 7,
+      "col": 6,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 7,
+      "col": 7,
+      "isBlack": false,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 7,
+      "col": 8,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 7,
+      "col": 9,
+      "isBlack": false,
+      "answer": "A",
+      "clueNumber": 21,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 7,
+      "col": 10,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 7,
+      "col": 11,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 7,
+      "col": 12,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 7,
+      "col": 13,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 7,
+      "col": 14,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 8,
+      "col": 0,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 8,
+      "col": 1,
+      "isBlack": false,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 8,
+      "col": 2,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 8,
+      "col": 3,
+      "isBlack": false,
+      "answer": "A",
+      "clueNumber": 22,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 8,
+      "col": 4,
+      "isBlack": false,
+      "answer": "K",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 8,
+      "col": 5,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 8,
+      "col": 6,
+      "isBlack": false,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 8,
+      "col": 7,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 8,
+      "col": 8,
+      "isBlack": false,
+      "answer": "A",
+      "clueNumber": 23,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 8,
+      "col": 9,
+      "isBlack": false,
+      "answer": "K",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 8,
+      "col": 10,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 8,
+      "col": 11,
+      "isBlack": false,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 8,
+      "col": 12,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 8,
+      "col": 13,
+      "isBlack": false,
+      "answer": "A",
+      "clueNumber": 24,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 8,
+      "col": 14,
+      "isBlack": false,
+      "answer": "K",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 9,
+      "col": 0,
+      "isBlack": false,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 9,
+      "col": 1,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 9,
+      "col": 2,
+      "isBlack": false,
+      "answer": "A",
+      "clueNumber": 25,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 9,
+      "col": 3,
+      "isBlack": false,
+      "answer": "K",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 9,
+      "col": 4,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 9,
+      "col": 5,
+      "isBlack": false,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 9,
+      "col": 6,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 9,
+      "col": 7,
+      "isBlack": false,
+      "answer": "A",
+      "clueNumber": 26,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 9,
+      "col": 8,
+      "isBlack": false,
+      "answer": "K",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 9,
+      "col": 9,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 9,
+      "col": 10,
+      "isBlack": false,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 9,
+      "col": 11,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 9,
+      "col": 12,
+      "isBlack": false,
+      "answer": "A",
+      "clueNumber": 27,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 9,
+      "col": 13,
+      "isBlack": false,
+      "answer": "K",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 9,
+      "col": 14,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 10,
+      "col": 0,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 10,
+      "col": 1,
+      "isBlack": false,
+      "answer": "A",
+      "clueNumber": 28,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 10,
+      "col": 2,
+      "isBlack": false,
+      "answer": "K",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 10,
+      "col": 3,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 10,
+      "col": 4,
+      "isBlack": false,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 10,
+      "col": 5,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 10,
+      "col": 6,
+      "isBlack": false,
+      "answer": "A",
+      "clueNumber": 29,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 10,
+      "col": 7,
+      "isBlack": false,
+      "answer": "K",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 10,
+      "col": 8,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 10,
+      "col": 9,
+      "isBlack": false,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 10,
+      "col": 10,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 10,
+      "col": 11,
+      "isBlack": false,
+      "answer": "A",
+      "clueNumber": 30,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 10,
+      "col": 12,
+      "isBlack": false,
+      "answer": "K",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 10,
+      "col": 13,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 10,
+      "col": 14,
+      "isBlack": false,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 11,
+      "col": 0,
+      "isBlack": false,
+      "answer": "A",
+      "clueNumber": 31,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 11,
+      "col": 1,
+      "isBlack": false,
+      "answer": "K",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 11,
+      "col": 2,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 11,
+      "col": 3,
+      "isBlack": false,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 11,
+      "col": 4,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 11,
+      "col": 5,
+      "isBlack": false,
+      "answer": "A",
+      "clueNumber": 32,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 11,
+      "col": 6,
+      "isBlack": false,
+      "answer": "K",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 11,
+      "col": 7,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 11,
+      "col": 8,
+      "isBlack": false,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 11,
+      "col": 9,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 11,
+      "col": 10,
+      "isBlack": false,
+      "answer": "A",
+      "clueNumber": 33,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 11,
+      "col": 11,
+      "isBlack": false,
+      "answer": "K",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 11,
+      "col": 12,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 11,
+      "col": 13,
+      "isBlack": false,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 11,
+      "col": 14,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 12,
+      "col": 0,
+      "isBlack": false,
+      "answer": "X",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 12,
+      "col": 1,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 12,
+      "col": 2,
+      "isBlack": false,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 12,
+      "col": 3,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 12,
+      "col": 4,
+      "isBlack": false,
+      "answer": "A",
+      "clueNumber": 34,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 12,
+      "col": 5,
+      "isBlack": false,
+      "answer": "K",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 12,
+      "col": 6,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 12,
+      "col": 7,
+      "isBlack": false,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 12,
+      "col": 8,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 12,
+      "col": 9,
+      "isBlack": false,
+      "answer": "A",
+      "clueNumber": 35,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 12,
+      "col": 10,
+      "isBlack": false,
+      "answer": "K",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 12,
+      "col": 11,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 12,
+      "col": 12,
+      "isBlack": false,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 12,
+      "col": 13,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 12,
+      "col": 14,
+      "isBlack": false,
+      "answer": "O",
+      "clueNumber": 36,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 13,
+      "col": 0,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 13,
+      "col": 1,
+      "isBlack": false,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 13,
+      "col": 2,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 13,
+      "col": 3,
+      "isBlack": false,
+      "answer": "O",
+      "clueNumber": 37,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 13,
+      "col": 4,
+      "isBlack": false,
+      "answer": "X",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 13,
+      "col": 5,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 13,
+      "col": 6,
+      "isBlack": false,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 13,
+      "col": 7,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 13,
+      "col": 8,
+      "isBlack": false,
+      "answer": "A",
+      "clueNumber": 38,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 13,
+      "col": 9,
+      "isBlack": false,
+      "answer": "X",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 13,
+      "col": 10,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 13,
+      "col": 11,
+      "isBlack": false,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 13,
+      "col": 12,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 13,
+      "col": 13,
+      "isBlack": false,
+      "answer": "A",
+      "clueNumber": 39,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 13,
+      "col": 14,
+      "isBlack": false,
+      "answer": "K",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 14,
+      "col": 0,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 14,
+      "col": 1,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 14,
+      "col": 2,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 14,
+      "col": 3,
+      "isBlack": false,
+      "answer": "K",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 14,
+      "col": 4,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 14,
+      "col": 5,
+      "isBlack": false,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 14,
+      "col": 6,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 14,
+      "col": 7,
+      "isBlack": false,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 14,
+      "col": 8,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 14,
+      "col": 9,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 14,
+      "col": 10,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 14,
+      "col": 11,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 14,
+      "col": 12,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 14,
+      "col": 13,
+      "isBlack": false,
+      "answer": "X",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    },
+    {
+      "row": 14,
+      "col": 14,
+      "isBlack": true,
+      "answer": "",
+      "clueNumber": null,
+      "userInput": "",
+      "isSelected": false
+    }
+  ]
+}
