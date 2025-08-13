@@ -3,11 +3,12 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { tmpdir } from 'os';
 import { NextRequest } from 'next/server';
+import { largeWordList } from '../helpers/wordList';
 
 const mockTopics = {
-  getSeasonalWords: vi.fn().mockResolvedValue([{ answer: 'APPLE', clue: 'a fruit' }]),
-  getFunFactWords: vi.fn().mockResolvedValue([{ answer: 'BANANA', clue: 'yellow fruit' }]),
-  getCurrentEventWords: vi.fn().mockResolvedValue([{ answer: 'CARROT', clue: 'orange veg' }])
+  getSeasonalWords: vi.fn().mockResolvedValue(largeWordList()),
+  getFunFactWords: vi.fn().mockResolvedValue(largeWordList()),
+  getCurrentEventWords: vi.fn().mockResolvedValue(largeWordList())
 };
 
 async function readJson(file: string) {

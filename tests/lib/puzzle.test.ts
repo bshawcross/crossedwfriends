@@ -1,11 +1,13 @@
 import { describe, it, expect, vi } from 'vitest';
 import { generateDaily, coordsToIndex, loadDemoFromFile, WordEntry } from '../../lib/puzzle';
+import { largeWordList } from '../helpers/wordList';
 
 describe('generateDaily', () => {
   it('rejects answers whose length does not match a slot', () => {
     const wordList: WordEntry[] = [
-      { answer: 'ABC', clue: 'skip' },
+      { answer: 'ABCDEFGHIJKLMNOP', clue: 'skip' },
       { answer: 'OK', clue: 'fit' },
+      ...largeWordList(),
     ];
     const puzzle = generateDaily('test', wordList);
     const allClues = [...puzzle.across, ...puzzle.down].map((c) => c.text);

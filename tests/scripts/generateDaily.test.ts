@@ -1,6 +1,7 @@
 import path from 'path';
 import { tmpdir } from 'os';
 import { describe, test, expect, vi, afterEach } from 'vitest';
+import { largeWordList } from '../helpers/wordList';
 
 const seasonalMock = vi.fn();
 const funFactMock = vi.fn();
@@ -27,9 +28,9 @@ afterEach(() => {
 describe('generateDaily script', () => {
   test('writes puzzle file with expected metadata', async () => {
     vi.resetModules();
-    seasonalMock.mockResolvedValue([{ answer: 'APPLE', clue: 'a fruit' }]);
-    funFactMock.mockResolvedValue([{ answer: 'BANANA', clue: 'yellow fruit' }]);
-    currentMock.mockResolvedValue([{ answer: 'CARROT', clue: 'orange vegetable' }]);
+    seasonalMock.mockResolvedValue(largeWordList());
+    funFactMock.mockResolvedValue(largeWordList());
+    currentMock.mockResolvedValue(largeWordList());
     vi.doMock('../../lib/validatePuzzle', () => ({ validatePuzzle: () => [] }));
 
     const fsMod = await import('fs');

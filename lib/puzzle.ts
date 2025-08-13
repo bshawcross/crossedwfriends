@@ -98,11 +98,13 @@ export function generateDaily(seed: string, wordList: WordEntry[] = []): Puzzle 
       starts.forEach((slot) => {
         slot.number = num;
         const entry = takeEntry(slot.length);
-        const ans = entry?.answer ?? ''.padEnd(slot.length, ' ');
+        if (!entry) {
+          console.error(`No word entry for length ${slot.length}`);
+          throw new Error(`Missing word entry for length ${slot.length}`);
+        }
+        const ans = entry.answer;
         const enumeration = `(${slot.length})`;
-        const clueText = cleanClue(
-          entry?.clue ?? `${slot.direction === 'across' ? 'Across' : 'Down'} ${num}`,
-        );
+        const clueText = cleanClue(entry.clue);
         if (slot.direction === 'across') {
           for (let i = 0; i < slot.length; i++) {
             const ch = ans[i] ?? '';
