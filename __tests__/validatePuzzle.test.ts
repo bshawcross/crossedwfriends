@@ -1,7 +1,8 @@
 import { describe, test, expect } from 'vitest';
 import { validatePuzzle } from '../lib/validatePuzzle';
-import { generateDaily } from '../lib/puzzle';
+import { generateDaily, WordEntry } from '../lib/puzzle';
 import type { Puzzle, Cell, Clue } from '../lib/puzzle';
+import { largeWordList } from '../tests/helpers/wordList';
 import { findSlots } from '../lib/slotFinder';
 
 describe('validatePuzzle', () => {
@@ -45,14 +46,14 @@ describe('validatePuzzle', () => {
   });
 
   test('fails when not 225 cells', () => {
-    const puzzle = generateDaily('seed');
+    const puzzle = generateDaily('seed', largeWordList());
     puzzle.cells.pop();
     const errors = validatePuzzle(puzzle);
     expect(errors.some((e) => e.includes('225'))).toBe(true);
   });
 
   test('detects clue and answer issues', () => {
-    const puzzle = generateDaily('seed');
+    const puzzle = generateDaily('seed', largeWordList());
     // mismatched clue length and dirty clue
     puzzle.across[0].length += 1;
     puzzle.across[0].text = '<b>bad</b> clue http://example.com';
@@ -77,12 +78,21 @@ describe('validatePuzzle', () => {
   });
 
   test('fails symmetry check', () => {
-    const puzzle = generateDaily('seed');
+    const puzzle = generateDaily('seed', largeWordList());
     const size = 15;
     const idx = 0;
     const symIdx = size * size - 1;
     puzzle.cells[idx].isBlack = !puzzle.cells[symIdx].isBlack;
     const errors = validatePuzzle(puzzle, { checkSymmetry: true });
     expect(errors.some((e) => e.includes('not symmetric'))).toBe(true);
+  });
+
+  test('aborts when word list is insufficient', () => {
+    const shortList: WordEntry[] = [{ answer: 'OK', clue: 'ok' }];
+    expect(() => {
+      const puzzle = generateDaily('seed', shortList);
+      const errors = validatePuzzle(puzzle);
+      expect(errors.some((e) => e.includes('not allowed'))).toBe(false);
+    }).toThrow();
   });
 });
