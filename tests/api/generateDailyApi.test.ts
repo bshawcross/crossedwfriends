@@ -29,10 +29,11 @@ describe('generateDaily and API integration', () => {
     process.chdir(tmpDir);
 
     vi.mock('../../lib/topics', () => mockTopics);
+    vi.mock('../../lib/validatePuzzle', () => ({ validatePuzzle: () => [] }));
 
     vi.setSystemTime(new Date('2024-01-01T23:59:00-08:00'));
 
-    await import('../../scripts/generateDaily');
+    await import('../../scripts/genDaily');
     vi.useRealTimers();
     await new Promise(r => setTimeout(r, 0));
 
@@ -48,9 +49,10 @@ describe('generateDaily and API integration', () => {
     vi.useFakeTimers();
     vi.resetModules();
     vi.mock('../../lib/topics', () => mockTopics);
+    vi.mock('../../lib/validatePuzzle', () => ({ validatePuzzle: () => [] }));
     vi.setSystemTime(new Date('2024-01-02T00:01:00-08:00'));
 
-    await import('../../scripts/generateDaily');
+    await import('../../scripts/genDaily');
     vi.useRealTimers();
     await new Promise(r => setTimeout(r, 0));
 

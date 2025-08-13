@@ -1,6 +1,7 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 import { generateDaily } from '../lib/puzzle';
+import { validatePuzzle } from '../lib/validatePuzzle';
 import { getSeasonalWords, getFunFactWords, getCurrentEventWords } from '../lib/topics';
 import { yyyyMmDd } from '../utils/date';
 import { logInfo, logError } from '../utils/logger';
@@ -16,6 +17,11 @@ async function main() {
   ]);
   const wordList = [...seasonal, ...funFacts, ...currentEvents];
   const puzzle = generateDaily(seed, wordList);
+  const errors = validatePuzzle(puzzle, { checkSymmetry: true });
+  if (errors.length > 0) {
+    errors.forEach((err) => logError('puzzle_invalid', { error: err }));
+    process.exit(1);
+  }
 
   const puzzlesDir = path.join(process.cwd(), 'puzzles');
   try {

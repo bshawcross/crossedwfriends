@@ -12,6 +12,10 @@ vi.mock('../../lib/topics', () => ({
   getCurrentEventWords: currentMock,
 }));
 
+vi.mock('../../lib/validatePuzzle', () => ({
+  validatePuzzle: () => [],
+}));
+
 vi.mock('../../utils/date', () => ({
   yyyyMmDd: () => '2024-01-02',
 }));
@@ -26,6 +30,7 @@ describe('generateDaily script', () => {
     seasonalMock.mockResolvedValue([{ answer: 'APPLE', clue: 'a fruit' }]);
     funFactMock.mockResolvedValue([{ answer: 'BANANA', clue: 'yellow fruit' }]);
     currentMock.mockResolvedValue([{ answer: 'CARROT', clue: 'orange vegetable' }]);
+    vi.doMock('../../lib/validatePuzzle', () => ({ validatePuzzle: () => [] }));
 
     const fsMod = await import('fs');
     const fs = fsMod.promises;
@@ -33,7 +38,7 @@ describe('generateDaily script', () => {
     const originalCwd = process.cwd();
     process.chdir(tmpDir);
 
-    await import('../../scripts/generateDaily');
+    await import('../../scripts/genDaily');
     await new Promise((r) => setTimeout(r, 50));
 
     const filePath = path.join(tmpDir, 'puzzles', '2024-01-02.json');
@@ -53,6 +58,7 @@ describe('generateDaily script', () => {
     seasonalMock.mockRejectedValue(new Error('boom'));
     funFactMock.mockResolvedValue([]);
     currentMock.mockResolvedValue([]);
+    vi.doMock('../../lib/validatePuzzle', () => ({ validatePuzzle: () => [] }));
 
     const fsMod = await import('fs');
     const fs = fsMod.promises;
@@ -63,7 +69,7 @@ describe('generateDaily script', () => {
     const exitSpy = vi.spyOn(process, 'exit').mockImplementation(() => undefined as never);
     const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-    await import('../../scripts/generateDaily');
+    await import('../../scripts/genDaily');
     await new Promise((r) => setTimeout(r, 0));
 
     expect(exitSpy).toHaveBeenCalledWith(1);
