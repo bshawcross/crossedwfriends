@@ -4,7 +4,7 @@ import { yyyyMmDd } from "../utils/date";
 import { logError } from "../utils/logger";
 import { cleanClue } from "./clueClean";
 
-const isCrosswordFriendly = (word: string) => /^[A-Za-z]{3,15}$/.test(word);
+const isCrosswordFriendly = (word: string) => /^[A-Za-z]{2,15}$/.test(word);
 
 const parseDefinition = (def: string) => def.split('\t').pop() ?? '';
 
