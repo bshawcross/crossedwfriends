@@ -40,13 +40,19 @@ You can load it in your shell with `source .env` or by copying it to `.env.local
   ```
 
 - Lint the codebase with:
-
+  
   ```bash
   npm run lint
   ```
 
 - WebAuthn authentication only accepts platform biometrics (e.g., Face ID).
   External security keys are not supported.
+
+## Dev gotcha
+
+Browser extensions like Grammarly modify the `<body>` element before React hydrates, which can trigger misleading hydration mismatch errors.
+
+If you see these warnings, disable Grammarly or open the site in an incognito window without extensions. These mismatches are not bugs in the application.
 
 ## Browser testing
 
