@@ -1,4 +1,6 @@
 import { cleanClue } from './clueClean';
+import { findSlots, Slot } from './slotFinder';
+import { isAnswerAllowed } from './answerPolicy';
 
 export type Cell = {
   row: number;
@@ -9,7 +11,7 @@ export type Cell = {
   userInput: string;
   isSelected: boolean;
 }
-export type Clue = { number:number, text:string, length:number }
+export type Clue = { number:number, text:string, length:number, enumeration:string }
 export type Puzzle = {
   id: string;
   title: string;
@@ -48,43 +50,85 @@ export function generateDaily(seed: string, wordList: WordEntry[] = []): Puzzle 
     }
   }
 
-  // numbering and fill answers
-  let num=1; const get=(r:number,c:number)=>cells[r*size+c];
-  const across: Clue[]=[]; const down: Clue[]=[]; let widx=0;
-  for (let r=0;r<size;r++){
-    for (let c=0;c<size;c++){
-      const cell=get(r,c); if (cell.isBlack) continue;
-      const startAcross=(c===0||get(r,c-1).isBlack)&&(c+1<size&&!get(r,c+1).isBlack)
-      const startDown  =(r===0||get(r-1,c).isBlack)&&(r+1<size&&!get(r+1,c).isBlack)
-      if (startAcross||startDown){
-        cell.clueNumber=num;
-        if (startAcross){
-          let len=1; while(c+len<size&&!get(r,c+len).isBlack) len++;
-          const entry = wordList[widx++];
-          const ans = entry?.answer?.toUpperCase() ?? ''.padEnd(len, ' ');
-          for(let i=0;i<len;i++){
+  // build grid for slot finding
+  const grid: string[] = [];
+  for (let r = 0; r < size; r++) {
+    let row = '';
+    for (let c = 0; c < size; c++) {
+      row += getCell(cells, size, r, c).isBlack ? '#' : '.';
+    }
+    grid.push(row);
+  }
+
+  const slots = findSlots(grid);
+  type SlotDir = Slot & { direction: 'across' | 'down'; number?: number };
+  const slotMap = new Map<string, SlotDir[]>();
+  slots.across.forEach((s) => {
+    const key = `${s.row}_${s.col}`;
+    const arr = slotMap.get(key) || [];
+    arr.push({ ...s, direction: 'across' });
+    slotMap.set(key, arr);
+  });
+  slots.down.forEach((s) => {
+    const key = `${s.row}_${s.col}`;
+    const arr = slotMap.get(key) || [];
+    arr.push({ ...s, direction: 'down' });
+    slotMap.set(key, arr);
+  });
+
+  const remaining = wordList.map((w) => ({ answer: w.answer.toUpperCase(), clue: w.clue }));
+  const takeEntry = (len: number) => {
+    const idx = remaining.findIndex((w) => w.answer.length === len && isAnswerAllowed(w.answer));
+    if (idx !== -1) return remaining.splice(idx, 1)[0];
+    return undefined;
+  };
+
+  const across: Clue[] = [];
+  const down: Clue[] = [];
+  const get = (r: number, c: number) => cells[r * size + c];
+  let num = 1;
+  for (let r = 0; r < size; r++) {
+    for (let c = 0; c < size; c++) {
+      const cell = get(r, c);
+      if (cell.isBlack) continue;
+      const key = `${r}_${c}`;
+      const starts = slotMap.get(key);
+      if (!starts) continue;
+      cell.clueNumber = num;
+      starts.forEach((slot) => {
+        slot.number = num;
+        const entry = takeEntry(slot.length);
+        const ans = entry?.answer ?? ''.padEnd(slot.length, ' ');
+        const enumeration = `(${slot.length})`;
+        const clueText = cleanClue(
+          entry?.clue ?? `${slot.direction === 'across' ? 'Across' : 'Down'} ${num}`,
+        );
+        if (slot.direction === 'across') {
+          for (let i = 0; i < slot.length; i++) {
             const ch = ans[i] ?? '';
-            get(r,c+i).answer = ch;
+            get(r, c + i).answer = ch;
           }
-          const clue = cleanClue(entry?.clue ?? `Across ${num}`);
-          across.push({number:num,text:clue,length:len});
-        }
-        if (startDown){
-          let len=1; while(r+len<size&&!get(r+len,c).isBlack) len++;
-          const entry = wordList[widx++];
-          const ans = entry?.answer?.toUpperCase() ?? ''.padEnd(len, ' ');
-          for(let i=0;i<len;i++){
-            const ch = ans[i] ?? get(r+i,c).answer;
-            if (ch) get(r+i,c).answer = ch;
+          across.push({ number: num, text: clueText, length: slot.length, enumeration });
+        } else {
+          for (let i = 0; i < slot.length; i++) {
+            const ch = ans[i] ?? get(r + i, c).answer;
+            if (ch) get(r + i, c).answer = ch;
           }
-          const clue = cleanClue(entry?.clue ?? `Down ${num}`);
-          down.push({number:num,text:clue,length:len});
+          down.push({ number: num, text: clueText, length: slot.length, enumeration });
         }
-        num++;
-      }
+      });
+      num++;
     }
   }
-  return { id: seed, title:'Daily Placeholder', theme:'seasonal/current-events', across, down, cells }
+
+  return {
+    id: seed,
+    title: 'Daily Placeholder',
+    theme: 'seasonal/current-events',
+    across,
+    down,
+    cells,
+  };
 }
 
 export async function loadDemoFromFile(): Promise<Puzzle> {
@@ -112,19 +156,39 @@ export async function loadDemoFromFile(): Promise<Puzzle> {
     return '';
   };
 
-  const normalizeClues = (arr: any[]): Clue[] =>
-    (arr ?? []).map((c: any) => ({
-      number: Number(c.number),
-      text: cleanClue(coerceClueText(c.text)),
-      length: Number(c.length),
-    }));
+  const cells = raw.cells as Cell[];
+  const size = 15;
+  const grid: string[] = [];
+  for (let r = 0; r < size; r++) {
+    let row = '';
+    for (let c = 0; c < size; c++) {
+      row += cells[r * size + c].isBlack ? '#' : '.';
+    }
+    grid.push(row);
+  }
+  const slots = findSlots(grid);
+
+  const normalizeClues = (arr: any[], slotArr: Slot[]): Clue[] =>
+    (arr ?? []).map((c: any, idx: number) => {
+      const len = slotArr[idx]?.length ?? Number(c.length);
+      return {
+        number: Number(c.number),
+        text: cleanClue(coerceClueText(c.text)),
+        length: len,
+        enumeration: `(${len})`,
+      };
+    });
 
   return {
     id: String(raw.id ?? 'demo'),
     title: String(raw.title ?? 'Imported Puzzle'),
     theme: String(raw.theme ?? ''),
-    across: normalizeClues(raw.across),
-    down: normalizeClues(raw.down),
-    cells: raw.cells as Cell[],
+    across: normalizeClues(raw.across, slots.across),
+    down: normalizeClues(raw.down, slots.down),
+    cells,
   };
+}
+
+function getCell(cells: Cell[], size: number, r: number, c: number) {
+  return cells[r * size + c];
 }

@@ -13,7 +13,7 @@ export default function ClueList({
               className={`px-3 py-2 text-sm ${activeNumber===c.number?'bg-yellow-50 dark:bg-yellow-900/20':'hover:bg-gray-50 dark:hover:bg-white/5'}`}>
             <span className="font-semibold mr-2">{c.number}.</span>
             <span className="text-gray-700 dark:text-gray-300">{c.text}</span>
-            <span className="text-gray-400 dark:text-gray-500"> ({c.length})</span>
+            <span className="text-gray-400 dark:text-gray-500"> {c.enumeration}</span>
           </li>
         )}
       </ul>
