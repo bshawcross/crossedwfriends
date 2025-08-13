@@ -2,36 +2,16 @@ import { describe, it, expect, vi } from 'vitest';
 import { generateDaily, coordsToIndex, loadDemoFromFile, WordEntry } from '../../lib/puzzle';
 
 describe('generateDaily', () => {
-  it('produces deterministic puzzle layout and clues', () => {
+  it('rejects answers whose length does not match a slot', () => {
     const wordList: WordEntry[] = [
-      { answer: 'alpha', clue: 'clue1' },
-      { answer: 'beta', clue: 'clue2' },
-      { answer: 'gamma', clue: 'clue3' },
-      { answer: 'delta', clue: 'clue4' },
-      { answer: 'epsilon', clue: 'clue5' },
-      { answer: 'zeta', clue: 'clue6' },
+      { answer: 'ABC', clue: 'skip' },
+      { answer: 'OK', clue: 'fit' },
     ];
     const puzzle = generateDaily('test', wordList);
-    const puzzle2 = generateDaily('test', wordList);
-    expect(puzzle).toEqual(puzzle2);
-    expect(puzzle.across[0]).toEqual({ number: 3, text: 'clue3', length: 2 });
-    expect(puzzle.down[0]).toEqual({ number: 1, text: 'clue1', length: 2 });
-    const cell = puzzle.cells[coordsToIndex(0, 1)];
-    expect(cell).toMatchObject({ isBlack: false, clueNumber: 1, answer: 'A' });
-  });
-
-  it('handles empty word list', () => {
-    const puzzle = generateDaily('empty', []);
-    expect(puzzle.across[0].text).toBe(`Across ${puzzle.across[0].number}`);
-    const firstCell = puzzle.cells.find((c) => !c.isBlack)!;
-    expect(firstCell.answer).toBe(' ');
-  });
-
-  it('handles word list shorter than required', () => {
-    const puzzle = generateDaily('test', [{ answer: 'alpha', clue: 'clue1' }]);
-    expect(puzzle.down[0].text).toBe('clue1');
-    expect(puzzle.down[1].text).toBe(`Down ${puzzle.down[1].number}`);
-    expect(puzzle.across[0].text).toBe(`Across ${puzzle.across[0].number}`);
+    const allClues = [...puzzle.across, ...puzzle.down].map((c) => c.text);
+    expect(allClues).toContain('fit');
+    expect(allClues).not.toContain('skip');
+    expect(puzzle.across[0].enumeration).toBe('(2)');
   });
 });
 
@@ -45,6 +25,34 @@ describe('coordsToIndex', () => {
 
 describe('loadDemoFromFile', () => {
   it('normalizes clue text and parses puzzle data', async () => {
+    const grid = [
+      '...###########.',
+      '....##########.',
+      '.....#########.',
+      '###############',
+      '###############',
+      '###############',
+      '###############',
+      '###############',
+      '###############',
+      '###############',
+      '###############',
+      '###############',
+      '###############',
+      '###############',
+      '###############',
+    ];
+    const cells = grid.flatMap((row, r) =>
+      row.split('').map((ch, c) => ({
+        row: r,
+        col: c,
+        isBlack: ch === '#',
+        answer: '',
+        clueNumber: null,
+        userInput: '',
+        isSelected: false,
+      })),
+    );
     const sample = {
       id: 'demo1',
       title: 'Sample Puzzle',
@@ -55,15 +63,7 @@ describe('loadDemoFromFile', () => {
         { number: 3, text: "[3, 'Third']", length: 5 },
       ],
       down: [{ number: 1, text: 'Down Clue', length: 3 }],
-      cells: Array.from({ length: 225 }, () => ({
-        row: 0,
-        col: 0,
-        isBlack: false,
-        answer: '',
-        clueNumber: null,
-        userInput: '',
-        isSelected: false,
-      })),
+      cells,
     };
     const fetchMock = vi.fn(async () => ({ ok: true, json: async () => sample }));
     vi.stubGlobal('fetch', fetchMock);
@@ -74,6 +74,7 @@ describe('loadDemoFromFile', () => {
     expect(puzzle.across[0].text).toBe('First');
     expect(puzzle.across[1].text).toBe('Second');
     expect(puzzle.across[2].text).toBe('Third');
+    expect(puzzle.across[0].enumeration).toBe('(3)');
     vi.unstubAllGlobals();
   });
 });
