@@ -10,6 +10,7 @@ export default defineConfig({
   test: {
     include: [
       'tests/**/*.test.ts',
+      '__tests__/**/*.test.ts',
     ],
     environment: 'jsdom',
   },

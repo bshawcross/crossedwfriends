@@ -1,3 +1,5 @@
+import { cleanClue } from './clueClean';
+
 export type Cell = {
   row: number;
   col: number;
@@ -64,7 +66,7 @@ export function generateDaily(seed: string, wordList: WordEntry[] = []): Puzzle 
             const ch = ans[i] ?? '';
             get(r,c+i).answer = ch;
           }
-          const clue = entry?.clue ?? `Across ${num}`;
+          const clue = cleanClue(entry?.clue ?? `Across ${num}`);
           across.push({number:num,text:clue,length:len});
         }
         if (startDown){
@@ -75,7 +77,7 @@ export function generateDaily(seed: string, wordList: WordEntry[] = []): Puzzle 
             const ch = ans[i] ?? get(r+i,c).answer;
             if (ch) get(r+i,c).answer = ch;
           }
-          const clue = entry?.clue ?? `Down ${num}`;
+          const clue = cleanClue(entry?.clue ?? `Down ${num}`);
           down.push({number:num,text:clue,length:len});
         }
         num++;
@@ -113,7 +115,7 @@ export async function loadDemoFromFile(): Promise<Puzzle> {
   const normalizeClues = (arr: any[]): Clue[] =>
     (arr ?? []).map((c: any) => ({
       number: Number(c.number),
-      text: coerceClueText(c.text),
+      text: cleanClue(coerceClueText(c.text)),
       length: Number(c.length),
     }));
 

@@ -2,6 +2,7 @@ import { WordEntry } from "./puzzle";
 import { getCached } from "./cache";
 import { yyyyMmDd } from "../utils/date";
 import { logError } from "../utils/logger";
+import { cleanClue } from "./clueClean";
 
 const isCrosswordFriendly = (word: string) => /^[A-Za-z]{3,15}$/.test(word);
 
@@ -41,21 +42,12 @@ export async function getSeasonalWords(date: Date): Promise<WordEntry[]> {
     const data = await res.json();
     return (data || [])
       .filter((w: any) => w.word && w.defs && w.defs.length > 0)
-      .map((w: any) => ({ answer: w.word.toUpperCase(), clue: parseDefinition(w.defs[0]) }))
+      .map((w: any) => ({ answer: w.word.toUpperCase(), clue: cleanClue(parseDefinition(w.defs[0])) }))
       .filter((p: WordEntry) => isCrosswordFriendly(p.answer));
   });
   if (!result) logError('getSeasonalWords_failed', { key, topic });
   return result ?? [];
 }
-
-const decodeHTML = (s: string) => s
-  .replace(/&quot;/g, '"')
-  .replace(/&#039;/g, "'")
-  .replace(/&amp;/g, '&')
-  .replace(/&eacute;/g, 'é')
-  .replace(/&rsquo;/g, '’')
-  .replace(/&ldquo;/g, '“')
-  .replace(/&rdquo;/g, '”');
 
 export async function getFunFactWords(): Promise<WordEntry[]> {
   const key = `funfact-${yyyyMmDd()}`;
@@ -75,8 +67,8 @@ export async function getFunFactWords(): Promise<WordEntry[]> {
     const json = await res.json();
     return (json.results || [])
       .map((q: any) => ({
-        answer: decodeHTML(q.correct_answer).replace(/[^A-Za-z]/g, '').toUpperCase(),
-        clue: decodeHTML(q.question)
+        answer: cleanClue(q.correct_answer).replace(/[^A-Za-z]/g, '').toUpperCase(),
+        clue: cleanClue(q.question)
       }))
       .filter((p: WordEntry) => isCrosswordFriendly(p.answer));
   });
@@ -88,7 +80,7 @@ function extractTag(block: string, tag: string): string {
   const re = new RegExp(`<${tag}>(?:<!\\[CDATA\\[(.*?)\\]\\]>|([^<]*))</${tag}>`, 'i');
   const match = block.match(re);
   const content = match?.[1] ?? match?.[2] ?? '';
-  return decodeHTML(content.trim());
+  return cleanClue(content.trim());
 }
 
 export async function getCurrentEventWords(date: Date): Promise<WordEntry[]> {
@@ -115,7 +107,7 @@ export async function getCurrentEventWords(date: Date): Promise<WordEntry[]> {
       const item = m[1];
       const title = extractTag(item, 'title');
       const description = extractTag(item, 'description');
-      const clue = description || title;
+      const clue = cleanClue(description || title);
       const words = `${title} ${description}`.split(/[^A-Za-z]+/g);
       for (const w of words) {
         if (!isCrosswordFriendly(w)) continue;
