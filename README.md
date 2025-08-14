@@ -59,6 +59,39 @@ pnpm test
 pnpm lint
 ```
 
+## Hero term placement
+
+`planHeroPlacements` arranges provided hero terms across the 15×15 grid.
+Terms are uppercased and sorted by length. If an odd number of terms is
+given, the longest sits on the middle row. The rest are placed in symmetric
+pairs above and below the center, all oriented across. Column positions are
+calculated to center each term, and rows and columns are zero-indexed.
+
+```ts
+import { planHeroPlacements } from './lib/heroPlacement';
+
+const placements = planHeroPlacements([
+  'odysseus',
+  'hercules',
+  'achilles',
+  'theseus',
+  'perseus',
+]);
+console.log(placements);
+```
+
+Sample output:
+
+```text
+[
+  { term: 'ODYSSEUS', row: 7, col: 3, dir: 'across' },
+  { term: 'HERCULES', row: 5, col: 3, dir: 'across' },
+  { term: 'ACHILLES', row: 9, col: 3, dir: 'across' },
+  { term: 'THESEUS', row: 3, col: 4, dir: 'across' },
+  { term: 'PERSEUS', row: 11, col: 4, dir: 'across' },
+]
+```
+
 ## Project tips
 
 - Generate the daily puzzle data locally (optionally providing hero terms):
