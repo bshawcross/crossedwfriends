@@ -1,6 +1,7 @@
 import { promises as fs } from 'fs';
 import path from 'path';
-import { generateDaily } from '../lib/puzzle';
+import { generateDaily, WordEntry } from '../lib/puzzle';
+import fallbackWords from '../data/fallbackWords.json';
 import { validatePuzzle } from '../lib/validatePuzzle';
 import { getSeasonalWords, getFunFactWords, getCurrentEventWords } from '../lib/topics';
 import { yyyyMmDd } from '../utils/date';
@@ -17,7 +18,19 @@ async function main() {
     getFunFactWords(),
     getCurrentEventWords(puzzleDate)
   ]);
-  const wordList = [...seasonal, ...funFacts, ...currentEvents];
+  let wordList: WordEntry[] = [...seasonal, ...funFacts, ...currentEvents];
+
+  const missingLengths = new Set<number>();
+  for (let len = 2; len <= 15; len++) {
+    if (!wordList.some((w) => w.answer.length === len)) missingLengths.add(len);
+  }
+
+  (fallbackWords as WordEntry[]).forEach((entry) => {
+    wordList.push(entry);
+    if (missingLengths.has(entry.answer.length)) {
+      logInfo('fallback_word_used', { length: entry.answer.length, answer: entry.answer });
+    }
+  });
   const heroTerms = process.argv.slice(2);
   const puzzle = generateDaily(seed, wordList, heroTerms.length > 0 ? heroTerms : defaultHeroTerms);
   const errors = validatePuzzle(puzzle, { checkSymmetry: true });
