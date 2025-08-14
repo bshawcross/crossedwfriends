@@ -6,6 +6,8 @@ import { getSeasonalWords, getFunFactWords, getCurrentEventWords } from '../lib/
 import { yyyyMmDd } from '../utils/date';
 import { logInfo, logError } from '../utils/logger';
 
+const defaultHeroTerms = ['CAPTAINMARVEL', 'BLACKWIDOW', 'SPIDERMAN', 'IRONMAN', 'THOR'];
+
 async function main() {
   const date = yyyyMmDd();
   const seed = `${date}:seasonal,funFacts,currentEvents`;
@@ -16,7 +18,8 @@ async function main() {
     getCurrentEventWords(puzzleDate)
   ]);
   const wordList = [...seasonal, ...funFacts, ...currentEvents];
-  const puzzle = generateDaily(seed, wordList);
+  const heroTerms = process.argv.slice(2);
+  const puzzle = generateDaily(seed, wordList, heroTerms.length > 0 ? heroTerms : defaultHeroTerms);
   const errors = validatePuzzle(puzzle, { checkSymmetry: true });
   if (errors.length > 0) {
     errors.forEach((err) => logError('puzzle_invalid', { error: err }));

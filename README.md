@@ -28,11 +28,17 @@ You can load it in your shell with `source .env` or by copying it to `.env.local
 ## Puzzle quality gate
 
 Daily puzzles are produced with a deterministic generation pipeline.
-Run the generator to build the puzzle for today:
+Run the generator to build the puzzle for today. You can optionally supply
+"hero" terms to pin in the grid:
 
 ```bash
-pnpm gen:daily
+pnpm gen:daily [hero terms...]
+
+# example
+pnpm gen:daily "captain marvel" "black widow"
 ```
+
+If no hero terms are provided, a default set is used.
 
 The script assembles word lists, creates a puzzle seeded by the date,
 and then runs `validatePuzzle` to enforce structural rules. Validators
@@ -55,10 +61,10 @@ pnpm lint
 
 ## Project tips
 
-- Generate the daily puzzle data locally with:
+- Generate the daily puzzle data locally (optionally providing hero terms):
 
   ```bash
-  pnpm gen:daily
+  pnpm gen:daily [hero terms...]
   ```
 
 - Run the test suite with:
