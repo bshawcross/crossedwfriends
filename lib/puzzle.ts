@@ -34,7 +34,12 @@ function hash(s: string) {
   return Math.abs(h>>>0) % 97;
 }
 
-export function generateDaily(seed: string, wordList: WordEntry[] = [], heroTerms: string[] = []): Puzzle {
+export function generateDaily(
+  seed: string,
+  wordList: WordEntry[] = [],
+  heroTerms: string[] = [],
+  fallback?: WordEntry[] | ((len: number, letters: string[]) => WordEntry | undefined),
+): Puzzle {
   const size = 15;
   const cells: Cell[] = [];
   const blocks = new Set<string>();
@@ -92,6 +97,10 @@ export function generateDaily(seed: string, wordList: WordEntry[] = [], heroTerm
   });
 
   const remaining = wordList.map((w) => ({ answer: w.answer.toUpperCase(), clue: w.clue }));
+  const fallbackPool = Array.isArray(fallback)
+    ? fallback.map((w) => ({ answer: w.answer.toUpperCase(), clue: w.clue }))
+    : [];
+  const fallbackFn = typeof fallback === 'function' ? fallback : undefined;
   const takeEntry = (len: number, letters: string[]) => {
     const idx = remaining.findIndex(
       (w) =>
@@ -100,6 +109,26 @@ export function generateDaily(seed: string, wordList: WordEntry[] = [], heroTerm
         isAnswerAllowed(w.answer),
     );
     if (idx !== -1) return remaining.splice(idx, 1)[0];
+    const fbIdx = fallbackPool.findIndex(
+      (w) =>
+        w.answer.length === len &&
+        letters.every((ch, i) => !ch || w.answer[i] === ch),
+    );
+    if (fbIdx !== -1) {
+      const entry = fallbackPool.splice(fbIdx, 1)[0];
+      console.warn(`Using fallback entry "${entry.answer}" for length ${len}`);
+      return entry;
+    }
+    if (fallbackFn) {
+      const fb = fallbackFn(len, letters);
+      if (fb) {
+        const ans = fb.answer.toUpperCase();
+        if (ans.length === len && letters.every((ch, i) => !ch || ans[i] === ch)) {
+          console.warn(`Using fallback entry "${ans}" for length ${len}`);
+          return { answer: ans, clue: fb.clue };
+        }
+      }
+    }
     return undefined;
   };
 
