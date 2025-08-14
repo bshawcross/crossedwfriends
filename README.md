@@ -43,15 +43,14 @@ If no hero terms are provided, a default set is used.
 The script assembles word lists, creates a puzzle seeded by the date,
 and then runs `validatePuzzle` to enforce structural rules. Validators
 ensure every clue is normalized by `cleanClue`, answers obey the policy
-from `isAnswerAllowed`, and the grid passes symmetry and length checks.
+from `isValidFill`, and the grid passes symmetry and length checks.
 
-The answer policy draws from two word lists:
+The answer policy draws from a deny list:
 
-- `data/allowlist.json` – two-letter answers explicitly permitted.
 - `data/denylist.json` – answers that should never appear.
 
-To modify these lists, edit the JSON arrays and add the new entry in
-uppercase. After any change, regenerate and verify:
+To modify the list, edit the JSON array in uppercase. After any change,
+regenerate and verify:
 
 ```bash
 pnpm gen:daily

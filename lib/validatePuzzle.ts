@@ -1,9 +1,12 @@
 import { Puzzle, Cell, Clue } from './puzzle';
 import { findSlots, Slot } from './slotFinder';
-import { isAnswerAllowed } from './answerPolicy';
 import { cleanClue } from './clueClean';
+import { isValidFill } from '@/utils/validateWord';
 
-export function validatePuzzle(puzzle: Puzzle, opts: { checkSymmetry?: boolean } = {}): string[] {
+export function validatePuzzle(
+  puzzle: Puzzle,
+  opts: { checkSymmetry?: boolean; allow2?: boolean } = {},
+): string[] {
   const errors: string[] = [];
   const size = 15;
 
@@ -60,7 +63,7 @@ export function validatePuzzle(puzzle: Puzzle, opts: { checkSymmetry?: boolean }
       if (answer.length !== slot.length) {
         errors.push(`${dir} answer ${clue.number} length ${answer.length} ≠ slot length ${slot.length}`);
       }
-      if (!isAnswerAllowed(answer)) {
+      if (!isValidFill(answer, { allow2: opts.allow2 })) {
         errors.push(`${dir} answer ${clue.number} not allowed: ${answer}`);
       }
       if (cleanClue(clue.text) !== clue.text) {

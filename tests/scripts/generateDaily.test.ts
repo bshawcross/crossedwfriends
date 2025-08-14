@@ -39,7 +39,9 @@ describe('generateDaily script', () => {
     const originalCwd = process.cwd();
     process.chdir(tmpDir);
 
+    process.argv.push('--allow2');
     await import('../../scripts/genDaily');
+    process.argv.pop();
     await new Promise((r) => setTimeout(r, 50));
 
     const filePath = path.join(tmpDir, 'puzzles', '2024-01-02.json');
@@ -70,7 +72,9 @@ describe('generateDaily script', () => {
     const exitSpy = vi.spyOn(process, 'exit').mockImplementation(() => undefined as never);
     const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
+    process.argv.push('--allow2');
     await import('../../scripts/genDaily');
+    process.argv.pop();
     await new Promise((r) => setTimeout(r, 0));
 
     expect(exitSpy).toHaveBeenCalledWith(1);

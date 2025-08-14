@@ -1,7 +1,7 @@
 import { cleanClue } from './clueClean';
 import { findSlots, Slot } from './slotFinder';
-import { isAnswerAllowed } from './answerPolicy';
 import { planHeroPlacements } from './heroPlacement';
+import { isValidFill } from '@/utils/validateWord';
 
 export type Cell = {
   row: number;
@@ -39,6 +39,7 @@ export function generateDaily(
   wordList: WordEntry[] = [],
   heroTerms: string[] = [],
   fallback?: WordEntry[] | ((len: number, letters: string[]) => WordEntry | undefined),
+  opts: { allow2?: boolean } = {},
 ): Puzzle {
   const size = 15;
   const cells: Cell[] = [];
@@ -106,13 +107,14 @@ export function generateDaily(
       (w) =>
         w.answer.length === len &&
         letters.every((ch, i) => !ch || w.answer[i] === ch) &&
-        isAnswerAllowed(w.answer),
+        isValidFill(w.answer, opts),
     );
     if (idx !== -1) return remaining.splice(idx, 1)[0];
     const fbIdx = fallbackPool.findIndex(
       (w) =>
         w.answer.length === len &&
-        letters.every((ch, i) => !ch || w.answer[i] === ch),
+        letters.every((ch, i) => !ch || w.answer[i] === ch) &&
+        isValidFill(w.answer, opts),
     );
     if (fbIdx !== -1) {
       const entry = fallbackPool.splice(fbIdx, 1)[0];
@@ -123,7 +125,11 @@ export function generateDaily(
       const fb = fallbackFn(len, letters);
       if (fb) {
         const ans = fb.answer.toUpperCase();
-        if (ans.length === len && letters.every((ch, i) => !ch || ans[i] === ch)) {
+        if (
+          ans.length === len &&
+          letters.every((ch, i) => !ch || ans[i] === ch) &&
+          isValidFill(ans, opts)
+        ) {
           console.warn(`Using fallback entry "${ans}" for length ${len}`);
           return { answer: ans, clue: fb.clue };
         }
