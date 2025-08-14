@@ -5,9 +5,20 @@ import fallbackWords from '../data/fallbackWords.json';
 import { validatePuzzle } from '../lib/validatePuzzle';
 import { getSeasonalWords, getFunFactWords, getCurrentEventWords } from '../lib/topics';
 import { yyyyMmDd } from '../utils/date';
-import { logInfo, logError } from '../utils/logger';
+import { logInfo, logError, logWarn } from '../utils/logger';
 
 const defaultHeroTerms = ['CAPTAINMARVEL', 'BLACKWIDOW', 'SPIDERMAN', 'IRONMAN', 'THOR'];
+
+function getPresentLengths(words: WordEntry[]): Set<number> {
+  const present = new Set<number>();
+  for (const entry of words) {
+    const len = entry.answer.length;
+    if (len >= 2 && len <= 15) {
+      present.add(len);
+    }
+  }
+  return present;
+}
 
 async function main() {
   const date = yyyyMmDd();
@@ -19,18 +30,40 @@ async function main() {
     getCurrentEventWords(puzzleDate)
   ]);
   let wordList: WordEntry[] = [...seasonal, ...funFacts, ...currentEvents];
-
-  const missingLengths = new Set<number>();
+  let present = getPresentLengths(wordList);
+  let missingLengths: number[] = [];
   for (let len = 2; len <= 15; len++) {
-    if (!wordList.some((w) => w.answer.length === len)) missingLengths.add(len);
+    if (!present.has(len)) missingLengths.push(len);
   }
 
-  (fallbackWords as WordEntry[]).forEach((entry) => {
-    wordList.push(entry);
-    if (missingLengths.has(entry.answer.length)) {
-      logInfo('fallback_word_used', { length: entry.answer.length, answer: entry.answer });
+  const fallbackList = fallbackWords as WordEntry[];
+  if (missingLengths.length > 0) {
+    for (const len of missingLengths) {
+      const fallbackEntry = fallbackList.find((entry) => entry.answer.length === len);
+      if (fallbackEntry) {
+        wordList.push(fallbackEntry);
+        logInfo('fallback_word_used', { length: len, answer: fallbackEntry.answer });
+      } else {
+        logWarn('fallback_word_missing', { length: len });
+      }
+    }
+  }
+
+  fallbackList.forEach((entry) => {
+    if (!wordList.some((w) => w.answer === entry.answer)) {
+      wordList.push(entry);
     }
   });
+
+  present = getPresentLengths(wordList);
+  missingLengths = [];
+  for (let len = 2; len <= 15; len++) {
+    if (!present.has(len)) missingLengths.push(len);
+  }
+  if (missingLengths.length > 0) {
+    missingLengths.forEach((len) => logError('missing_length', { length: len }));
+    process.exit(1);
+  }
   const heroTerms = process.argv.slice(2);
   const puzzle = generateDaily(seed, wordList, heroTerms.length > 0 ? heroTerms : defaultHeroTerms);
   const errors = validatePuzzle(puzzle, { checkSymmetry: true });
