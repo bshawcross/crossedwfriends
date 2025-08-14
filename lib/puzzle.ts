@@ -1,6 +1,7 @@
 import { cleanClue } from './clueClean';
 import { findSlots, Slot } from './slotFinder';
 import { isAnswerAllowed } from './answerPolicy';
+import { planHeroPlacements } from './heroPlacement';
 
 export type Cell = {
   row: number;
@@ -33,7 +34,7 @@ function hash(s: string) {
   return Math.abs(h>>>0) % 97;
 }
 
-export function generateDaily(seed: string, wordList: WordEntry[] = []): Puzzle {
+export function generateDaily(seed: string, wordList: WordEntry[] = [], heroTerms: string[] = []): Puzzle {
   const size = 15;
   const cells: Cell[] = [];
   const blocks = new Set<string>();
@@ -49,6 +50,20 @@ export function generateDaily(seed: string, wordList: WordEntry[] = []): Puzzle 
       cells.push({ row:r, col:c, isBlack, answer:'', clueNumber:null, userInput:'', isSelected:false })
     }
   }
+
+  // place hero terms before slot finding
+  const heroMap = new Map<string, string>();
+  const heroCells = new Set<string>();
+  const heroPlacements = planHeroPlacements(heroTerms);
+  heroPlacements.forEach((p) => {
+    heroMap.set(`${p.row}_${p.col}_${p.dir}`, p.term);
+    for (let i = 0; i < p.term.length; i++) {
+      const cell = getCell(cells, size, p.row, p.col + i);
+      cell.isBlack = false;
+      cell.answer = p.term[i] ?? '';
+      heroCells.add(`${p.row}_${p.col + i}`);
+    }
+  });
 
   // build grid for slot finding
   const grid: string[] = [];
@@ -77,8 +92,13 @@ export function generateDaily(seed: string, wordList: WordEntry[] = []): Puzzle 
   });
 
   const remaining = wordList.map((w) => ({ answer: w.answer.toUpperCase(), clue: w.clue }));
-  const takeEntry = (len: number) => {
-    const idx = remaining.findIndex((w) => w.answer.length === len && isAnswerAllowed(w.answer));
+  const takeEntry = (len: number, letters: string[]) => {
+    const idx = remaining.findIndex(
+      (w) =>
+        w.answer.length === len &&
+        letters.every((ch, i) => !ch || w.answer[i] === ch) &&
+        isAnswerAllowed(w.answer),
+    );
     if (idx !== -1) return remaining.splice(idx, 1)[0];
     return undefined;
   };
@@ -97,13 +117,50 @@ export function generateDaily(seed: string, wordList: WordEntry[] = []): Puzzle 
       cell.clueNumber = num;
       starts.forEach((slot) => {
         slot.number = num;
-        const entry = takeEntry(slot.length);
+        const heroKey = `${slot.row}_${slot.col}_${slot.direction}`;
+        const heroTerm = heroMap.get(heroKey);
+        const letters: string[] = [];
+        if (slot.direction === 'across') {
+          for (let i = 0; i < slot.length; i++) {
+            const rr = r;
+            const cc = c + i;
+            letters[i] = heroCells.has(`${rr}_${cc}`) ? get(rr, cc).answer : '';
+          }
+        } else {
+          for (let i = 0; i < slot.length; i++) {
+            const rr = r + i;
+            const cc = c;
+            letters[i] = heroCells.has(`${rr}_${cc}`) ? get(rr, cc).answer : '';
+          }
+        }
+        const enumeration = `(${slot.length})`;
+        if (heroTerm) {
+          const clueText = cleanClue(heroTerm);
+          if (slot.direction === 'across') {
+            across.push({ number: num, text: clueText, length: slot.length, enumeration });
+          } else {
+            down.push({ number: num, text: clueText, length: slot.length, enumeration });
+          }
+          return;
+        }
+        const entry = letters.every((ch) => ch)
+          ? undefined
+          : takeEntry(slot.length, letters);
         if (!entry) {
+          if (letters.every((ch) => ch)) {
+            const ans = letters.join('');
+            const clueText = cleanClue(ans);
+            if (slot.direction === 'across') {
+              across.push({ number: num, text: clueText, length: slot.length, enumeration });
+            } else {
+              down.push({ number: num, text: clueText, length: slot.length, enumeration });
+            }
+            return;
+          }
           console.error(`No word entry for length ${slot.length}`);
           throw new Error(`Missing word entry for length ${slot.length}`);
         }
         const ans = entry.answer;
-        const enumeration = `(${slot.length})`;
         const clueText = cleanClue(entry.clue);
         if (slot.direction === 'across') {
           for (let i = 0; i < slot.length; i++) {
