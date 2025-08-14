@@ -9,7 +9,7 @@ describe('generateDaily', () => {
       { answer: 'OK', clue: 'fit' },
       ...largeWordList(),
     ];
-    const puzzle = generateDaily('test', wordList);
+    const puzzle = generateDaily('test', wordList, [], undefined, { allow2: true });
     const allClues = [...puzzle.across, ...puzzle.down].map((c) => c.text);
     expect(allClues).toContain('fit');
     expect(allClues).not.toContain('skip');
@@ -27,7 +27,7 @@ describe('generateDaily', () => {
       },
     );
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    const puzzle = generateDaily('seed', wordList, [], fallbackFn);
+    const puzzle = generateDaily('seed', wordList, [], fallbackFn, { allow2: true });
     expect(fallbackFn).toHaveBeenCalled();
     expect(warnSpy).toHaveBeenCalled();
     const clues = [...puzzle.across, ...puzzle.down].map((c) => c.text);

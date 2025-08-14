@@ -33,8 +33,9 @@ describe('generateDaily and API integration', () => {
     vi.mock('../../lib/validatePuzzle', () => ({ validatePuzzle: () => [] }));
 
     vi.setSystemTime(new Date('2024-01-01T23:59:00-08:00'));
-
+    process.argv.push('--allow2');
     await import('../../scripts/genDaily');
+    process.argv.pop();
     vi.useRealTimers();
     await new Promise(r => setTimeout(r, 0));
 
@@ -52,8 +53,9 @@ describe('generateDaily and API integration', () => {
     vi.mock('../../lib/topics', () => mockTopics);
     vi.mock('../../lib/validatePuzzle', () => ({ validatePuzzle: () => [] }));
     vi.setSystemTime(new Date('2024-01-02T00:01:00-08:00'));
-
+    process.argv.push('--allow2');
     await import('../../scripts/genDaily');
+    process.argv.pop();
     vi.useRealTimers();
     await new Promise(r => setTimeout(r, 0));
 

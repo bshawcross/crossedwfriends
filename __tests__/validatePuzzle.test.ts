@@ -46,14 +46,14 @@ describe('validatePuzzle', () => {
   });
 
   test('fails when not 225 cells', () => {
-    const puzzle = generateDaily('seed', largeWordList());
+    const puzzle = generateDaily('seed', largeWordList(), [], undefined, { allow2: true });
     puzzle.cells.pop();
-    const errors = validatePuzzle(puzzle);
+    const errors = validatePuzzle(puzzle, { allow2: true });
     expect(errors.some((e) => e.includes('225'))).toBe(true);
   });
 
   test('detects clue and answer issues', () => {
-    const puzzle = generateDaily('seed', largeWordList());
+    const puzzle = generateDaily('seed', largeWordList(), [], undefined, { allow2: true });
     // mismatched clue length and dirty clue
     puzzle.across[0].length += 1;
     puzzle.across[0].text = '<b>bad</b> clue http://example.com';
@@ -71,27 +71,27 @@ describe('validatePuzzle', () => {
     for (let i = 0; i < slot.length; i++) {
       puzzle.cells[slot.row * size + slot.col + i].answer = i === 0 ? 'A' : '1';
     }
-    const errors = validatePuzzle(puzzle);
+    const errors = validatePuzzle(puzzle, { allow2: true });
     expect(errors.some((e) => e.includes('clue') && e.includes('length'))).toBe(true);
     expect(errors.some((e) => e.includes('not allowed'))).toBe(true);
     expect(errors.some((e) => e.includes('not clean'))).toBe(true);
   });
 
   test('fails symmetry check', () => {
-    const puzzle = generateDaily('seed', largeWordList());
+    const puzzle = generateDaily('seed', largeWordList(), [], undefined, { allow2: true });
     const size = 15;
     const idx = 0;
     const symIdx = size * size - 1;
     puzzle.cells[idx].isBlack = !puzzle.cells[symIdx].isBlack;
-    const errors = validatePuzzle(puzzle, { checkSymmetry: true });
+    const errors = validatePuzzle(puzzle, { checkSymmetry: true, allow2: true });
     expect(errors.some((e) => e.includes('not symmetric'))).toBe(true);
   });
 
   test('aborts when word list is insufficient', () => {
     const shortList: WordEntry[] = [{ answer: 'OK', clue: 'ok' }];
     expect(() => {
-      const puzzle = generateDaily('seed', shortList);
-      const errors = validatePuzzle(puzzle);
+      const puzzle = generateDaily('seed', shortList, [], undefined, { allow2: true });
+      const errors = validatePuzzle(puzzle, { allow2: true });
       expect(errors.some((e) => e.includes('not allowed'))).toBe(false);
     }).toThrow();
   });

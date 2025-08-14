@@ -2,19 +2,19 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { generateDaily, WordEntry } from '../lib/puzzle';
 import fallbackWords from '../data/fallbackWords.json';
-import allowlist from '../data/allowlist.json';
 import { validatePuzzle } from '../lib/validatePuzzle';
 import { getSeasonalWords, getFunFactWords, getCurrentEventWords } from '../lib/topics';
 import { yyyyMmDd } from '../utils/date';
 import { logInfo, logError, logWarn } from '../utils/logger';
+import { isValidFill } from '../utils/validateWord';
 
 const defaultHeroTerms = ['CAPTAINMARVEL', 'BLACKWIDOW', 'SPIDERMAN', 'IRONMAN', 'THOR'];
 
-function getPresentLengths(words: WordEntry[]): Set<number> {
+function getPresentLengths(words: WordEntry[], allow2: boolean): Set<number> {
   const present = new Set<number>();
   for (const entry of words) {
     const len = entry.answer.length;
-    if (len >= 2 && len <= 15) {
+    if (len >= (allow2 ? 2 : 3) && len <= 15) {
       present.add(len);
     }
   }
@@ -25,15 +25,19 @@ async function main() {
   const date = yyyyMmDd();
   const seed = `${date}:seasonal,funFacts,currentEvents`;
   const puzzleDate = new Date(`${date}T00:00:00Z`);
+
+  const args = process.argv.slice(2);
+  const allow2 = args.includes('--allow2');
+  const heroTerms = args.filter((a) => !a.startsWith('--'));
   const [seasonal, funFacts, currentEvents] = await Promise.all([
     getSeasonalWords(puzzleDate),
     getFunFactWords(),
     getCurrentEventWords(puzzleDate)
   ]);
   let wordList: WordEntry[] = [...seasonal, ...funFacts, ...currentEvents];
-  let present = getPresentLengths(wordList);
+  let present = getPresentLengths(wordList, allow2);
   let missingLengths: number[] = [];
-  for (let len = 2; len <= 15; len++) {
+  for (let len = allow2 ? 2 : 3; len <= 15; len++) {
     if (!present.has(len)) missingLengths.push(len);
   }
 
@@ -59,44 +63,41 @@ async function main() {
   const runtimeFallback = (len: number, letters: string[]): WordEntry | undefined => {
     const idx = fallbackList.findIndex(
       (w) =>
-        w.answer.length === len && letters.every((ch, i) => !ch || w.answer[i] === ch),
+        w.answer.length === len &&
+        letters.every((ch, i) => !ch || w.answer[i] === ch) &&
+        isValidFill(w.answer, { allow2 }),
     );
     if (idx !== -1) {
       const entry = fallbackList.splice(idx, 1)[0];
       logInfo('runtime_fallback_used', { length: len, answer: entry.answer });
       return entry;
     }
-    if (len === 2) {
-      const allowed = (allowlist as string[]).find((w) =>
-        letters.every((ch, i) => !ch || w[i] === ch),
-      );
-      if (allowed) {
-        logInfo('runtime_fallback_used', { length: len, answer: allowed });
-        return { answer: allowed, clue: allowed };
-      }
-    }
     const generated = letters.map((ch) => ch || 'A').join('').padEnd(len, 'A');
-    logWarn('runtime_fallback_generated', { length: len, answer: generated });
-    return { answer: generated, clue: generated };
+    if (isValidFill(generated, { allow2 })) {
+      logWarn('runtime_fallback_generated', { length: len, answer: generated });
+      return { answer: generated, clue: generated };
+    }
+    logWarn('runtime_fallback_failed', { length: len, letters: letters.join('') });
+    return undefined;
   };
 
-  present = getPresentLengths(wordList);
+  present = getPresentLengths(wordList, allow2);
   missingLengths = [];
-  for (let len = 2; len <= 15; len++) {
+  for (let len = allow2 ? 2 : 3; len <= 15; len++) {
     if (!present.has(len)) missingLengths.push(len);
   }
   if (missingLengths.length > 0) {
     missingLengths.forEach((len) => logError('missing_length', { length: len }));
     process.exit(1);
   }
-  const heroTerms = process.argv.slice(2);
   const puzzle = generateDaily(
     seed,
     wordList,
     heroTerms.length > 0 ? heroTerms : defaultHeroTerms,
     runtimeFallback,
+    { allow2 },
   );
-  const errors = validatePuzzle(puzzle, { checkSymmetry: true });
+  const errors = validatePuzzle(puzzle, { checkSymmetry: true, allow2 });
   if (errors.length > 0) {
     errors.forEach((err) => logError('puzzle_invalid', { error: err }));
     process.exit(1);
