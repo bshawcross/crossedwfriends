@@ -4,7 +4,6 @@ import { planHeroPlacements } from './heroPlacement';
 import { buildMask } from '@/grid/mask';
 import { validateSymmetry, validateMinSlotLength } from '../src/validate/puzzle';
 import { chooseAnswer } from '@/utils/chooseAnswer';
-import { logError } from '../utils/logger';
 import { repairMask } from './repairMask';
 
 export type Cell = {
@@ -43,23 +42,40 @@ export function generateDaily(
   const size = mask ? mask.length : 15;
   const cells: Cell[] = [];
   const minLen = opts.allow2 ? 2 : 3;
-  const boolGrid = mask
-    ? repairMask(mask, minLen, 50, opts.allow2)
-    : buildMask(size, 36, 5000, minLen);
+  let boolGrid: boolean[][];
+  if (mask) {
+    boolGrid = mask;
+    let symValid = validateSymmetry(boolGrid);
+    let slotDetail = validateMinSlotLength(boolGrid, 3);
+    if (!symValid || slotDetail) {
+      try {
+        boolGrid = repairMask(boolGrid, minLen, 50, opts.allow2);
+      } catch {
+        // ignore repair failures and validate below
+      }
+      symValid = validateSymmetry(boolGrid);
+      slotDetail = validateMinSlotLength(boolGrid, 3);
+      if (!symValid || slotDetail) {
+        const error = !symValid ? 'grid_not_symmetric' : 'slot_too_short';
+        throw { message: 'puzzle_invalid', error, detail: slotDetail };
+      }
+    }
+  } else {
+    boolGrid = buildMask(size, 36, 5000, minLen);
+  }
+
+  if (!validateSymmetry(boolGrid)) {
+    throw { message: 'puzzle_invalid', error: 'grid_not_symmetric', detail: undefined };
+  }
+  const detail = validateMinSlotLength(boolGrid, minLen);
+  if (detail) {
+    throw { message: 'puzzle_invalid', error: 'slot_too_short', detail };
+  }
+
   for (let r = 0; r < size; r++) {
     for (let c = 0; c < size; c++) {
       const isBlack = boolGrid[r][c];
       cells.push({ row: r, col: c, isBlack, answer: '', clueNumber: null, userInput: '', isSelected: false });
-    }
-  }
-  if (!validateSymmetry(boolGrid)) {
-    throw new Error('grid_not_symmetric');
-  }
-  if (!opts.allow2) {
-    const detail = validateMinSlotLength(boolGrid, minLen);
-    if (detail) {
-      logError('slot_too_short', { detail });
-      process.exit(1);
     }
   }
 
