@@ -51,9 +51,8 @@ export function getSlotLengths(grid: boolean[][], orientation: 'across' | 'down'
 
 export type ShortSlotDetail = {
   type: 'across' | 'down';
-  r: number;
-  c0: number;
-  c1: number;
+  start: { row: number; col: number };
+  end: { row: number; col: number };
   len: number;
 };
 
@@ -71,7 +70,13 @@ function findFirstShortSlot(grid: boolean[][], min: number): ShortSlotDetail | n
       if (grid[r][c] || c === size - 1) {
         const end = grid[r][c] ? c - 1 : c;
         if (len > 0) {
-          if (len < min) return { type: 'across', r, c0: start, c1: end, len };
+          if (len < min)
+            return {
+              type: 'across',
+              start: { row: r, col: start },
+              end: { row: r, col: end },
+              len,
+            };
         }
         len = 0;
         start = -1;
@@ -91,7 +96,13 @@ function findFirstShortSlot(grid: boolean[][], min: number): ShortSlotDetail | n
       if (grid[r][c] || r === size - 1) {
         const end = grid[r][c] ? r - 1 : r;
         if (len > 0) {
-          if (len < min) return { type: 'down', r: start, c0: c, c1: end, len };
+          if (len < min)
+            return {
+              type: 'down',
+              start: { row: start, col: c },
+              end: { row: end, col: c },
+              len,
+            };
         }
         len = 0;
         start = -1;
