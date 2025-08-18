@@ -1,12 +1,11 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 import { generateDaily, WordEntry } from '../lib/puzzle';
-import fallbackWords from '../data/fallbackWords.json';
 import { validatePuzzle } from '../lib/validatePuzzle';
 import { getSeasonalWords, getFunFactWords, getCurrentEventWords } from '../lib/topics';
 import { yyyyMmDd } from '../utils/date';
 import { logInfo, logError, logWarn } from '../utils/logger';
-import { isValidFill } from '../utils/validateWord';
+import { getFallback } from '../utils/getFallback';
 
 const defaultHeroTerms = ['CAPTAINMARVEL', 'BLACKWIDOW', 'SPIDERMAN', 'IRONMAN', 'THOR'];
 
@@ -37,14 +36,13 @@ async function main() {
   let wordList: WordEntry[] = [...seasonal, ...funFacts, ...currentEvents];
   let present = getPresentLengths(wordList, allow2);
   let missingLengths: number[] = [];
-  for (let len = allow2 ? 2 : 3; len <= 15; len++) {
+  for (let len = 3; len <= 15; len++) {
     if (!present.has(len)) missingLengths.push(len);
   }
 
-  const fallbackList = fallbackWords as WordEntry[];
   if (missingLengths.length > 0) {
     for (const len of missingLengths) {
-      const fallbackEntry = fallbackList.find((entry) => entry.answer.length === len);
+      const fallbackEntry = getFallback(len, Array(len).fill(''), { allow2 });
       if (fallbackEntry) {
         wordList.push(fallbackEntry);
         logInfo('fallback_word_used', { length: len, answer: fallbackEntry.answer });
@@ -54,28 +52,11 @@ async function main() {
     }
   }
 
-  fallbackList.forEach((entry) => {
-    if (!wordList.some((w) => w.answer === entry.answer)) {
-      wordList.push(entry);
-    }
-  });
-
   const runtimeFallback = (len: number, letters: string[]): WordEntry | undefined => {
-    const idx = fallbackList.findIndex(
-      (w) =>
-        w.answer.length === len &&
-        letters.every((ch, i) => !ch || w.answer[i] === ch) &&
-        isValidFill(w.answer, { allow2 }),
-    );
-    if (idx !== -1) {
-      const entry = fallbackList.splice(idx, 1)[0];
+    const entry = getFallback(len, letters, { allow2 });
+    if (entry) {
       logInfo('runtime_fallback_used', { length: len, answer: entry.answer });
       return entry;
-    }
-    const generated = letters.map((ch) => ch || 'A').join('').padEnd(len, 'A');
-    if (isValidFill(generated, { allow2 })) {
-      logWarn('runtime_fallback_generated', { length: len, answer: generated });
-      return { answer: generated, clue: generated };
     }
     logWarn('runtime_fallback_failed', { length: len, letters: letters.join('') });
     return undefined;
@@ -83,7 +64,7 @@ async function main() {
 
   present = getPresentLengths(wordList, allow2);
   missingLengths = [];
-  for (let len = allow2 ? 2 : 3; len <= 15; len++) {
+  for (let len = 3; len <= 15; len++) {
     if (!present.has(len)) missingLengths.push(len);
   }
   if (missingLengths.length > 0) {
