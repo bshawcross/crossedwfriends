@@ -2,6 +2,7 @@ import { cleanClue } from './clueClean';
 import { findSlots, Slot } from './slotFinder';
 import { planHeroPlacements } from './heroPlacement';
 import { isValidFill } from '@/utils/validateWord';
+import { setBlack } from '@/grid/symmetry';
 
 export type Cell = {
   row: number;
@@ -47,7 +48,7 @@ export function generateDaily(
   for (let r=0;r<size;r++){
     for (let c=0;c<size;c++){
       const cond = ((r+c+hash(seed))%5===0) || ((r%7===0)&&(c%4===0));
-      if (cond){ blocks.add(`${r}_${c}`); blocks.add(`${size-1-r}_${size-1-c}`); }
+      if (cond){ setBlack(blocks, r, c, size); }
     }
   }
   for (let r=0;r<size;r++){

@@ -4,6 +4,7 @@ import { generateDaily, WordEntry } from '../lib/puzzle';
 import type { Puzzle, Cell, Clue } from '../lib/puzzle';
 import { largeWordList } from '../tests/helpers/wordList';
 import { findSlots } from '../lib/slotFinder';
+import { symCell } from '../grid/symmetry';
 
 describe('validatePuzzle', () => {
   test('valid puzzle passes', () => {
@@ -81,7 +82,8 @@ describe('validatePuzzle', () => {
     const puzzle = generateDaily('seed', largeWordList(), [], undefined, { allow2: true });
     const size = 15;
     const idx = 0;
-    const symIdx = size * size - 1;
+    const sym = symCell(0, 0, size);
+    const symIdx = sym.row * size + sym.col;
     puzzle.cells[idx].isBlack = !puzzle.cells[symIdx].isBlack;
     const errors = validatePuzzle(puzzle, { checkSymmetry: true, allow2: true });
     expect(errors.some((e) => e.includes('not symmetric'))).toBe(true);

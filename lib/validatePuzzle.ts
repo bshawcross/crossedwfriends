@@ -2,6 +2,7 @@ import { Puzzle, Cell, Clue } from './puzzle';
 import { findSlots, Slot } from './slotFinder';
 import { cleanClue } from './clueClean';
 import { isValidFill } from '@/utils/validateWord';
+import { symCell } from '@/grid/symmetry';
 
 export function validatePuzzle(
   puzzle: Puzzle,
@@ -79,10 +80,11 @@ export function validatePuzzle(
     for (let r = 0; r < size; r++) {
       for (let c = 0; c < size; c++) {
         const idx = r * size + c;
-        const symIdx = (size - 1 - r) * size + (size - 1 - c);
+        const sym = symCell(r, c, size);
+        const symIdx = sym.row * size + sym.col;
         if (idx >= symIdx) continue;
         if (puzzle.cells[idx].isBlack !== puzzle.cells[symIdx].isBlack) {
-          errors.push(`Cells (${r},${c}) and (${size - 1 - r},${size - 1 - c}) not symmetric`);
+          errors.push(`Cells (${r},${c}) and (${sym.row},${sym.col}) not symmetric`);
         }
       }
     }
