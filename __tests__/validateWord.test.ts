@@ -2,16 +2,13 @@ import { describe, it, expect } from "vitest";
 import { isValidFill } from "@/utils/validateWord";
 
 describe("isValidFill", () => {
-  it("rejects answers with non-uppercase letters", () => {
+  it("rejects answers with non-A–Z characters", () => {
     expect(isValidFill("ok")).toBe(false);
     expect(isValidFill("A1")).toBe(false);
   });
 
-  it("rejects single-letter answers", () => {
+  it("rejects short words", () => {
     expect(isValidFill("A")).toBe(false);
-  });
-
-  it("rejects two-letter answers by default", () => {
     expect(isValidFill("OK")).toBe(false);
   });
 
@@ -21,11 +18,11 @@ describe("isValidFill", () => {
     expect(isValidFill("AA", { allow2: true })).toBe(true);
   });
 
-  it("rejects denylisted answers", () => {
+  it("rejects triple repeated letters", () => {
     expect(isValidFill("ZZZ")).toBe(false);
   });
 
-  it("allows other valid answers", () => {
+  it("accepts valid fills", () => {
     expect(isValidFill("GOOD")).toBe(true);
   });
 });
