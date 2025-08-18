@@ -8,7 +8,7 @@ import { yyyyMmDd } from '../utils/date';
 import { logInfo, logError, logWarn } from '../utils/logger';
 import { getFallback } from '../utils/getFallback';
 import { validateSymmetry, validateMinSlotLength } from '../src/validate/puzzle';
-import { setBlackGuarded } from '../grid/symmetry';
+import { buildMask } from '../grid/mask';
 import { isValidFill } from '../utils/validateWord';
 
 const defaultHeroTerms = ['CAPTAINMARVEL', 'BLACKWIDOW', 'SPIDERMAN', 'IRONMAN', 'THOR'];
@@ -71,27 +71,7 @@ async function main() {
 
   // Build grid for preflight validation
   const size = 15;
-  const grid: boolean[][] = Array.from({ length: size }, () => Array(size).fill(false));
-  const hash = (s: string) => {
-    let h = 2166136261;
-    for (let i = 0; i < s.length; i++) {
-      h ^= s.charCodeAt(i);
-      h = Math.imul(h, 16777619);
-    }
-    return Math.abs(h >>> 0) % 97;
-  };
-  for (let r = 0; r < size; r++) {
-    for (let c = 0; c < size; c++) {
-      const cond = ((r + c + hash(seed)) % 5 === 0) || ((r % 7 === 0) && (c % 4 === 0));
-      if (cond) {
-        try {
-          setBlackGuarded(grid, r, c, minLen);
-        } catch {
-          /* ignore rejected black */
-        }
-      }
-    }
-  }
+  const grid = buildMask(size, 36, 5000, minLen);
   try {
     if (!validateSymmetry(grid)) {
       logError('grid_not_symmetric');
@@ -111,6 +91,7 @@ async function main() {
     wordList,
     heroTerms.length > 0 ? heroTerms : defaultHeroTerms,
     { allow2 },
+    grid,
   );
   const finalGrid: boolean[][] = [];
   for (let r = 0; r < size; r++) {
