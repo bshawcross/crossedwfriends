@@ -77,10 +77,12 @@ async function main() {
       logError('grid_not_symmetric');
       process.exit(1);
     }
-    const detail = validateMinSlotLength(grid, minLen);
-    if (detail) {
-      logError('slot_too_short', { detail });
-      process.exit(1);
+    if (!allow2) {
+      const detail = validateMinSlotLength(grid, minLen);
+      if (detail) {
+        logError('slot_too_short', { detail });
+        process.exit(1);
+      }
     }
   } catch (err) {
     logError('puzzle_invalid', { error: (err as Error).message });

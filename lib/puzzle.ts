@@ -43,7 +43,9 @@ export function generateDaily(
   const size = mask ? mask.length : 15;
   const cells: Cell[] = [];
   const minLen = opts.allow2 ? 2 : 3;
-  const boolGrid = mask ? repairMask(mask, minLen) : buildMask(size, 36, 5000, minLen);
+  const boolGrid = mask
+    ? repairMask(mask, minLen, 50, opts.allow2)
+    : buildMask(size, 36, 5000, minLen);
   for (let r = 0; r < size; r++) {
     for (let c = 0; c < size; c++) {
       const isBlack = boolGrid[r][c];
@@ -53,10 +55,12 @@ export function generateDaily(
   if (!validateSymmetry(boolGrid)) {
     throw new Error('grid_not_symmetric');
   }
-  const detail = validateMinSlotLength(boolGrid, minLen);
-  if (detail) {
-    logError('slot_too_short', { detail });
-    process.exit(1);
+  if (!opts.allow2) {
+    const detail = validateMinSlotLength(boolGrid, minLen);
+    if (detail) {
+      logError('slot_too_short', { detail });
+      process.exit(1);
+    }
   }
 
   // place hero terms before slot finding
