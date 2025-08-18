@@ -29,8 +29,10 @@ async function main() {
   const seed = `${date}:seasonal,funFacts,currentEvents`;
   const puzzleDate = new Date(`${date}T00:00:00Z`);
 
+  // CLI usage: [hero terms...] --allow2=true|false (default false)
   const args = process.argv.slice(2);
-  const allow2 = args.includes('--allow2');
+  const allow2Arg = args.find((a) => a.startsWith('--allow2'));
+  const allow2 = allow2Arg ? allow2Arg.split('=')[1] !== 'false' : false;
   const heroTerms = args.filter((a) => !a.startsWith('--'));
   const [seasonal, funFacts, currentEvents] = await Promise.all([
     getSeasonalWords(puzzleDate),
@@ -40,7 +42,8 @@ async function main() {
   let wordList: WordEntry[] = [...seasonal, ...funFacts, ...currentEvents];
   let present = getPresentLengths(wordList, allow2);
   let missingLengths: number[] = [];
-  for (let len = 3; len <= 15; len++) {
+  const minLen = allow2 ? 2 : 3;
+  for (let len = minLen; len <= 15; len++) {
     if (!present.has(len)) missingLengths.push(len);
   }
 
@@ -58,7 +61,7 @@ async function main() {
 
   present = getPresentLengths(wordList, allow2);
   missingLengths = [];
-  for (let len = 3; len <= 15; len++) {
+  for (let len = minLen; len <= 15; len++) {
     if (!present.has(len)) missingLengths.push(len);
   }
   if (missingLengths.length > 0) {
@@ -95,7 +98,7 @@ async function main() {
     logError('grid_not_symmetric');
     process.exit(1);
   }
-  const shortSlots = validateMinSlotLength(grid, 3);
+  const shortSlots = validateMinSlotLength(grid, allow2 ? 2 : 3);
   if (shortSlots.length > 0) {
     logError('slot_too_short', { lengths: shortSlots });
     process.exit(1);
@@ -143,7 +146,7 @@ async function main() {
             : (slot.row + k) * size + slot.col;
         ans += puzzle.cells[cellIdx].answer;
       }
-      const valid = isValidFill(ans, { allow2 }) && (allow2 || ans.length >= 3);
+      const valid = isValidFill(ans, { allow2 });
       if (!valid) {
         logError('puzzle_invalid', { error: `${dir} clue invalid`, clueIndex: idx });
         process.exit(1);
