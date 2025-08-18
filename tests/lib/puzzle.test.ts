@@ -9,7 +9,7 @@ describe('generateDaily', () => {
       { answer: 'OK', clue: 'fit' },
       ...largeWordList(),
     ];
-    const puzzle = generateDaily('test', wordList, [], undefined, { allow2: true });
+    const puzzle = generateDaily('test', wordList, [], { allow2: true });
     const allClues = [...puzzle.across, ...puzzle.down].map((c) => c.text);
     expect(allClues).toContain('fit');
     expect(allClues).not.toContain('skip');
@@ -18,21 +18,14 @@ describe('generateDaily', () => {
 
   it('uses fallback when no matching word is found', () => {
     const wordList = largeWordList().filter((w) => w.answer.length !== 3);
-    const fallbackFn = vi.fn(
-      (len: number, letters: string[]): WordEntry | undefined => {
-        if (len === 3) {
-          const answer = letters.map((ch) => ch || 'A').join('').padEnd(len, 'A');
-          return { answer, clue: 'fb' };
-        }
-      },
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const puzzle = generateDaily('seed', wordList, [], { allow2: true });
+    expect(logSpy).toHaveBeenCalledWith(
+      expect.stringContaining('"message":"fallback_word_used"'),
     );
-    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    const puzzle = generateDaily('seed', wordList, [], fallbackFn, { allow2: true });
-    expect(fallbackFn).toHaveBeenCalled();
-    expect(warnSpy).toHaveBeenCalled();
     const clues = [...puzzle.across, ...puzzle.down].map((c) => c.text);
-    expect(clues).toContain('fb');
-    warnSpy.mockRestore();
+    expect(clues.length).toBeGreaterThan(0);
+    logSpy.mockRestore();
   });
 });
 

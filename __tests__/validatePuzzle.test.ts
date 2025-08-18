@@ -1,4 +1,4 @@
-import { describe, test, expect } from 'vitest';
+import { describe, test, expect, vi } from 'vitest';
 import { validatePuzzle } from '../lib/validatePuzzle';
 import { generateDaily, WordEntry } from '../lib/puzzle';
 import type { Puzzle, Cell, Clue } from '../lib/puzzle';
@@ -47,14 +47,14 @@ describe('validatePuzzle', () => {
   });
 
   test('fails when not 225 cells', () => {
-    const puzzle = generateDaily('seed', largeWordList(), [], undefined, { allow2: true });
+    const puzzle = generateDaily('seed', largeWordList(), [], { allow2: true });
     puzzle.cells.pop();
     const errors = validatePuzzle(puzzle, { allow2: true });
     expect(errors.some((e) => e.includes('225'))).toBe(true);
   });
 
   test('detects clue and answer issues', () => {
-    const puzzle = generateDaily('seed', largeWordList(), [], undefined, { allow2: true });
+    const puzzle = generateDaily('seed', largeWordList(), [], { allow2: true });
     // mismatched clue length and dirty clue
     puzzle.across[0].length += 1;
     puzzle.across[0].text = '<b>bad</b> clue http://example.com';
@@ -79,7 +79,7 @@ describe('validatePuzzle', () => {
   });
 
   test('fails symmetry check', () => {
-    const puzzle = generateDaily('seed', largeWordList(), [], undefined, { allow2: true });
+    const puzzle = generateDaily('seed', largeWordList(), [], { allow2: true });
     const size = 15;
     const idx = 0;
     const sym = symCell(0, 0, size);
@@ -89,12 +89,15 @@ describe('validatePuzzle', () => {
     expect(errors.some((e) => e.includes('not symmetric'))).toBe(true);
   });
 
-  test('aborts when word list is insufficient', () => {
+  test('uses fallback when word list is insufficient', () => {
     const shortList: WordEntry[] = [{ answer: 'OK', clue: 'ok' }];
-    expect(() => {
-      const puzzle = generateDaily('seed', shortList, [], undefined, { allow2: true });
-      const errors = validatePuzzle(puzzle, { allow2: true });
-      expect(errors.some((e) => e.includes('not allowed'))).toBe(false);
-    }).toThrow();
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const puzzle = generateDaily('seed', shortList, [], { allow2: true });
+    expect(logSpy).toHaveBeenCalledWith(
+      expect.stringContaining('"message":"fallback_word_used"'),
+    );
+    const errors = validatePuzzle(puzzle, { allow2: true });
+    expect(errors.some((e) => e.includes('not allowed'))).toBe(false);
+    logSpy.mockRestore();
   });
 });

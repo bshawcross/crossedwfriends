@@ -54,16 +54,6 @@ async function main() {
     }
   }
 
-  const runtimeFallback = (len: number, letters: string[]): WordEntry | undefined => {
-    const entry = getFallback(len, letters, { allow2 });
-    if (entry) {
-      logInfo('runtime_fallback_used', { length: len, answer: entry.answer });
-      return entry;
-    }
-    logWarn('runtime_fallback_failed', { length: len, letters: letters.join('') });
-    return undefined;
-  };
-
   present = getPresentLengths(wordList, allow2);
   missingLengths = [];
   for (let len = 3; len <= 15; len++) {
@@ -112,7 +102,6 @@ async function main() {
     seed,
     wordList,
     heroTerms.length > 0 ? heroTerms : defaultHeroTerms,
-    runtimeFallback,
     { allow2 },
   );
   const errors = validatePuzzle(puzzle, { checkSymmetry: true, allow2 });
