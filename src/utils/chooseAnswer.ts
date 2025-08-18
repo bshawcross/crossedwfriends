@@ -1,6 +1,6 @@
 import { isValidFill } from "./validateWord";
 import { getFallback } from "./getFallback";
-import { logInfo } from "@/utils/logger";
+import { logInfo, logError } from "@/utils/logger";
 import type { WordEntry } from "../../lib/puzzle";
 
 export function chooseAnswer(
@@ -23,5 +23,6 @@ export function chooseAnswer(
     logInfo("fallback_word_used", { length: len, answer: fb.answer });
     return fb;
   }
+  logError("choose_answer_failed", { length: len, letters: letters.join("") });
   return undefined;
 }
