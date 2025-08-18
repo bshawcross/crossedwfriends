@@ -10,11 +10,12 @@ const FALLBACK_WORDS: Record<number, string[]> = Object.fromEntries(
 
 export function getFallback(
   len: number,
+  letters: string[] = [],
   opts: { allow2?: boolean } = {},
 ): string | null {
   const minLen = opts.allow2 ? 2 : 3;
-  const candidates = (FALLBACK_WORDS[len] || []).filter((w) =>
-    isValidFill(w, minLen),
+  const candidates = (FALLBACK_WORDS[len] || []).filter(
+    (w) => isValidFill(w, minLen) && letters.every((ch, i) => !ch || w[i] === ch),
   );
   if (candidates.length === 0) return null;
   return candidates[Math.floor(Math.random() * candidates.length)];
