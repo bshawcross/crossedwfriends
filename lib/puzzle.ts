@@ -1,7 +1,7 @@
 import { cleanClue } from './clueClean';
 import { findSlots, Slot } from './slotFinder';
 import { planHeroPlacements } from './heroPlacement';
-import { setBlackGuarded } from '@/grid/symmetry';
+import { buildMask } from '@/grid/mask';
 import { validateSymmetry, validateMinSlotLength } from '../src/validate/puzzle';
 import { chooseAnswer } from '@/utils/chooseAnswer';
 import { logError } from '../utils/logger';
@@ -32,33 +32,17 @@ export function coordsToIndex(row: number, col: number, size = 15) {
   return row * size + col;
 }
 
-function hash(s: string) {
-  let h = 2166136261; for (let i=0;i<s.length;i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
-  return Math.abs(h>>>0) % 97;
-}
-
 export function generateDaily(
   seed: string,
   wordList: WordEntry[] = [],
   heroTerms: string[] = [],
   opts: { allow2?: boolean } = {},
+  mask?: boolean[][],
 ): Puzzle {
-  const size = 15;
+  const size = mask ? mask.length : 15;
   const cells: Cell[] = [];
-  const boolGrid: boolean[][] = Array.from({ length: size }, () => Array(size).fill(false));
   const minLen = opts.allow2 ? 2 : 3;
-  for (let r = 0; r < size; r++) {
-    for (let c = 0; c < size; c++) {
-      const cond = ((r + c + hash(seed)) % 5 === 0) || ((r % 7 === 0) && (c % 4 === 0));
-      if (cond) {
-        try {
-          setBlackGuarded(boolGrid, r, c, minLen);
-        } catch {
-          /* ignore rejected black */
-        }
-      }
-    }
-  }
+  const boolGrid = mask ?? buildMask(size, 36, 5000, minLen);
   for (let r = 0; r < size; r++) {
     for (let c = 0; c < size; c++) {
       const isBlack = boolGrid[r][c];
