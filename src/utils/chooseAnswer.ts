@@ -8,7 +8,7 @@ export function chooseAnswer(
   letters: string[],
   pool: WordEntry[],
   opts: { allow2?: boolean } = {},
-): WordEntry | undefined {
+): WordEntry {
   const minLen = opts.allow2 ? 2 : 3;
   const idx = pool.findIndex(
     (w) =>
@@ -19,11 +19,11 @@ export function chooseAnswer(
   if (idx !== -1) {
     return pool.splice(idx, 1)[0];
   }
-  const fb = getFallback(len, letters, opts);
+  const fb = getFallback(len, opts);
   if (fb) {
-    logInfo("fallback_word_used", { length: len, answer: fb.answer });
-    return fb;
+    logInfo("fallback_word_used", { length: len, answer: fb });
+    return { answer: fb, clue: fb };
   }
   logError("choose_answer_failed", { length: len, letters: letters.join("") });
-  return undefined;
+  throw new Error(`Missing word entry for length ${len}`);
 }
