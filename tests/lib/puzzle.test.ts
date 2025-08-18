@@ -19,7 +19,10 @@ describe('generateDaily', () => {
   it('uses fallback when no matching word is found', () => {
     const wordList = largeWordList().filter((w) => w.answer.length !== 3);
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-    const puzzle = generateDaily('seed', wordList, [], { allow2: true });
+    let puzzle;
+    expect(() => {
+      puzzle = generateDaily('seed', wordList, [], { allow2: true });
+    }).not.toThrow();
     expect(logSpy).toHaveBeenCalledWith(
       expect.stringContaining('"message":"fallback_word_used"'),
     );

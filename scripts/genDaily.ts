@@ -49,7 +49,7 @@ async function main() {
 
   if (missingLengths.length > 0) {
     for (const len of missingLengths) {
-      const word = getFallback(len, { allow2 });
+      const word = getFallback(len, [], { allow2 });
       if (!word) {
         throw new Error(`No fallback word for length ${len}`);
       }

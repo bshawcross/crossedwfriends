@@ -1,6 +1,6 @@
 import { isValidFill } from "./validateWord";
 import { getFallback } from "./getFallback";
-import { logInfo, logError } from "@/utils/logger";
+import { logInfo } from "@/utils/logger";
 import type { WordEntry } from "../../lib/puzzle";
 
 export function chooseAnswer(
@@ -19,11 +19,10 @@ export function chooseAnswer(
   if (idx !== -1) {
     return pool.splice(idx, 1)[0];
   }
-  const fb = getFallback(len, opts);
+  const fb = getFallback(len, letters, opts);
   if (fb) {
     logInfo("fallback_word_used", { length: len, answer: fb });
     return { answer: fb, clue: fb };
   }
-  logError("choose_answer_failed", { length: len, letters: letters.join("") });
   throw new Error(`Missing word entry for length ${len}`);
 }

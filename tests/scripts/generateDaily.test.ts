@@ -26,6 +26,16 @@ vi.mock('../../utils/date', () => ({
   yyyyMmDd: () => '2024-01-02',
 }));
 
+vi.mock('../../utils/getFallback', () => ({
+  getFallback: (len: number, letters: string[]) => {
+    let word = '';
+    for (let i = 0; i < len; i++) {
+      word += letters[i] || 'A';
+    }
+    return word;
+  },
+}));
+
 afterEach(() => {
   vi.clearAllMocks();
 });
@@ -38,6 +48,17 @@ describe('generateDaily script', () => {
     currentMock.mockResolvedValue(largeWordList());
     vi.doMock('../../lib/validatePuzzle', () => ({ validatePuzzle: () => [] }));
     vi.doMock('../../src/validate/puzzle', () => ({ validateSymmetry: () => true, validateMinSlotLength: () => null }));
+    const gf = {
+      getFallback: (len: number, letters: string[]) => {
+        let word = '';
+        for (let i = 0; i < len; i++) {
+          word += letters[i] || 'A';
+        }
+        return word;
+      },
+    };
+    vi.doMock('../../utils/getFallback', () => gf);
+    vi.doMock('../../src/utils/getFallback', () => gf);
 
     const fsMod = await import('fs');
     const fs = fsMod.promises;
@@ -69,6 +90,17 @@ describe('generateDaily script', () => {
     currentMock.mockResolvedValue([]);
     vi.doMock('../../lib/validatePuzzle', () => ({ validatePuzzle: () => [] }));
     vi.doMock('../../src/validate/puzzle', () => ({ validateSymmetry: () => true, validateMinSlotLength: () => null }));
+    const gf = {
+      getFallback: (len: number, letters: string[]) => {
+        let word = '';
+        for (let i = 0; i < len; i++) {
+          word += letters[i] || 'A';
+        }
+        return word;
+      },
+    };
+    vi.doMock('../../utils/getFallback', () => gf);
+    vi.doMock('../../src/utils/getFallback', () => gf);
 
     const fsMod = await import('fs');
     const fs = fsMod.promises;

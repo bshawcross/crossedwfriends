@@ -104,8 +104,13 @@ export function generateDaily(
   });
 
   const remaining = wordList.map((w) => ({ answer: w.answer.toUpperCase(), clue: w.clue }));
-  const getEntry = (len: number, letters: string[]) =>
-    chooseAnswer(len, letters, remaining, opts);
+  const getEntry = (len: number, letters: string[]) => {
+    try {
+      return chooseAnswer(len, letters, remaining, opts);
+    } catch {
+      return undefined;
+    }
+  };
 
   const across: Clue[] = [];
   const down: Clue[] = [];
