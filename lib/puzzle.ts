@@ -1,7 +1,7 @@
 import { cleanClue } from './clueClean';
 import { findSlots, Slot } from './slotFinder';
 import { planHeroPlacements } from './heroPlacement';
-import { setBlack } from '@/grid/symmetry';
+import { setBlackGuarded } from '@/grid/symmetry';
 import { validateSymmetry, validateMinSlotLength } from '../src/validate/puzzle';
 import { chooseAnswer } from '@/utils/chooseAnswer';
 
@@ -44,32 +44,30 @@ export function generateDaily(
 ): Puzzle {
   const size = 15;
   const cells: Cell[] = [];
-  const blocks = new Set<string>();
-  for (let r=0;r<size;r++){
-    for (let c=0;c<size;c++){
-      const cond = ((r+c+hash(seed))%5===0) || ((r%7===0)&&(c%4===0));
-      if (cond){ setBlack(blocks, r, c, size); }
-    }
-  }
-  for (let r=0;r<size;r++){
-    for (let c=0;c<size;c++){
-      const isBlack = blocks.has(`${r}_${c}`)
-      cells.push({ row:r, col:c, isBlack, answer:'', clueNumber:null, userInput:'', isSelected:false })
-    }
-  }
-
-  const boolGrid: boolean[][] = [];
+  const boolGrid: boolean[][] = Array.from({ length: size }, () => Array(size).fill(false));
+  const minLen = opts.allow2 ? 2 : 3;
   for (let r = 0; r < size; r++) {
-    const row: boolean[] = [];
     for (let c = 0; c < size; c++) {
-      row.push(blocks.has(`${r}_${c}`));
+      const cond = ((r + c + hash(seed)) % 5 === 0) || ((r % 7 === 0) && (c % 4 === 0));
+      if (cond) {
+        try {
+          setBlackGuarded(boolGrid, r, c, minLen);
+        } catch {
+          /* ignore rejected black */
+        }
+      }
     }
-    boolGrid.push(row);
+  }
+  for (let r = 0; r < size; r++) {
+    for (let c = 0; c < size; c++) {
+      const isBlack = boolGrid[r][c];
+      cells.push({ row: r, col: c, isBlack, answer: '', clueNumber: null, userInput: '', isSelected: false });
+    }
   }
   if (!validateSymmetry(boolGrid)) {
     throw new Error('grid_not_symmetric');
   }
-  const shortSlots = validateMinSlotLength(boolGrid, opts.allow2 ? 2 : 3);
+  const shortSlots = validateMinSlotLength(boolGrid, minLen);
   if (shortSlots.length > 0) {
     throw new Error('slot_too_short');
   }
