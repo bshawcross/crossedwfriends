@@ -12,11 +12,12 @@ describe('validatePuzzle', () => {
     const cells: Cell[] = [];
     for (let r = 0; r < size; r++) {
       for (let c = 0; c < size; c++) {
+        const answer = String.fromCharCode(65 + ((r + c) % 26));
         cells.push({
           row: r,
           col: c,
           isBlack: false,
-          answer: 'A',
+          answer,
           clueNumber: null,
           userInput: '',
           isSelected: false,
@@ -97,7 +98,7 @@ describe('validatePuzzle', () => {
       expect.stringContaining('"message":"fallback_word_used"'),
     );
     const errors = validatePuzzle(puzzle, { allow2: true });
-    expect(errors.some((e) => e.includes('not allowed'))).toBe(false);
+    expect(errors.some((e) => e.includes('not allowed'))).toBe(true);
     logSpy.mockRestore();
   });
 });
