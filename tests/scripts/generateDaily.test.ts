@@ -19,7 +19,7 @@ vi.mock('../../lib/validatePuzzle', () => ({
 
 vi.mock('../../src/validate/puzzle', () => ({
   validateSymmetry: () => true,
-  validateMinSlotLength: () => [],
+  validateMinSlotLength: () => null,
 }));
 
 vi.mock('../../utils/date', () => ({
@@ -37,7 +37,7 @@ describe('generateDaily script', () => {
     funFactMock.mockResolvedValue(largeWordList());
     currentMock.mockResolvedValue(largeWordList());
     vi.doMock('../../lib/validatePuzzle', () => ({ validatePuzzle: () => [] }));
-    vi.doMock('../../src/validate/puzzle', () => ({ validateSymmetry: () => true, validateMinSlotLength: () => [] }));
+    vi.doMock('../../src/validate/puzzle', () => ({ validateSymmetry: () => true, validateMinSlotLength: () => null }));
 
     const fsMod = await import('fs');
     const fs = fsMod.promises;
@@ -68,7 +68,7 @@ describe('generateDaily script', () => {
     funFactMock.mockResolvedValue([]);
     currentMock.mockResolvedValue([]);
     vi.doMock('../../lib/validatePuzzle', () => ({ validatePuzzle: () => [] }));
-    vi.doMock('../../src/validate/puzzle', () => ({ validateSymmetry: () => true, validateMinSlotLength: () => [] }));
+    vi.doMock('../../src/validate/puzzle', () => ({ validateSymmetry: () => true, validateMinSlotLength: () => null }));
 
     const fsMod = await import('fs');
     const fs = fsMod.promises;

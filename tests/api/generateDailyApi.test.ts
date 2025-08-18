@@ -31,7 +31,7 @@ describe('generateDaily and API integration', () => {
 
     vi.mock('../../lib/topics', () => mockTopics);
     vi.mock('../../lib/validatePuzzle', () => ({ validatePuzzle: () => [] }));
-    vi.mock('../../src/validate/puzzle', () => ({ validateSymmetry: () => true, validateMinSlotLength: () => [] }));
+    vi.mock('../../src/validate/puzzle', () => ({ validateSymmetry: () => true, validateMinSlotLength: () => null }));
 
     vi.setSystemTime(new Date('2024-01-01T23:59:00-08:00'));
     process.argv.push('--allow2=true');
@@ -53,7 +53,7 @@ describe('generateDaily and API integration', () => {
     vi.resetModules();
     vi.mock('../../lib/topics', () => mockTopics);
     vi.mock('../../lib/validatePuzzle', () => ({ validatePuzzle: () => [] }));
-    vi.mock('../../src/validate/puzzle', () => ({ validateSymmetry: () => true, validateMinSlotLength: () => [] }));
+    vi.mock('../../src/validate/puzzle', () => ({ validateSymmetry: () => true, validateMinSlotLength: () => null }));
     vi.setSystemTime(new Date('2024-01-02T00:01:00-08:00'));
     process.argv.push('--allow2=true');
     await import('../../scripts/genDaily');

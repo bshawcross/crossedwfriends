@@ -97,9 +97,9 @@ async function main() {
       logError('grid_not_symmetric');
       process.exit(1);
     }
-    const shortSlots = validateMinSlotLength(grid, minLen);
-    if (shortSlots.length > 0) {
-      logError('slot_too_short', { lengths: shortSlots });
+    const detail = validateMinSlotLength(grid, minLen);
+    if (detail) {
+      logError('slot_too_short', { detail });
       process.exit(1);
     }
   } catch (err) {

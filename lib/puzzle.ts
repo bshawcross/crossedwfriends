@@ -4,6 +4,7 @@ import { planHeroPlacements } from './heroPlacement';
 import { setBlackGuarded } from '@/grid/symmetry';
 import { validateSymmetry, validateMinSlotLength } from '../src/validate/puzzle';
 import { chooseAnswer } from '@/utils/chooseAnswer';
+import { logError } from '../utils/logger';
 
 export type Cell = {
   row: number;
@@ -67,9 +68,10 @@ export function generateDaily(
   if (!validateSymmetry(boolGrid)) {
     throw new Error('grid_not_symmetric');
   }
-  const shortSlots = validateMinSlotLength(boolGrid, minLen);
-  if (shortSlots.length > 0) {
-    throw new Error('slot_too_short');
+  const detail = validateMinSlotLength(boolGrid, minLen);
+  if (detail) {
+    logError('slot_too_short', { detail });
+    process.exit(1);
   }
 
   // place hero terms before slot finding
