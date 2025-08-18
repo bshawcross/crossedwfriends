@@ -16,20 +16,22 @@ export function repairMask(
     let r: number | undefined;
     let c: number | undefined;
     if (detail.type === 'across') {
-      if (detail.c0 > 0 && grid[detail.r][detail.c0 - 1]) {
-        r = detail.r;
-        c = detail.c0 - 1;
-      } else if (detail.c1 < size - 1 && grid[detail.r][detail.c1 + 1]) {
-        r = detail.r;
-        c = detail.c1 + 1;
+      const { row } = detail.start;
+      if (detail.start.col > 0 && grid[row][detail.start.col - 1]) {
+        r = row;
+        c = detail.start.col - 1;
+      } else if (detail.end.col < size - 1 && grid[row][detail.end.col + 1]) {
+        r = row;
+        c = detail.end.col + 1;
       }
     } else {
-      if (detail.r > 0 && grid[detail.r - 1][detail.c0]) {
-        r = detail.r - 1;
-        c = detail.c0;
-      } else if (detail.c1 < size - 1 && grid[detail.c1 + 1][detail.c0]) {
-        r = detail.c1 + 1;
-        c = detail.c0;
+      const { col } = detail.start;
+      if (detail.start.row > 0 && grid[detail.start.row - 1][col]) {
+        r = detail.start.row - 1;
+        c = col;
+      } else if (detail.end.row < size - 1 && grid[detail.end.row + 1][col]) {
+        r = detail.end.row + 1;
+        c = col;
       }
     }
     if (r === undefined || c === undefined) break;

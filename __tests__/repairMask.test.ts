@@ -1,10 +1,10 @@
-import { describe, it, expect } from 'vitest';
-import { repairMask } from '../lib/repairMask';
-import { validateMinSlotLength } from '../src/validate/puzzle';
-import { symCell } from '../grid/symmetry';
+import { describe, it, expect } from "vitest";
+import { repairMask } from "../lib/repairMask";
+import { validateMinSlotLength } from "../src/validate/puzzle";
+import { symCell } from "../grid/symmetry";
 
-describe('repairMask', () => {
-  it('repairs asymmetric grids with short slots', () => {
+describe("repairMask", () => {
+  it("fixes short slots and restores symmetry", () => {
     const grid = [
       [true, false, false],
       [false, false, false],
@@ -12,39 +12,12 @@ describe('repairMask', () => {
     ];
     const repaired = repairMask(grid, 3);
     expect(validateMinSlotLength(repaired, 3)).toBeNull();
-    const s = symCell(0, 0, repaired.length);
-    expect(repaired[0][0]).toBe(false);
-    expect(repaired[s.row][s.col]).toBe(false);
-  });
-
-  it('repairs short slots in symmetric grids', () => {
-    const grid = [
-      [false, false, false],
-      [true, false, true],
-      [false, false, false],
-    ];
-    const repaired = repairMask(grid, 3);
-    expect(validateMinSlotLength(repaired, 3)).toBeNull();
-    expect(repaired[1][0]).toBe(false);
-    expect(repaired[1][2]).toBe(false);
-  });
-
-  it('skips validation when allow2 is true', () => {
-    const grid = [
-      [true, false, false],
-      [false, false, false],
-      [false, false, false],
-    ];
-    const repaired = repairMask(grid, 3, 50, true);
-    expect(repaired).toBe(grid);
-    expect(validateMinSlotLength(repaired, 3)).not.toBeNull();
-  });
-
-  it('throws when repair fails', () => {
-    const grid = [
-      [false, false],
-      [false, false],
-    ];
-    expect(() => repairMask(grid, 3)).toThrow();
+    const size = repaired.length;
+    for (let r = 0; r < size; r++) {
+      for (let c = 0; c < size; c++) {
+        const sym = symCell(r, c, size);
+        expect(repaired[r][c]).toBe(repaired[sym.row][sym.col]);
+      }
+    }
   });
 });

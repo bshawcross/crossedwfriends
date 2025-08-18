@@ -10,10 +10,23 @@ describe("validateMinSlotLength", () => {
     ];
     expect(validateMinSlotLength(grid, 3)).toEqual({
       type: 'across',
-      r: 1,
-      c0: 1,
-      c1: 2,
+      start: { row: 1, col: 1 },
+      end: { row: 1, col: 2 },
       len: 2,
+    });
+  });
+
+  it("detects 1-letter slots", () => {
+    const grid = [
+      [false, true, false],
+      [true, true, true],
+      [false, true, false],
+    ];
+    expect(validateMinSlotLength(grid, 3)).toEqual({
+      type: 'across',
+      start: { row: 0, col: 0 },
+      end: { row: 0, col: 0 },
+      len: 1,
     });
   });
 
