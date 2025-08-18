@@ -2,12 +2,14 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { generateDaily, WordEntry } from '../lib/puzzle';
 import { validatePuzzle } from '../lib/validatePuzzle';
+import { findSlots } from '../lib/slotFinder';
 import { getSeasonalWords, getFunFactWords, getCurrentEventWords } from '../lib/topics';
 import { yyyyMmDd } from '../utils/date';
 import { logInfo, logError, logWarn } from '../utils/logger';
 import { getFallback } from '../utils/getFallback';
 import { validateSymmetry, validateMinSlotLength } from '../src/validate/puzzle';
 import { setBlack } from '../grid/symmetry';
+import { isValidFill } from '../utils/validateWord';
 
 const defaultHeroTerms = ['CAPTAINMARVEL', 'BLACKWIDOW', 'SPIDERMAN', 'IRONMAN', 'THOR'];
 
@@ -104,6 +106,52 @@ async function main() {
     heroTerms.length > 0 ? heroTerms : defaultHeroTerms,
     { allow2 },
   );
+  const finalGrid: boolean[][] = [];
+  for (let r = 0; r < size; r++) {
+    const row: boolean[] = [];
+    for (let c = 0; c < size; c++) {
+      row.push(puzzle.cells[r * size + c].isBlack);
+    }
+    finalGrid.push(row);
+  }
+  if (!validateSymmetry(finalGrid)) {
+    logError('puzzle_invalid', { error: 'grid_not_symmetric' });
+    process.exit(1);
+  }
+  const gridStr: string[] = [];
+  for (let r = 0; r < size; r++) {
+    let row = '';
+    for (let c = 0; c < size; c++) {
+      row += puzzle.cells[r * size + c].isBlack ? '#' : '.';
+    }
+    gridStr.push(row);
+  }
+  const slots = findSlots(gridStr);
+  const checkEntries = (
+    clues: { length: number }[],
+    slotArr: { row: number; col: number; length: number }[],
+    dir: 'across' | 'down',
+  ) => {
+    clues.forEach((_, idx) => {
+      const slot = slotArr[idx];
+      if (!slot) return;
+      let ans = '';
+      for (let k = 0; k < slot.length; k++) {
+        const cellIdx =
+          dir === 'across'
+            ? slot.row * size + slot.col + k
+            : (slot.row + k) * size + slot.col;
+        ans += puzzle.cells[cellIdx].answer;
+      }
+      const valid = isValidFill(ans, { allow2 }) && (allow2 || ans.length >= 3);
+      if (!valid) {
+        logError('puzzle_invalid', { error: `${dir} clue invalid`, clueIndex: idx });
+        process.exit(1);
+      }
+    });
+  };
+  checkEntries(puzzle.across, slots.across, 'across');
+  checkEntries(puzzle.down, slots.down, 'down');
   const errors = validatePuzzle(puzzle, { checkSymmetry: true, allow2 });
   if (errors.length > 0) {
     errors.forEach((err) => logError('puzzle_invalid', { error: err }));
