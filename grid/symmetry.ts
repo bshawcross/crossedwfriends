@@ -1,2 +1,2 @@
-export { symCell, setBlack } from "../src/grid/symmetry";
+export { symCell, wouldCreateShortSlot, setBlackGuarded } from "../src/grid/symmetry";
 
