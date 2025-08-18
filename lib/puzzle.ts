@@ -1,9 +1,9 @@
 import { cleanClue } from './clueClean';
 import { findSlots, Slot } from './slotFinder';
 import { planHeroPlacements } from './heroPlacement';
-import { isValidFill } from '@/utils/validateWord';
 import { setBlack } from '@/grid/symmetry';
 import { validateSymmetry, validateMinSlotLength } from '../src/validate/puzzle';
+import { chooseAnswer } from '@/utils/chooseAnswer';
 
 export type Cell = {
   row: number;
@@ -40,7 +40,6 @@ export function generateDaily(
   seed: string,
   wordList: WordEntry[] = [],
   heroTerms: string[] = [],
-  fallback?: WordEntry[] | ((len: number, letters: string[]) => WordEntry | undefined),
   opts: { allow2?: boolean } = {},
 ): Puzzle {
   const size = 15;
@@ -116,45 +115,8 @@ export function generateDaily(
   });
 
   const remaining = wordList.map((w) => ({ answer: w.answer.toUpperCase(), clue: w.clue }));
-  const fallbackPool = Array.isArray(fallback)
-    ? fallback.map((w) => ({ answer: w.answer.toUpperCase(), clue: w.clue }))
-    : [];
-  const fallbackFn = typeof fallback === 'function' ? fallback : undefined;
-  const takeEntry = (len: number, letters: string[]) => {
-    const idx = remaining.findIndex(
-      (w) =>
-        w.answer.length === len &&
-        letters.every((ch, i) => !ch || w.answer[i] === ch) &&
-        isValidFill(w.answer, opts),
-    );
-    if (idx !== -1) return remaining.splice(idx, 1)[0];
-    const fbIdx = fallbackPool.findIndex(
-      (w) =>
-        w.answer.length === len &&
-        letters.every((ch, i) => !ch || w.answer[i] === ch) &&
-        isValidFill(w.answer, opts),
-    );
-    if (fbIdx !== -1) {
-      const entry = fallbackPool.splice(fbIdx, 1)[0];
-      console.warn(`Using fallback entry "${entry.answer}" for length ${len}`);
-      return entry;
-    }
-    if (fallbackFn) {
-      const fb = fallbackFn(len, letters);
-      if (fb) {
-        const ans = fb.answer.toUpperCase();
-        if (
-          ans.length === len &&
-          letters.every((ch, i) => !ch || ans[i] === ch) &&
-          isValidFill(ans, opts)
-        ) {
-          console.warn(`Using fallback entry "${ans}" for length ${len}`);
-          return { answer: ans, clue: fb.clue };
-        }
-      }
-    }
-    return undefined;
-  };
+  const getEntry = (len: number, letters: string[]) =>
+    chooseAnswer(len, letters, remaining, opts);
 
   const across: Clue[] = [];
   const down: Clue[] = [];
@@ -198,7 +160,7 @@ export function generateDaily(
         }
         const entry = letters.every((ch) => ch)
           ? undefined
-          : takeEntry(slot.length, letters);
+          : getEntry(slot.length, letters);
         if (!entry) {
           if (letters.every((ch) => ch)) {
             const ans = letters.join('');
