@@ -6,6 +6,8 @@ import { getSeasonalWords, getFunFactWords, getCurrentEventWords } from '../lib/
 import { yyyyMmDd } from '../utils/date';
 import { logInfo, logError, logWarn } from '../utils/logger';
 import { getFallback } from '../utils/getFallback';
+import { validateSymmetry, validateMinSlotLength } from '../src/validate/puzzle';
+import { setBlack } from '../grid/symmetry';
 
 const defaultHeroTerms = ['CAPTAINMARVEL', 'BLACKWIDOW', 'SPIDERMAN', 'IRONMAN', 'THOR'];
 
@@ -69,6 +71,41 @@ async function main() {
   }
   if (missingLengths.length > 0) {
     missingLengths.forEach((len) => logError('missing_length', { length: len }));
+    process.exit(1);
+  }
+
+  // Build grid for preflight validation
+  const size = 15;
+  const blocks = new Set<string>();
+  const hash = (s: string) => {
+    let h = 2166136261;
+    for (let i = 0; i < s.length; i++) {
+      h ^= s.charCodeAt(i);
+      h = Math.imul(h, 16777619);
+    }
+    return Math.abs(h >>> 0) % 97;
+  };
+  for (let r = 0; r < size; r++) {
+    for (let c = 0; c < size; c++) {
+      const cond = ((r + c + hash(seed)) % 5 === 0) || ((r % 7 === 0) && (c % 4 === 0));
+      if (cond) setBlack(blocks, r, c, size);
+    }
+  }
+  const grid: boolean[][] = [];
+  for (let r = 0; r < size; r++) {
+    const row: boolean[] = [];
+    for (let c = 0; c < size; c++) {
+      row.push(blocks.has(`${r}_${c}`));
+    }
+    grid.push(row);
+  }
+  if (!validateSymmetry(grid)) {
+    logError('grid_not_symmetric');
+    process.exit(1);
+  }
+  const shortSlots = validateMinSlotLength(grid, 3);
+  if (shortSlots.length > 0) {
+    logError('slot_too_short', { lengths: shortSlots });
     process.exit(1);
   }
   const puzzle = generateDaily(
