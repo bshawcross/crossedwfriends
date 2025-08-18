@@ -39,12 +39,13 @@ pnpm gen:daily "captain marvel" "black widow" --allow2=true
 ```
 
 If no hero terms are provided, a default set is used. Two-letter answers
-remain disallowed unless `--allow2=true` is specified.
+remain disallowed unless `--allow2=true` is specified. When allowing two-letter
+entries, slot-length validation is skipped.
 
-The script assembles word lists, creates a puzzle seeded by the date,
-and then runs `validatePuzzle` to enforce structural rules. Validators
-ensure every clue is normalized by `cleanClue`, answers obey the policy
-from `isValidFill`, and the grid passes symmetry and length checks.
+The script assembles word lists, creates a puzzle seeded by the date, and then
+runs `validatePuzzle` to enforce structural rules. Validators ensure every clue
+is normalized by `cleanClue`, answers obey the policy from `isValidFill`, and the
+grid passes symmetry and length checks (unless bypassed with `--allow2=true`).
 
 The answer policy draws from a deny list:
 

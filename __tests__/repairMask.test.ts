@@ -29,6 +29,17 @@ describe('repairMask', () => {
     expect(repaired[1][2]).toBe(false);
   });
 
+  it('skips validation when allow2 is true', () => {
+    const grid = [
+      [true, false, false],
+      [false, false, false],
+      [false, false, false],
+    ];
+    const repaired = repairMask(grid, 3, 50, true);
+    expect(repaired).toBe(grid);
+    expect(validateMinSlotLength(repaired, 3)).not.toBeNull();
+  });
+
   it('throws when repair fails', () => {
     const grid = [
       [false, false],
