@@ -32,13 +32,14 @@ Run the generator to build the puzzle for today. You can optionally supply
 "hero" terms to pin in the grid:
 
 ```bash
-pnpm gen:daily [hero terms...]
+pnpm gen:daily [hero terms...] [--allow2=true|false]
 
-# example
-pnpm gen:daily "captain marvel" "black widow"
+# example allowing two-letter fills
+pnpm gen:daily "captain marvel" "black widow" --allow2=true
 ```
 
-If no hero terms are provided, a default set is used.
+If no hero terms are provided, a default set is used. Two-letter answers
+remain disallowed unless `--allow2=true` is specified.
 
 The script assembles word lists, creates a puzzle seeded by the date,
 and then runs `validatePuzzle` to enforce structural rules. Validators
@@ -93,10 +94,10 @@ Sample output:
 
 ## Project tips
 
-- Generate the daily puzzle data locally (optionally providing hero terms):
+- Generate the daily puzzle data locally (optionally providing hero terms and allowing two-letter fills):
 
   ```bash
-  pnpm gen:daily [hero terms...]
+  pnpm gen:daily [hero terms...] [--allow2=true|false]
   ```
 
 - Run the test suite with:

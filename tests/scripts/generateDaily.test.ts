@@ -45,7 +45,7 @@ describe('generateDaily script', () => {
     const originalCwd = process.cwd();
     process.chdir(tmpDir);
 
-    process.argv.push('--allow2');
+    process.argv.push('--allow2=true');
     await import('../../scripts/genDaily');
     process.argv.pop();
     await new Promise((r) => setTimeout(r, 50));
@@ -79,7 +79,7 @@ describe('generateDaily script', () => {
     const exitSpy = vi.spyOn(process, 'exit').mockImplementation(() => undefined as never);
     const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-    process.argv.push('--allow2');
+    process.argv.push('--allow2=true');
     await import('../../scripts/genDaily');
     process.argv.pop();
     await new Promise((r) => setTimeout(r, 0));
