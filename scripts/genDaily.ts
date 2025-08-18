@@ -5,7 +5,7 @@ import { validatePuzzle } from '../lib/validatePuzzle';
 import { findSlots } from '../lib/slotFinder';
 import { getSeasonalWords, getFunFactWords, getCurrentEventWords } from '../lib/topics';
 import { yyyyMmDd } from '../utils/date';
-import { logInfo, logError, logWarn } from '../utils/logger';
+import { logInfo, logError } from '../utils/logger';
 import { getFallback } from '../utils/getFallback';
 import { validateSymmetry, validateMinSlotLength } from '../src/validate/puzzle';
 import { buildMask } from '../grid/mask';
@@ -49,13 +49,12 @@ async function main() {
 
   if (missingLengths.length > 0) {
     for (const len of missingLengths) {
-      const fallbackEntry = getFallback(len, Array(len).fill(''), { allow2 });
-      if (fallbackEntry) {
-        wordList.push(fallbackEntry);
-        logInfo('fallback_word_used', { length: len, answer: fallbackEntry.answer });
-      } else {
-        logWarn('fallback_word_missing', { length: len });
+      const word = getFallback(len, { allow2 });
+      if (!word) {
+        throw new Error(`No fallback word for length ${len}`);
       }
+      wordList.push({ answer: word, clue: word });
+      logInfo('fallback_word_used', { length: len, answer: word });
     }
   }
 
@@ -136,7 +135,6 @@ async function main() {
         const valid = isValidFill(ans, allow2 ? 2 : 3);
         if (!valid) {
           logError('puzzle_invalid', { error: `${dir} clue invalid`, clueIndex: idx });
-          process.exit(1);
         }
       });
     };

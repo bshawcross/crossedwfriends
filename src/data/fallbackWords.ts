@@ -1,4 +1,5 @@
 const fallbackWords: Record<number, string[]> = {
+  2: ["GO"],
   3: ["CAT"],
   4: ["DOOR"],
   5: ["APPLE"],
