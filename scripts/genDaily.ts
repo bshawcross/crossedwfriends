@@ -133,7 +133,7 @@ async function main() {
               : (slot.row + k) * size + slot.col;
           ans += puzzle.cells[cellIdx].answer;
         }
-        const valid = isValidFill(ans, { allow2 });
+        const valid = isValidFill(ans, allow2 ? 2 : 3);
         if (!valid) {
           logError('puzzle_invalid', { error: `${dir} clue invalid`, clueIndex: idx });
           process.exit(1);

@@ -7,7 +7,9 @@ export function largeWordList(): WordEntry[] {
     for (let i = 0; i < 100; i++) {
       const answer = len === 2
         ? (i % 2 === 0 ? 'OK' : 'AX')
-        : String.fromCharCode(65 + (i % 26)).repeat(len);
+        : Array.from({ length: len }, (_, j) =>
+            String.fromCharCode(65 + ((i + j) % 26)),
+          ).join('');
       list.push({ answer, clue: `clue-${len}-${i}` });
     }
   }

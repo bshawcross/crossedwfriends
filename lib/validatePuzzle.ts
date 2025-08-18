@@ -64,7 +64,7 @@ export function validatePuzzle(
       if (answer.length !== slot.length) {
         errors.push(`${dir} answer ${clue.number} length ${answer.length} ≠ slot length ${slot.length}`);
       }
-      if (!isValidFill(answer, { allow2: opts.allow2 })) {
+      if (!isValidFill(answer, opts.allow2 ? 2 : 3)) {
         errors.push(`${dir} answer ${clue.number} not allowed: ${answer}`);
       }
       if (cleanClue(clue.text) !== clue.text) {

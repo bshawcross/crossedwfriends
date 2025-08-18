@@ -9,11 +9,12 @@ export function chooseAnswer(
   pool: WordEntry[],
   opts: { allow2?: boolean } = {},
 ): WordEntry | undefined {
+  const minLen = opts.allow2 ? 2 : 3;
   const idx = pool.findIndex(
     (w) =>
       w.answer.length === len &&
       letters.every((ch, i) => !ch || w.answer[i] === ch) &&
-      isValidFill(w.answer, opts),
+      isValidFill(w.answer, minLen),
   );
   if (idx !== -1) {
     return pool.splice(idx, 1)[0];
