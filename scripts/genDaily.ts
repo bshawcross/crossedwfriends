@@ -94,13 +94,18 @@ async function main() {
     }
     grid.push(row);
   }
-  if (!validateSymmetry(grid)) {
-    logError('grid_not_symmetric');
-    process.exit(1);
-  }
-  const shortSlots = validateMinSlotLength(grid, allow2 ? 2 : 3);
-  if (shortSlots.length > 0) {
-    logError('slot_too_short', { lengths: shortSlots });
+  try {
+    if (!validateSymmetry(grid)) {
+      logError('grid_not_symmetric');
+      process.exit(1);
+    }
+    const shortSlots = validateMinSlotLength(grid, allow2 ? 2 : 3);
+    if (shortSlots.length > 0) {
+      logError('slot_too_short', { lengths: shortSlots });
+      process.exit(1);
+    }
+  } catch (err) {
+    logError('puzzle_invalid', { error: (err as Error).message });
     process.exit(1);
   }
   const puzzle = generateDaily(
@@ -117,47 +122,52 @@ async function main() {
     }
     finalGrid.push(row);
   }
-  if (!validateSymmetry(finalGrid)) {
-    logError('puzzle_invalid', { error: 'grid_not_symmetric' });
-    process.exit(1);
-  }
-  const gridStr: string[] = [];
-  for (let r = 0; r < size; r++) {
-    let row = '';
-    for (let c = 0; c < size; c++) {
-      row += puzzle.cells[r * size + c].isBlack ? '#' : '.';
+  try {
+    if (!validateSymmetry(finalGrid)) {
+      logError('puzzle_invalid', { error: 'grid_not_symmetric' });
+      process.exit(1);
     }
-    gridStr.push(row);
-  }
-  const slots = findSlots(gridStr);
-  const checkEntries = (
-    clues: { length: number }[],
-    slotArr: { row: number; col: number; length: number }[],
-    dir: 'across' | 'down',
-  ) => {
-    clues.forEach((_, idx) => {
-      const slot = slotArr[idx];
-      if (!slot) return;
-      let ans = '';
-      for (let k = 0; k < slot.length; k++) {
-        const cellIdx =
-          dir === 'across'
-            ? slot.row * size + slot.col + k
-            : (slot.row + k) * size + slot.col;
-        ans += puzzle.cells[cellIdx].answer;
+    const gridStr: string[] = [];
+    for (let r = 0; r < size; r++) {
+      let row = '';
+      for (let c = 0; c < size; c++) {
+        row += puzzle.cells[r * size + c].isBlack ? '#' : '.';
       }
-      const valid = isValidFill(ans, { allow2 });
-      if (!valid) {
-        logError('puzzle_invalid', { error: `${dir} clue invalid`, clueIndex: idx });
-        process.exit(1);
-      }
-    });
-  };
-  checkEntries(puzzle.across, slots.across, 'across');
-  checkEntries(puzzle.down, slots.down, 'down');
-  const errors = validatePuzzle(puzzle, { checkSymmetry: true, allow2 });
-  if (errors.length > 0) {
-    errors.forEach((err) => logError('puzzle_invalid', { error: err }));
+      gridStr.push(row);
+    }
+    const slots = findSlots(gridStr);
+    const checkEntries = (
+      clues: { length: number }[],
+      slotArr: { row: number; col: number; length: number }[],
+      dir: 'across' | 'down',
+    ) => {
+      clues.forEach((_, idx) => {
+        const slot = slotArr[idx];
+        if (!slot) return;
+        let ans = '';
+        for (let k = 0; k < slot.length; k++) {
+          const cellIdx =
+            dir === 'across'
+              ? slot.row * size + slot.col + k
+              : (slot.row + k) * size + slot.col;
+          ans += puzzle.cells[cellIdx].answer;
+        }
+        const valid = isValidFill(ans, { allow2 });
+        if (!valid) {
+          logError('puzzle_invalid', { error: `${dir} clue invalid`, clueIndex: idx });
+          process.exit(1);
+        }
+      });
+    };
+    checkEntries(puzzle.across, slots.across, 'across');
+    checkEntries(puzzle.down, slots.down, 'down');
+    const errors = validatePuzzle(puzzle, { checkSymmetry: true, allow2 });
+    if (errors.length > 0) {
+      errors.forEach((err) => logError('puzzle_invalid', { error: err }));
+      process.exit(1);
+    }
+  } catch (err) {
+    logError('puzzle_invalid', { error: (err as Error).message });
     process.exit(1);
   }
 
