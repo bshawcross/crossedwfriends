@@ -5,6 +5,7 @@ import { buildMask } from '@/grid/mask';
 import { validateSymmetry, validateMinSlotLength } from '../src/validate/puzzle';
 import { chooseAnswer } from '@/utils/chooseAnswer';
 import { logError } from '../utils/logger';
+import { repairMask } from './repairMask';
 
 export type Cell = {
   row: number;
@@ -42,7 +43,7 @@ export function generateDaily(
   const size = mask ? mask.length : 15;
   const cells: Cell[] = [];
   const minLen = opts.allow2 ? 2 : 3;
-  const boolGrid = mask ?? buildMask(size, 36, 5000, minLen);
+  const boolGrid = mask ? repairMask(mask, minLen) : buildMask(size, 36, 5000, minLen);
   for (let r = 0; r < size; r++) {
     for (let c = 0; c < size; c++) {
       const isBlack = boolGrid[r][c];
