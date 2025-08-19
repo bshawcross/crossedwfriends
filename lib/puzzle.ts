@@ -8,6 +8,7 @@ import fallbackWords from '../src/data/fallbackWords';
 import { repairMask } from './repairMask';
 import { solve, SolverSlot } from './solver';
 import { logInfo, logError } from '@/utils/logger';
+import seedrandom from 'seedrandom';
 
 export type Cell = {
   row: number;
@@ -51,6 +52,16 @@ export function generateDaily(
   const size = mask ? mask.length : 15;
   const minLen = opts.allow2 ? 2 : 3;
   const maxMasks = opts.maxMasks ?? 3;
+  const rng = seedrandom(seed);
+  const shuffle = <T>(arr: T[]): T[] => {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(rng() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  };
+  const shuffledWordList = shuffle([...wordList]);
+  const shuffledHeroes = shuffle([...heroTerms]);
 
   for (let attempt = 0; attempt < maxMasks; attempt++) {
     try {
@@ -73,7 +84,7 @@ export function generateDaily(
           }
         }
       } else {
-        boolGrid = buildMask(size, 36, 5000, minLen);
+        boolGrid = buildMask(size, 36, 5000, minLen, rng);
       }
 
       if (!validatePuzzle.validateSymmetry(boolGrid)) {
@@ -94,7 +105,7 @@ export function generateDaily(
 
       // place hero terms before slot finding
       const heroMap = new Map<string, string>();
-      const heroPlacements = planHeroPlacements(heroTerms);
+      const heroPlacements = planHeroPlacements(shuffledHeroes);
       heroPlacements.forEach((p) => {
         heroMap.set(`${p.row}_${p.col}_${p.dir}`, p.term);
         for (let i = 0; i < p.term.length; i++) {
@@ -209,8 +220,11 @@ export function generateDaily(
         .filter((s) => !heroMap.has(`${s.row}_${s.col}_${s.direction}`))
         .map((s) => ({ ...s, id: `${s.direction}_${s.row}_${s.col}` }));
 
-      const remaining = wordList.map((w) => ({ answer: w.answer.toUpperCase(), clue: w.clue }));
-      const heroEntries = heroTerms
+      const remaining = shuffledWordList.map((w) => ({
+        answer: w.answer.toUpperCase(),
+        clue: w.clue,
+      }));
+      const heroEntries = shuffledHeroes
         .filter((t) => !heroPlacements.some((p) => p.term === t.toUpperCase()))
         .map((t) => ({ answer: t.toUpperCase(), clue: t }));
 
@@ -219,6 +233,7 @@ export function generateDaily(
         slots: solverSlots,
         heroes: heroEntries,
         dict: remaining,
+        rng,
         opts: {
           allow2: opts.allow2,
           heroThreshold: opts.heroThreshold,
