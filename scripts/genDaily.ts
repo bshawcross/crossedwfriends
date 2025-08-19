@@ -6,7 +6,6 @@ import { findSlots } from '../lib/slotFinder';
 import { getSeasonalWords, getFunFactWords, getCurrentEventWords } from '../lib/topics';
 import { yyyyMmDd } from '../utils/date';
 import { logInfo, logError } from '../utils/logger';
-import { getFallback } from '../utils/getFallback';
 import { validateSymmetry, validateMinSlotLength } from '../src/validate/puzzle';
 import { buildMask } from '../grid/mask';
 import { isValidFill } from '../utils/validateWord';
@@ -29,10 +28,16 @@ async function main() {
   const seed = `${date}:seasonal,funFacts,currentEvents`;
   const puzzleDate = new Date(`${date}T00:00:00Z`);
 
-  // CLI usage: [hero terms...] --allow2=true|false (default false)
+  // CLI usage: [hero terms...] --allow2=true|false --maxMasks=N --maxFillAttempts=N --heroThreshold=N
   const args = process.argv.slice(2);
   const allow2Arg = args.find((a) => a.startsWith('--allow2'));
   const allow2 = allow2Arg ? allow2Arg.split('=')[1] !== 'false' : false;
+  const maxMasksArg = args.find((a) => a.startsWith('--maxMasks'));
+  const maxMasks = maxMasksArg ? parseInt(maxMasksArg.split('=')[1], 10) : 10;
+  const maxFillAttemptsArg = args.find((a) => a.startsWith('--maxFillAttempts'));
+  const maxFillAttempts = maxFillAttemptsArg ? parseInt(maxFillAttemptsArg.split('=')[1], 10) : 50000;
+  const heroThresholdArg = args.find((a) => a.startsWith('--heroThreshold'));
+  const heroThreshold = heroThresholdArg ? parseInt(heroThresholdArg.split('=')[1], 10) : 3000;
   const heroTerms = args.filter((a) => !a.startsWith('--'));
   const [seasonal, funFacts, currentEvents] = await Promise.all([
     getSeasonalWords(puzzleDate),
@@ -41,25 +46,8 @@ async function main() {
   ]);
   let wordList: WordEntry[] = [...seasonal, ...funFacts, ...currentEvents];
   let present = getPresentLengths(wordList, allow2);
-  let missingLengths: number[] = [];
   const minLen = allow2 ? 2 : 3;
-  for (let len = minLen; len <= 15; len++) {
-    if (!present.has(len)) missingLengths.push(len);
-  }
-
-  if (missingLengths.length > 0) {
-    for (const len of missingLengths) {
-      const word = getFallback(len, [], { allow2 });
-      if (!word) {
-        throw new Error(`No fallback word for length ${len}`);
-      }
-      wordList.push({ answer: word, clue: word });
-      logInfo('fallback_word_used', { length: len, answer: word });
-    }
-  }
-
-  present = getPresentLengths(wordList, allow2);
-  missingLengths = [];
+  const missingLengths: number[] = [];
   for (let len = minLen; len <= 15; len++) {
     if (!present.has(len)) missingLengths.push(len);
   }
@@ -76,12 +64,10 @@ async function main() {
       logError('grid_not_symmetric');
       process.exit(1);
     }
-    if (!allow2) {
-      const detail = validateMinSlotLength(grid, minLen);
-      if (detail) {
-        logError('slot_too_short', { detail });
-        process.exit(1);
-      }
+    const detail = validateMinSlotLength(grid, minLen);
+    if (detail) {
+      logError('slot_too_short', { detail });
+      process.exit(1);
     }
   } catch (err) {
     logError('puzzle_invalid', { error: (err as Error).message });
@@ -91,7 +77,7 @@ async function main() {
     seed,
     wordList,
     heroTerms.length > 0 ? heroTerms : defaultHeroTerms,
-    { allow2 },
+    { allow2, heroThreshold, maxFillAttempts, maxMasks },
     grid,
   );
   const finalGrid: boolean[][] = [];
