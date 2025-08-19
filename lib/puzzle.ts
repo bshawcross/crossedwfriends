@@ -3,8 +3,8 @@ import { findSlots, Slot } from './slotFinder';
 import { planHeroPlacements } from './heroPlacement';
 import { buildMask } from '@/grid/mask';
 import { validateSymmetry, validateMinSlotLength } from '../src/validate/puzzle';
-import { chooseAnswer } from '@/utils/chooseAnswer';
 import { repairMask } from './repairMask';
+import { solve, SolverSlot } from './solver';
 
 export type Cell = {
   row: number;
@@ -36,183 +36,191 @@ export function generateDaily(
   seed: string,
   wordList: WordEntry[] = [],
   heroTerms: string[] = [],
-  opts: { allow2?: boolean } = {},
+  opts: { allow2?: boolean; heroThreshold?: number; maxFillAttempts?: number; maxMasks?: number } = {},
   mask?: boolean[][],
 ): Puzzle {
   const size = mask ? mask.length : 15;
-  const cells: Cell[] = [];
   const minLen = opts.allow2 ? 2 : 3;
-  let boolGrid: boolean[][];
-  if (mask) {
-    boolGrid = mask;
-    let symValid = validateSymmetry(boolGrid);
-    let slotDetail = validateMinSlotLength(boolGrid, 3);
-    if (!symValid || slotDetail) {
-      try {
-        boolGrid = repairMask(boolGrid, minLen, 50, opts.allow2);
-      } catch {
-        // ignore repair failures and validate below
-      }
-      symValid = validateSymmetry(boolGrid);
-      slotDetail = validateMinSlotLength(boolGrid, 3);
-      if (!symValid || slotDetail) {
-        const error = !symValid ? 'grid_not_symmetric' : 'slot_too_short';
-        throw { message: 'puzzle_invalid', error, detail: slotDetail };
-      }
-    }
-  } else {
-    boolGrid = buildMask(size, 36, 5000, minLen);
-  }
+  const maxMasks = opts.maxMasks ?? 3;
 
-  if (!validateSymmetry(boolGrid)) {
-    throw { message: 'puzzle_invalid', error: 'grid_not_symmetric', detail: undefined };
-  }
-  const detail = validateMinSlotLength(boolGrid, minLen);
-  if (detail) {
-    throw { message: 'puzzle_invalid', error: 'slot_too_short', detail };
-  }
-
-  for (let r = 0; r < size; r++) {
-    for (let c = 0; c < size; c++) {
-      const isBlack = boolGrid[r][c];
-      cells.push({ row: r, col: c, isBlack, answer: '', clueNumber: null, userInput: '', isSelected: false });
-    }
-  }
-
-  // place hero terms before slot finding
-  const heroMap = new Map<string, string>();
-  const heroCells = new Set<string>();
-  const heroPlacements = planHeroPlacements(heroTerms);
-  heroPlacements.forEach((p) => {
-    heroMap.set(`${p.row}_${p.col}_${p.dir}`, p.term);
-    for (let i = 0; i < p.term.length; i++) {
-      const cell = getCell(cells, size, p.row, p.col + i);
-      cell.isBlack = false;
-      cell.answer = p.term[i] ?? '';
-      heroCells.add(`${p.row}_${p.col + i}`);
-    }
-  });
-
-  // build grid for slot finding
-  const grid: string[] = [];
-  for (let r = 0; r < size; r++) {
-    let row = '';
-    for (let c = 0; c < size; c++) {
-      row += getCell(cells, size, r, c).isBlack ? '#' : '.';
-    }
-    grid.push(row);
-  }
-
-  const slots = findSlots(grid);
-  type SlotDir = Slot & { direction: 'across' | 'down'; number?: number };
-  const slotMap = new Map<string, SlotDir[]>();
-  slots.across.forEach((s) => {
-    const key = `${s.row}_${s.col}`;
-    const arr = slotMap.get(key) || [];
-    arr.push({ ...s, direction: 'across' });
-    slotMap.set(key, arr);
-  });
-  slots.down.forEach((s) => {
-    const key = `${s.row}_${s.col}`;
-    const arr = slotMap.get(key) || [];
-    arr.push({ ...s, direction: 'down' });
-    slotMap.set(key, arr);
-  });
-
-  const remaining = wordList.map((w) => ({ answer: w.answer.toUpperCase(), clue: w.clue }));
-  const getEntry = (len: number, letters: string[]) => {
+  for (let attempt = 0; attempt < maxMasks; attempt++) {
     try {
-      return chooseAnswer(len, letters, remaining, opts);
-    } catch {
-      return undefined;
-    }
-  };
+      let boolGrid: boolean[][];
+      if (attempt === 0 && mask) {
+        boolGrid = mask;
+        let symValid = validateSymmetry(boolGrid);
+        let slotDetail = validateMinSlotLength(boolGrid, 3);
+        if (!symValid || slotDetail) {
+          try {
+            boolGrid = repairMask(boolGrid, minLen, 50, opts.allow2);
+          } catch {
+            // ignore repair failures and validate below
+          }
+          symValid = validateSymmetry(boolGrid);
+          slotDetail = validateMinSlotLength(boolGrid, 3);
+          if (!symValid || slotDetail) {
+            const error = !symValid ? 'grid_not_symmetric' : 'slot_too_short';
+            throw { message: 'puzzle_invalid', error, detail: slotDetail };
+          }
+        }
+      } else {
+        boolGrid = buildMask(size, 36, 5000, minLen);
+      }
 
-  const across: Clue[] = [];
-  const down: Clue[] = [];
-  const get = (r: number, c: number) => cells[r * size + c];
-  let num = 1;
-  for (let r = 0; r < size; r++) {
-    for (let c = 0; c < size; c++) {
-      const cell = get(r, c);
-      if (cell.isBlack) continue;
-      const key = `${r}_${c}`;
-      const starts = slotMap.get(key);
-      if (!starts) continue;
-      cell.clueNumber = num;
-      starts.forEach((slot) => {
-        slot.number = num;
-        const heroKey = `${slot.row}_${slot.col}_${slot.direction}`;
-        const heroTerm = heroMap.get(heroKey);
-        const letters: string[] = [];
-        if (slot.direction === 'across') {
-          for (let i = 0; i < slot.length; i++) {
-            const rr = r;
-            const cc = c + i;
-            letters[i] = heroCells.has(`${rr}_${cc}`) ? get(rr, cc).answer : '';
-          }
-        } else {
-          for (let i = 0; i < slot.length; i++) {
-            const rr = r + i;
-            const cc = c;
-            letters[i] = heroCells.has(`${rr}_${cc}`) ? get(rr, cc).answer : '';
-          }
+      if (!validateSymmetry(boolGrid)) {
+        throw { message: 'puzzle_invalid', error: 'grid_not_symmetric', detail: undefined };
+      }
+      const detail = validateMinSlotLength(boolGrid, minLen);
+      if (detail) {
+        throw { message: 'puzzle_invalid', error: 'slot_too_short', detail };
+      }
+
+      const cells: Cell[] = [];
+      for (let r = 0; r < size; r++) {
+        for (let c = 0; c < size; c++) {
+          const isBlack = boolGrid[r][c];
+          cells.push({ row: r, col: c, isBlack, answer: '', clueNumber: null, userInput: '', isSelected: false });
         }
-        const enumeration = `(${slot.length})`;
-        if (heroTerm) {
-          const clueText = cleanClue(heroTerm);
-          if (slot.direction === 'across') {
-            across.push({ number: num, text: clueText, length: slot.length, enumeration });
-          } else {
-            down.push({ number: num, text: clueText, length: slot.length, enumeration });
-          }
-          return;
-        }
-        const entry = letters.every((ch) => ch)
-          ? undefined
-          : getEntry(slot.length, letters);
-        if (!entry) {
-          if (letters.every((ch) => ch)) {
-            const ans = letters.join('');
-            const clueText = cleanClue(ans);
-            if (slot.direction === 'across') {
-              across.push({ number: num, text: clueText, length: slot.length, enumeration });
-            } else {
-              down.push({ number: num, text: clueText, length: slot.length, enumeration });
-            }
-            return;
-          }
-          console.error(`No word entry for length ${slot.length}`);
-          throw new Error(`Missing word entry for length ${slot.length}`);
-        }
-        const ans = entry.answer;
-        const clueText = cleanClue(entry.clue);
-        if (slot.direction === 'across') {
-          for (let i = 0; i < slot.length; i++) {
-            const ch = ans[i] ?? '';
-            get(r, c + i).answer = ch;
-          }
-          across.push({ number: num, text: clueText, length: slot.length, enumeration });
-        } else {
-          for (let i = 0; i < slot.length; i++) {
-            const ch = ans[i] ?? get(r + i, c).answer;
-            if (ch) get(r + i, c).answer = ch;
-          }
-          down.push({ number: num, text: clueText, length: slot.length, enumeration });
+      }
+
+      // place hero terms before slot finding
+      const heroMap = new Map<string, string>();
+      const heroPlacements = planHeroPlacements(heroTerms);
+      heroPlacements.forEach((p) => {
+        heroMap.set(`${p.row}_${p.col}_${p.dir}`, p.term);
+        for (let i = 0; i < p.term.length; i++) {
+          const cell = getCell(cells, size, p.row, p.col + i);
+          cell.isBlack = false;
+          cell.answer = p.term[i] ?? '';
         }
       });
-      num++;
+
+      // build grid for slot finding
+      const grid: string[] = [];
+      for (let r = 0; r < size; r++) {
+        let row = '';
+        for (let c = 0; c < size; c++) {
+          row += getCell(cells, size, r, c).isBlack ? '#' : '.';
+        }
+        grid.push(row);
+      }
+
+      const slots = findSlots(grid);
+      type SlotInfo = Slot & { direction: 'across' | 'down'; number?: number };
+      const slotMap = new Map<string, SlotInfo[]>();
+      const allSlots: SlotInfo[] = [];
+      slots.across.forEach((s) => {
+        const key = `${s.row}_${s.col}`;
+        const arr = slotMap.get(key) || [];
+        const slot = { ...s, direction: 'across' } as SlotInfo;
+        arr.push(slot);
+        slotMap.set(key, arr);
+        allSlots.push(slot);
+      });
+      slots.down.forEach((s) => {
+        const key = `${s.row}_${s.col}`;
+        const arr = slotMap.get(key) || [];
+        const slot = { ...s, direction: 'down' } as SlotInfo;
+        arr.push(slot);
+        slotMap.set(key, arr);
+        allSlots.push(slot);
+      });
+
+      const board: string[][] = Array.from({ length: size }, (_, r) =>
+        Array.from({ length: size }, (_, c) => {
+          const cell = getCell(cells, size, r, c);
+          return cell.isBlack ? '#' : cell.answer;
+        }),
+      );
+
+      const solverSlots: SolverSlot[] = allSlots
+        .filter((s) => !heroMap.has(`${s.row}_${s.col}_${s.direction}`))
+        .map((s) => ({ ...s, id: `${s.direction}_${s.row}_${s.col}` }));
+
+      const remaining = wordList.map((w) => ({ answer: w.answer.toUpperCase(), clue: w.clue }));
+      const heroEntries = heroTerms
+        .filter((t) => !heroPlacements.some((p) => p.term === t.toUpperCase()))
+        .map((t) => ({ answer: t.toUpperCase(), clue: t }));
+
+      const result = solve({
+        board,
+        slots: solverSlots,
+        heroes: heroEntries,
+        dict: remaining,
+        opts: {
+          allow2: opts.allow2,
+          heroThreshold: opts.heroThreshold,
+          maxFillAttempts: opts.maxFillAttempts,
+        },
+      });
+      if (!result.ok) {
+        continue;
+      }
+
+      const across: Clue[] = [];
+      const down: Clue[] = [];
+      const get = (r: number, c: number) => cells[r * size + c];
+      let num = 1;
+      for (let r = 0; r < size; r++) {
+        for (let c = 0; c < size; c++) {
+          const cell = get(r, c);
+          if (cell.isBlack) continue;
+          const key = `${r}_${c}`;
+          const starts = slotMap.get(key);
+          if (!starts) continue;
+          cell.clueNumber = num;
+          starts.forEach((slot) => {
+            slot.number = num;
+            const heroKey = `${slot.row}_${slot.col}_${slot.direction}`;
+            const heroTerm = heroMap.get(heroKey);
+            const enumeration = `(${slot.length})`;
+            if (heroTerm) {
+              const clueText = cleanClue(heroTerm);
+              if (slot.direction === 'across') {
+                across.push({ number: num, text: clueText, length: slot.length, enumeration });
+              } else {
+                down.push({ number: num, text: clueText, length: slot.length, enumeration });
+              }
+              return;
+            }
+            const entry = result.assignments.get(`${slot.direction}_${slot.row}_${slot.col}`);
+            if (!entry) throw { message: 'puzzle_invalid', error: 'fill_failed', detail: undefined };
+            const ans = entry.answer;
+            const clueText = cleanClue(entry.clue);
+            if (slot.direction === 'across') {
+              for (let i = 0; i < slot.length; i++) {
+                const ch = ans[i] ?? '';
+                get(r, c + i).answer = ch;
+              }
+              across.push({ number: num, text: clueText, length: slot.length, enumeration });
+            } else {
+              for (let i = 0; i < slot.length; i++) {
+                const ch = ans[i] ?? get(r + i, c).answer;
+                if (ch) get(r + i, c).answer = ch;
+              }
+              down.push({ number: num, text: clueText, length: slot.length, enumeration });
+            }
+          });
+          num++;
+        }
+      }
+
+      return {
+        id: seed,
+        title: 'Daily Placeholder',
+        theme: 'seasonal/current-events',
+        across,
+        down,
+        cells,
+      };
+    } catch (err) {
+      if (attempt === maxMasks - 1) {
+        throw err;
+      }
     }
   }
 
-  return {
-    id: seed,
-    title: 'Daily Placeholder',
-    theme: 'seasonal/current-events',
-    across,
-    down,
-    cells,
-  };
+  throw { message: 'puzzle_invalid', error: 'fill_failed', detail: undefined };
 }
 
 export async function loadDemoFromFile(): Promise<Puzzle> {
