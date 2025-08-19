@@ -11,6 +11,7 @@ export interface SolveParams {
   slots: SolverSlot[];
   heroes?: WordEntry[];
   dict: WordEntry[];
+  rng?: () => number;
   opts?: {
     allow2?: boolean;
     heroThreshold?: number;
@@ -33,8 +34,18 @@ export interface SolveFailure {
 export type SolveResult = SolveSuccess | SolveFailure;
 
 export function solve(params: SolveParams): SolveResult {
-  const { board, slots, dict } = params;
+  const { board, slots } = params;
+  const rng = params.rng ?? Math.random;
+  const shuffle = <T>(arr: T[]): void => {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(rng() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+  };
   const heroes: WordEntry[] = [...(params.heroes || [])];
+  const dict: WordEntry[] = [...params.dict];
+  shuffle(heroes);
+  shuffle(dict);
   const heroThreshold = params.opts?.heroThreshold ?? 10;
   const maxFillAttempts = params.opts?.maxFillAttempts ?? 100000;
   const MAX_FALLBACK_RATE = params.opts?.maxFallbackRate ?? 0.1;
@@ -135,7 +146,12 @@ export function solve(params: SolveParams): SolveResult {
     return arr;
   };
 
-  const candidatesFor = (pattern: string[], len: number): WordEntry[] => {
+  const candidatesFor = (
+    pattern: string[],
+    len: number,
+    doShuffle = true,
+    includeFallback = true,
+  ): WordEntry[] => {
     const heroCandidates = heroes.filter(
       (w) =>
         w.answer.length === len &&
@@ -148,14 +164,20 @@ export function solve(params: SolveParams): SolveResult {
         pattern.every((ch, i) => !ch || w.answer[i] === ch) &&
         isValidFill(w.answer, minLen),
     );
+    if (doShuffle) {
+      shuffle(heroCandidates);
+      shuffle(dictCandidates);
+    }
     const cands = [...heroCandidates, ...dictCandidates];
-    const fb = getFallback(len, pattern, { allow2: params.opts?.allow2 });
-    if (fb && isValidFill(fb, minLen)) cands.push({ answer: fb, clue: fb });
+    if (includeFallback) {
+      const fb = getFallback(len, pattern, { allow2: params.opts?.allow2, rng });
+      if (fb && isValidFill(fb, minLen)) cands.push({ answer: fb, clue: fb });
+    }
     return cands;
   };
 
   const candidateCount = (slot: SolverSlot): number =>
-    candidatesFor(getLetters(slot), slot.length).length;
+    candidatesFor(getLetters(slot), slot.length, false, false).length;
 
   const orderSlots = (remaining: SolverSlot[]): SolverSlot[] =>
     [...remaining].sort((a, b) => {

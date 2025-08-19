@@ -5,6 +5,7 @@ export function buildMask(
   targetBlocks = 36,
   maxAttempts = 5000,
   minLen = 3,
+  rng: () => number = Math.random,
 ) {
   const grid: boolean[][] = Array.from({ length: n }, () => Array(n).fill(false));
   let placed = 0;
@@ -19,8 +20,8 @@ export function buildMask(
   let attempts = 0;
   while (placed < targetBlocks && attempts < maxAttempts) {
     attempts++;
-    const r = Math.floor(Math.random() * n);
-    const c = Math.floor(Math.random() * n);
+    const r = Math.floor(rng() * n);
+    const c = Math.floor(rng() * n);
     try {
       setBlackGuarded(grid, r, c, minLen);
       const sym = symCell(r, c, n);
