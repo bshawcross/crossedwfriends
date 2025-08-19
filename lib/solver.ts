@@ -11,7 +11,12 @@ export interface SolveParams {
   slots: SolverSlot[];
   heroes?: WordEntry[];
   dict: WordEntry[];
-  opts?: { allow2?: boolean; heroThreshold?: number; maxFillAttempts?: number };
+  opts?: {
+    allow2?: boolean;
+    heroThreshold?: number;
+    maxFillAttempts?: number;
+    maxFallbackRate?: number;
+  };
 }
 
 export interface SolveSuccess {
@@ -32,6 +37,9 @@ export function solve(params: SolveParams): SolveResult {
   const heroes: WordEntry[] = [...(params.heroes || [])];
   const heroThreshold = params.opts?.heroThreshold ?? 10;
   const maxFillAttempts = params.opts?.maxFillAttempts ?? 100000;
+  const MAX_FALLBACK_RATE = params.opts?.maxFallbackRate ?? 0.1;
+  const totalSlots = slots.length;
+  let fallbackCount = 0;
   const minLen = params.opts?.allow2 ? 2 : 3;
 
   for (const s of slots) {
@@ -183,12 +191,23 @@ export function solve(params: SolveParams): SolveResult {
         : dict.includes(cand)
         ? dict
         : null;
+      const isFallback = !removeFrom;
       if (removeFrom) {
         const idx = removeFrom.indexOf(cand);
         removeFrom.splice(idx, 1);
       }
-      if (!removeFrom) {
+      if (isFallback) {
         logInfo("fallback_word_used", { length: slot.length, answer: cand.answer });
+        fallbackCount++;
+        const rate = fallbackCount / totalSlots;
+        if (rate > MAX_FALLBACK_RATE) {
+          logWarn("fallback_rate_exceeded", { rate });
+          assignments.delete(slot.id);
+          unplace(changed);
+          fallbackCount--;
+          failureReason = "fallback_rate_exceeded";
+          return false;
+        }
       }
       let dead = false;
       const neighbors = slotIntersections.get(slot.id) || new Set();
@@ -202,9 +221,17 @@ export function solve(params: SolveParams): SolveResult {
         }
       }
       if (!dead && backtrack()) return true;
+      if (failureReason === "fallback_rate_exceeded") {
+        assignments.delete(slot.id);
+        unplace(changed);
+        if (removeFrom) removeFrom.push(cand);
+        if (isFallback) fallbackCount--;
+        return false;
+      }
       assignments.delete(slot.id);
       unplace(changed);
       if (removeFrom) removeFrom.push(cand);
+      if (isFallback) fallbackCount--;
       logInfo("backtrack", { slot: slot.id, attempts });
       if (heroes.includes(cand)) {
         const count = (heroAttempts.get(cand.answer) || 0) + 1;

@@ -36,17 +36,35 @@ describe('generateDaily and API integration', () => {
       getFallback: (len: number, letters: string[]) => {
         let word = '';
         for (let i = 0; i < len; i++) {
-          word += letters[i] || 'A';
+          word += letters[i] || 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[i % 26];
         }
         return word;
       },
     };
     vi.doMock('../../utils/getFallback', () => gf);
     vi.doMock('../../src/utils/getFallback', () => gf);
+    const makePuzzle = (seed: string) => ({
+      id: seed,
+      title: 'Daily Placeholder',
+      theme: '',
+      across: [],
+      down: [],
+      cells: Array.from({ length: 225 }, (_, idx) => ({
+        row: Math.floor(idx / 15),
+        col: idx % 15,
+        isBlack: false,
+        answer: '',
+        clueNumber: null,
+        userInput: '',
+        isSelected: false,
+      })),
+    });
+    vi.doMock('../../lib/puzzle', () => ({ generateDaily: makePuzzle }));
 
     vi.setSystemTime(new Date('2024-01-01T23:59:00-08:00'));
-    process.argv.push('--allow2=true');
+    process.argv.push('--allow2=true', '--maxFallbackRate=1');
     await import('../../scripts/genDaily');
+    process.argv.pop();
     process.argv.pop();
     vi.useRealTimers();
     await new Promise(r => setTimeout(r, 0));
@@ -67,9 +85,11 @@ describe('generateDaily and API integration', () => {
     vi.doMock('../../src/validate/puzzle', () => ({ validateSymmetry: () => true, validateMinSlotLength: () => null }));
     vi.doMock('../../utils/getFallback', () => gf);
     vi.doMock('../../src/utils/getFallback', () => gf);
+    vi.doMock('../../lib/puzzle', () => ({ generateDaily: makePuzzle }));
     vi.setSystemTime(new Date('2024-01-02T00:01:00-08:00'));
-    process.argv.push('--allow2=true');
+    process.argv.push('--allow2=true', '--maxFallbackRate=1');
     await import('../../scripts/genDaily');
+    process.argv.pop();
     process.argv.pop();
     vi.useRealTimers();
     await new Promise(r => setTimeout(r, 0));

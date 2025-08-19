@@ -38,6 +38,8 @@ async function main() {
   const maxFillAttempts = maxFillAttemptsArg ? parseInt(maxFillAttemptsArg.split('=')[1], 10) : 50000;
   const heroThresholdArg = args.find((a) => a.startsWith('--heroThreshold'));
   const heroThreshold = heroThresholdArg ? parseInt(heroThresholdArg.split('=')[1], 10) : 3000;
+  const maxFallbackRateArg = args.find((a) => a.startsWith('--maxFallbackRate'));
+  const maxFallbackRate = maxFallbackRateArg ? parseFloat(maxFallbackRateArg.split('=')[1]) : 0.1;
   const heroTerms = args.filter((a) => !a.startsWith('--'));
   const [seasonal, funFacts, currentEvents] = await Promise.all([
     getSeasonalWords(puzzleDate),
@@ -81,7 +83,7 @@ async function main() {
     seed,
     wordList,
     heroTerms.length > 0 ? heroTerms : defaultHeroTerms,
-    { allow2, heroThreshold, maxFillAttempts, maxMasks },
+    { allow2, heroThreshold, maxFillAttempts, maxMasks, maxFallbackRate },
     grid,
   );
   const finalGrid: boolean[][] = [];
