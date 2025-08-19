@@ -194,6 +194,7 @@ export function solve(params: SolveParams): SolveResult {
             heroes.splice(idx, 1);
             dict.push(cand);
             logInfo("hero_demoted", { answer: cand.answer });
+            return backtrack();
           }
         }
       }

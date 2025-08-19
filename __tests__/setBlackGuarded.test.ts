@@ -4,7 +4,7 @@ import { setBlackGuarded, symCell } from "../grid/symmetry";
 describe("setBlackGuarded", () => {
   const makeGrid = () => Array.from({ length: 5 }, () => Array(5).fill(false));
 
-  it("throws when placement creates a 2-cell run", () => {
+  it("throws when placement creates a 2-letter run", () => {
     const grid = makeGrid();
     expect(() => setBlackGuarded(grid, 0, 2, 3)).toThrow(
       "guard_rejected_black_at_0_2",
