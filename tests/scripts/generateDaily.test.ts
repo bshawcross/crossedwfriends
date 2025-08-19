@@ -52,13 +52,30 @@ describe('generateDaily script', () => {
       getFallback: (len: number, letters: string[]) => {
         let word = '';
         for (let i = 0; i < len; i++) {
-          word += letters[i] || 'A';
+          word += letters[i] || 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[i % 26];
         }
         return word;
       },
     };
     vi.doMock('../../utils/getFallback', () => gf);
     vi.doMock('../../src/utils/getFallback', () => gf);
+    const makePuzzle = (seed: string) => ({
+      id: seed,
+      title: 'Daily Placeholder',
+      theme: '',
+      across: [],
+      down: [],
+      cells: Array.from({ length: 225 }, (_, idx) => ({
+        row: Math.floor(idx / 15),
+        col: idx % 15,
+        isBlack: false,
+        answer: '',
+        clueNumber: null,
+        userInput: '',
+        isSelected: false,
+      })),
+    });
+    vi.doMock('../../lib/puzzle', () => ({ generateDaily: makePuzzle }));
 
     const fsMod = await import('fs');
     const fs = fsMod.promises;
@@ -66,8 +83,9 @@ describe('generateDaily script', () => {
     const originalCwd = process.cwd();
     process.chdir(tmpDir);
 
-    process.argv.push('--allow2=true');
+    process.argv.push('--allow2=true', '--maxFallbackRate=1');
     await import('../../scripts/genDaily');
+    process.argv.pop();
     process.argv.pop();
     await new Promise((r) => setTimeout(r, 50));
 
@@ -94,13 +112,30 @@ describe('generateDaily script', () => {
       getFallback: (len: number, letters: string[]) => {
         let word = '';
         for (let i = 0; i < len; i++) {
-          word += letters[i] || 'A';
+          word += letters[i] || 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[i % 26];
         }
         return word;
       },
     };
     vi.doMock('../../utils/getFallback', () => gf);
     vi.doMock('../../src/utils/getFallback', () => gf);
+    const makePuzzle = (seed: string) => ({
+      id: seed,
+      title: 'Daily Placeholder',
+      theme: '',
+      across: [],
+      down: [],
+      cells: Array.from({ length: 225 }, (_, idx) => ({
+        row: Math.floor(idx / 15),
+        col: idx % 15,
+        isBlack: false,
+        answer: '',
+        clueNumber: null,
+        userInput: '',
+        isSelected: false,
+      })),
+    });
+    vi.doMock('../../lib/puzzle', () => ({ generateDaily: makePuzzle }));
 
     const fsMod = await import('fs');
     const fs = fsMod.promises;
@@ -111,8 +146,9 @@ describe('generateDaily script', () => {
     const exitSpy = vi.spyOn(process, 'exit').mockImplementation(() => undefined as never);
     const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-    process.argv.push('--allow2=true');
+    process.argv.push('--allow2=true', '--maxFallbackRate=1');
     await import('../../scripts/genDaily');
+    process.argv.pop();
     process.argv.pop();
     await new Promise((r) => setTimeout(r, 0));
 

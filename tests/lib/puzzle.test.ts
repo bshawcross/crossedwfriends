@@ -3,7 +3,7 @@ vi.mock('../../utils/getFallback', () => ({
   getFallback: (len: number, letters: string[]) => {
     let word = '';
     for (let i = 0; i < len; i++) {
-      word += letters[i] || 'A';
+      word += letters[i] || 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[i % 26];
     }
     return word;
   },
@@ -18,7 +18,7 @@ describe('generateDaily', () => {
       { answer: 'OK', clue: 'fit' },
       ...largeWordList(),
     ];
-    const puzzle = generateDaily('test', wordList, [], { allow2: true });
+    const puzzle = generateDaily('test', wordList, [], { allow2: true, maxFallbackRate: 1 });
     const allClues = [...puzzle.across, ...puzzle.down].map((c) => c.text);
     expect(allClues).not.toContain('skip');
     expect(puzzle.across[0].enumeration).toBe('(2)');
@@ -29,7 +29,7 @@ describe('generateDaily', () => {
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
     let puzzle;
     expect(() => {
-      puzzle = generateDaily('seed', wordList, [], { allow2: true });
+      puzzle = generateDaily('seed', wordList, [], { allow2: true, maxFallbackRate: 1 });
     }).not.toThrow();
     expect(logSpy).toHaveBeenCalledWith(
       expect.stringContaining('"message":"fallback_word_used"'),

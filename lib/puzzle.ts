@@ -39,7 +39,13 @@ export function generateDaily(
   seed: string,
   wordList: WordEntry[] = [],
   heroTerms: string[] = [],
-  opts: { allow2?: boolean; heroThreshold?: number; maxFillAttempts?: number; maxMasks?: number } = {},
+  opts: {
+    allow2?: boolean;
+    heroThreshold?: number;
+    maxFillAttempts?: number;
+    maxMasks?: number;
+    maxFallbackRate?: number;
+  } = {},
   mask?: boolean[][],
 ): Puzzle {
   const size = mask ? mask.length : 15;
@@ -217,6 +223,7 @@ export function generateDaily(
           allow2: opts.allow2,
           heroThreshold: opts.heroThreshold,
           maxFillAttempts: opts.maxFillAttempts,
+          maxFallbackRate: opts.maxFallbackRate,
         },
       });
       if (!result.ok) {

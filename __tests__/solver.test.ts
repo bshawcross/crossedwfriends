@@ -61,6 +61,25 @@ describe("solver logging", () => {
     expect(parsed).toMatchObject({ message: "backtrack", attempts: 1 });
     logSpy.mockRestore();
   });
+
+  it("aborts when fallback rate exceeds threshold", () => {
+    const board = [["", "", ""]];
+    const slots: SolverSlot[] = [
+      { row: 0, col: 0, length: 3, direction: "across", id: "across_0_0" },
+    ];
+    const dict: WordEntry[] = [];
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const res = solve({ board, slots, dict });
+    expect(res.ok).toBe(false);
+    expect(res.reason).toBe("fallback_rate_exceeded");
+    const call = warnSpy.mock.calls.find((c) =>
+      c[0].includes("\"message\":\"fallback_rate_exceeded\"")
+    );
+    expect(call).toBeTruthy();
+    const parsed = JSON.parse(call![0]);
+    expect(parsed).toMatchObject({ message: "fallback_rate_exceeded" });
+    warnSpy.mockRestore();
+  });
 });
 
 describe("solver puzzle", () => {
