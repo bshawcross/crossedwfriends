@@ -1,4 +1,13 @@
 import { describe, test, expect, vi } from 'vitest';
+vi.mock('../utils/getFallback', () => ({
+  getFallback: (len: number, letters: string[]) => {
+    let word = '';
+    for (let i = 0; i < len; i++) {
+      word += letters[i] || 'A';
+    }
+    return word;
+  },
+}));
 import { validatePuzzle } from '../lib/validatePuzzle';
 import { generateDaily, WordEntry } from '../lib/puzzle';
 import type { Puzzle, Cell, Clue } from '../lib/puzzle';

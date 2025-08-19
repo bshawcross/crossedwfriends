@@ -66,7 +66,11 @@ async function main() {
     }
     const detail = validateMinSlotLength(grid, minLen);
     if (detail) {
-      logError('slot_too_short', { detail });
+      const meta =
+        detail.type === 'across'
+          ? { type: detail.type, r: detail.start.row, c0: detail.start.col, c1: detail.end.col, len: detail.len }
+          : { type: detail.type, r: detail.start.col, c0: detail.start.row, c1: detail.end.row, len: detail.len };
+      logError('slot_too_short', meta);
       process.exit(1);
     }
   } catch (err) {
