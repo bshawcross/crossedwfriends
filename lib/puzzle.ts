@@ -5,6 +5,7 @@ import { buildMask } from '@/grid/mask';
 import { validateSymmetry, validateMinSlotLength } from '../src/validate/puzzle';
 import { repairMask } from './repairMask';
 import { solve, SolverSlot } from './solver';
+import { logInfo, logError } from '@/utils/logger';
 
 export type Cell = {
   row: number;
@@ -154,6 +155,11 @@ export function generateDaily(
         },
       });
       if (!result.ok) {
+        logInfo('retry', { attempt: attempt + 1, reason: result.reason, attempts: result.attempts });
+        if (attempt === maxMasks - 1) {
+          logError('abort', { attempts: attempt + 1, reason: result.reason, fillAttempts: result.attempts });
+          throw { message: 'puzzle_invalid', error: result.reason, detail: undefined };
+        }
         continue;
       }
 
@@ -214,7 +220,10 @@ export function generateDaily(
         cells,
       };
     } catch (err) {
+      const reason = (err as any).error || (err as Error).message;
+      logInfo('retry', { attempt: attempt + 1, reason });
       if (attempt === maxMasks - 1) {
+        logError('abort', { attempts: attempt + 1, reason });
         throw err;
       }
     }

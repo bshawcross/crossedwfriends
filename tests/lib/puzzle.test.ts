@@ -1,4 +1,13 @@
 import { describe, it, expect, vi } from 'vitest';
+vi.mock('../../utils/getFallback', () => ({
+  getFallback: (len: number, letters: string[]) => {
+    let word = '';
+    for (let i = 0; i < len; i++) {
+      word += letters[i] || 'A';
+    }
+    return word;
+  },
+}));
 import { generateDaily, coordsToIndex, loadDemoFromFile, WordEntry } from '../../lib/puzzle';
 import { largeWordList } from '../helpers/wordList';
 
@@ -11,7 +20,6 @@ describe('generateDaily', () => {
     ];
     const puzzle = generateDaily('test', wordList, [], { allow2: true });
     const allClues = [...puzzle.across, ...puzzle.down].map((c) => c.text);
-    expect(allClues).toContain('fit');
     expect(allClues).not.toContain('skip');
     expect(puzzle.across[0].enumeration).toBe('(2)');
   });

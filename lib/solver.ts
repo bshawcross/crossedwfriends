@@ -22,6 +22,7 @@ export interface SolveSuccess {
 export interface SolveFailure {
   ok: false;
   reason: string;
+  attempts: number;
 }
 
 export type SolveResult = SolveSuccess | SolveFailure;
@@ -32,6 +33,23 @@ export function solve(params: SolveParams): SolveResult {
   const heroThreshold = params.opts?.heroThreshold ?? 10;
   const maxFillAttempts = params.opts?.maxFillAttempts ?? 100000;
   const minLen = params.opts?.allow2 ? 2 : 3;
+
+  for (const s of slots) {
+    if (s.length < minLen) {
+      const meta =
+        s.direction === "across"
+          ? { type: s.direction, r: s.row, c0: s.col, c1: s.col + s.length - 1, len: s.length }
+          : {
+              type: s.direction,
+              r: s.col,
+              c0: s.row,
+              c1: s.row + s.length - 1,
+              len: s.length,
+            };
+      logInfo("slot_too_short", meta);
+      return { ok: false, reason: "slot_too_short", attempts: 0 };
+    }
+  }
 
   // Precompute intersection counts
   const cellMap = new Map<string, number>();
@@ -57,6 +75,7 @@ export function solve(params: SolveParams): SolveResult {
   const assignments = new Map<string, WordEntry>();
   const heroAttempts = new Map<string, number>();
   let attempts = 0;
+  let failureReason = "max_fill_attempts";
 
   const canPlace = (slot: SolverSlot, word: string): boolean => {
     for (let i = 0; i < slot.length; i++) {
@@ -137,7 +156,11 @@ export function solve(params: SolveParams): SolveResult {
 
   const backtrack = (): boolean => {
     if (assignments.size === slots.length) return true;
-    if (attempts >= maxFillAttempts) return false;
+    if (attempts >= maxFillAttempts) {
+      logInfo("backtrack", { attempts, reason: "max_fill_attempts" });
+      failureReason = "max_fill_attempts";
+      return false;
+    }
 
     const remaining = slots.filter((s) => !assignments.has(s.id));
     const ordered = orderSlots(remaining);
@@ -161,6 +184,7 @@ export function solve(params: SolveParams): SolveResult {
       assignments.delete(slot.id);
       unplace(changed);
       if (removeFrom) removeFrom.push(cand);
+      logInfo("backtrack", { slot: slot.id, attempts });
       if (heroes.includes(cand)) {
         const count = (heroAttempts.get(cand.answer) || 0) + 1;
         heroAttempts.set(cand.answer, count);
@@ -173,7 +197,11 @@ export function solve(params: SolveParams): SolveResult {
           }
         }
       }
-      if (attempts >= maxFillAttempts) return false;
+      if (attempts >= maxFillAttempts) {
+        logInfo("backtrack", { attempts, reason: "max_fill_attempts" });
+        failureReason = "max_fill_attempts";
+        return false;
+      }
     }
     return false;
   };
@@ -182,6 +210,6 @@ export function solve(params: SolveParams): SolveResult {
   if (success) {
     return { ok: true, assignments };
   }
-  return { ok: false, reason: "max_fill_attempts" };
+  return { ok: false, reason: failureReason, attempts };
 }
 
