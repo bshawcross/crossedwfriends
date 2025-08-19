@@ -1,6 +1,6 @@
 import { isValidFill } from "@/utils/validateWord";
 import { getFallback } from "@/utils/getFallback";
-import { logInfo } from "@/utils/logger";
+import { logInfo, logWarn } from "@/utils/logger";
 import type { WordEntry } from "./puzzle";
 import type { Slot } from "./slotFinder";
 
@@ -51,25 +51,35 @@ export function solve(params: SolveParams): SolveResult {
     }
   }
 
-  // Precompute intersection counts
-  const cellMap = new Map<string, number>();
+  // Precompute intersection metadata
+  const cellSlots = new Map<string, SolverSlot[]>();
   for (const s of slots) {
     for (let i = 0; i < s.length; i++) {
       const r = s.direction === "across" ? s.row : s.row + i;
       const c = s.direction === "across" ? s.col + i : s.col;
       const key = `${r}_${c}`;
-      cellMap.set(key, (cellMap.get(key) || 0) + 1);
+      if (!cellSlots.has(key)) cellSlots.set(key, []);
+      cellSlots.get(key)!.push(s);
     }
   }
   const intersectionCount = new Map<string, number>();
+  const slotIntersections = new Map<string, Set<string>>();
+  const slotById = new Map(slots.map((s) => [s.id, s]));
   for (const s of slots) {
     let count = 0;
+    const set = new Set<string>();
     for (let i = 0; i < s.length; i++) {
       const r = s.direction === "across" ? s.row : s.row + i;
       const c = s.direction === "across" ? s.col + i : s.col;
-      if ((cellMap.get(`${r}_${c}`) || 0) > 1) count++;
+      const key = `${r}_${c}`;
+      const others = cellSlots.get(key) || [];
+      if (others.length > 1) {
+        count++;
+        for (const o of others) if (o.id !== s.id) set.add(o.id);
+      }
     }
     intersectionCount.set(s.id, count);
+    slotIntersections.set(s.id, set);
   }
 
   const assignments = new Map<string, WordEntry>();
@@ -117,41 +127,38 @@ export function solve(params: SolveParams): SolveResult {
     return arr;
   };
 
-  const genCandidates = (slot: SolverSlot): WordEntry[] => {
-    const letters = getLetters(slot);
+  const candidatesFor = (pattern: string[], len: number): WordEntry[] => {
     const heroCandidates = heroes.filter(
       (w) =>
-        w.answer.length === slot.length &&
-        letters.every((ch, i) => !ch || w.answer[i] === ch) &&
+        w.answer.length === len &&
+        pattern.every((ch, i) => !ch || w.answer[i] === ch) &&
         isValidFill(w.answer, minLen),
     );
-    if (heroCandidates.length > 0) return [heroCandidates[0]];
     const dictCandidates = dict.filter(
       (w) =>
-        w.answer.length === slot.length &&
-        letters.every((ch, i) => !ch || w.answer[i] === ch) &&
+        w.answer.length === len &&
+        pattern.every((ch, i) => !ch || w.answer[i] === ch) &&
         isValidFill(w.answer, minLen),
     );
-    if (dictCandidates.length > 0) return [dictCandidates[0]];
-    const fb = getFallback(slot.length, letters, { allow2: params.opts?.allow2 });
-    if (fb) {
-      logInfo("fallback_word_used", { length: slot.length, answer: fb });
-      return [{ answer: fb, clue: fb }];
-    }
-    return [];
+    const cands = [...heroCandidates, ...dictCandidates];
+    const fb = getFallback(len, pattern, { allow2: params.opts?.allow2 });
+    if (fb && isValidFill(fb, minLen)) cands.push({ answer: fb, clue: fb });
+    return cands;
   };
 
-  const candidateCount = (slot: SolverSlot): number => genCandidates(slot).length;
+  const candidateCount = (slot: SolverSlot): number =>
+    candidatesFor(getLetters(slot), slot.length).length;
 
   const orderSlots = (remaining: SolverSlot[]): SolverSlot[] =>
     [...remaining].sort((a, b) => {
       const ca = candidateCount(a);
       const cb = candidateCount(b);
       if (ca !== cb) return ca - cb;
-      if (a.length !== b.length) return b.length - a.length;
       const ia = intersectionCount.get(a.id) || 0;
       const ib = intersectionCount.get(b.id) || 0;
-      return ib - ia;
+      if (ia !== ib) return ib - ia;
+      if (a.length !== b.length) return b.length - a.length;
+      return 0;
     });
 
   const backtrack = (): boolean => {
@@ -165,7 +172,7 @@ export function solve(params: SolveParams): SolveResult {
     const remaining = slots.filter((s) => !assignments.has(s.id));
     const ordered = orderSlots(remaining);
     const slot = ordered[0];
-    const candidates = genCandidates(slot);
+    const candidates = candidatesFor(getLetters(slot), slot.length);
     for (const cand of candidates) {
       attempts++;
       if (!canPlace(slot, cand.answer)) continue;
@@ -180,7 +187,21 @@ export function solve(params: SolveParams): SolveResult {
         const idx = removeFrom.indexOf(cand);
         removeFrom.splice(idx, 1);
       }
-      if (backtrack()) return true;
+      if (!removeFrom) {
+        logInfo("fallback_word_used", { length: slot.length, answer: cand.answer });
+      }
+      let dead = false;
+      const neighbors = slotIntersections.get(slot.id) || new Set();
+      for (const nid of neighbors) {
+        if (assignments.has(nid)) continue;
+        const ns = slotById.get(nid)!;
+        const count = candidatesFor(getLetters(ns), ns.length).length;
+        if (count === 0) {
+          dead = true;
+          break;
+        }
+      }
+      if (!dead && backtrack()) return true;
       assignments.delete(slot.id);
       unplace(changed);
       if (removeFrom) removeFrom.push(cand);
@@ -188,13 +209,16 @@ export function solve(params: SolveParams): SolveResult {
       if (heroes.includes(cand)) {
         const count = (heroAttempts.get(cand.answer) || 0) + 1;
         heroAttempts.set(cand.answer, count);
-        if (count >= heroThreshold) {
+        if (count > heroThreshold) {
           const idx = heroes.indexOf(cand);
           if (idx !== -1) {
             heroes.splice(idx, 1);
             dict.push(cand);
-            logInfo("hero_demoted", { answer: cand.answer });
-            return backtrack();
+              logWarn("hero_demoted", {
+                word: cand.answer,
+                reason: "no_fit_after_threshold",
+              });
+              continue;
           }
         }
       }
