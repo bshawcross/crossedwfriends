@@ -2,7 +2,9 @@ import { cleanClue } from './clueClean';
 import { findSlots, Slot } from './slotFinder';
 import { planHeroPlacements } from './heroPlacement';
 import { buildMask } from '@/grid/mask';
-import { validateSymmetry, validateMinSlotLength } from '../src/validate/puzzle';
+import * as validatePuzzle from '../src/validate/puzzle';
+import { assertCoverage } from '../src/validate/coverage';
+import fallbackWords from '../src/data/fallbackWords';
 import { repairMask } from './repairMask';
 import { solve, SolverSlot } from './solver';
 import { logInfo, logError } from '@/utils/logger';
@@ -49,16 +51,16 @@ export function generateDaily(
       let boolGrid: boolean[][];
       if (attempt === 0 && mask) {
         boolGrid = mask;
-        let symValid = validateSymmetry(boolGrid);
-        let slotDetail = validateMinSlotLength(boolGrid, 3);
+        let symValid = validatePuzzle.validateSymmetry(boolGrid);
+        let slotDetail = validatePuzzle.validateMinSlotLength(boolGrid, 3);
         if (!symValid || slotDetail) {
           try {
             boolGrid = repairMask(boolGrid, minLen, 50, opts.allow2);
           } catch {
             // ignore repair failures and validate below
           }
-          symValid = validateSymmetry(boolGrid);
-          slotDetail = validateMinSlotLength(boolGrid, 3);
+          symValid = validatePuzzle.validateSymmetry(boolGrid);
+          slotDetail = validatePuzzle.validateMinSlotLength(boolGrid, 3);
           if (!symValid || slotDetail) {
             const error = !symValid ? 'grid_not_symmetric' : 'slot_too_short';
             throw { message: 'puzzle_invalid', error, detail: slotDetail };
@@ -68,10 +70,10 @@ export function generateDaily(
         boolGrid = buildMask(size, 36, 5000, minLen);
       }
 
-      if (!validateSymmetry(boolGrid)) {
+      if (!validatePuzzle.validateSymmetry(boolGrid)) {
         throw { message: 'puzzle_invalid', error: 'grid_not_symmetric', detail: undefined };
       }
-      const detail = validateMinSlotLength(boolGrid, minLen);
+      const detail = validatePuzzle.validateMinSlotLength(boolGrid, minLen);
       if (detail) {
         throw { message: 'puzzle_invalid', error: 'slot_too_short', detail };
       }
@@ -93,8 +95,71 @@ export function generateDaily(
           const cell = getCell(cells, size, p.row, p.col + i);
           cell.isBlack = false;
           cell.answer = p.term[i] ?? '';
+          boolGrid[p.row][p.col + i] = false;
         }
       });
+      const getSlotLengthsFn =
+        ('getSlotLengths' in validatePuzzle
+          ? (validatePuzzle as any).getSlotLengths
+          : null) ||
+        ((grid: boolean[][], orientation: 'across' | 'down'): number[] => {
+          const size = grid.length;
+          const lengths: number[] = [];
+          if (orientation === 'across') {
+            for (let r = 0; r < size; r++) {
+              let len = 0;
+              for (let c = 0; c < size; c++) {
+                if (!grid[r][c]) {
+                  len++;
+                }
+                if (grid[r][c]) {
+                  if (len > 0) lengths.push(len);
+                  len = 0;
+                } else if (c === size - 1) {
+                  if (len > 0) lengths.push(len);
+                  len = 0;
+                }
+              }
+            }
+          } else {
+            for (let c = 0; c < size; c++) {
+              let len = 0;
+              for (let r = 0; r < size; r++) {
+                if (!grid[r][c]) {
+                  len++;
+                }
+                if (grid[r][c]) {
+                  if (len > 0) lengths.push(len);
+                  len = 0;
+                } else if (r === size - 1) {
+                  if (len > 0) lengths.push(len);
+                  len = 0;
+                }
+              }
+            }
+          }
+          return lengths;
+        });
+
+      const requiredLens = [
+        ...getSlotLengthsFn(boolGrid, 'across'),
+        ...getSlotLengthsFn(boolGrid, 'down'),
+      ];
+      const heroesByLen: Record<number, number> = {};
+      heroTerms.forEach((t) => {
+        const len = t.length;
+        heroesByLen[len] = (heroesByLen[len] || 0) + 1;
+      });
+      const dictByLen: Record<number, number> = {};
+      wordList.forEach((w) => {
+        const len = w.answer.length;
+        dictByLen[len] = (dictByLen[len] || 0) + 1;
+      });
+      const fallbackByLen: Record<number, number> = {};
+      Object.entries(fallbackWords).forEach(([lenStr, words]) => {
+        fallbackByLen[Number(lenStr)] = (words as string[]).length;
+      });
+      assertCoverage(requiredLens, { heroesByLen, dictByLen, fallbackByLen });
 
       // build grid for slot finding
       const grid: string[] = [];
