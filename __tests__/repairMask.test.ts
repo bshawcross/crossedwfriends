@@ -20,4 +20,13 @@ describe("repairMask", () => {
       }
     }
   });
+
+  it("throws when mask cannot be repaired", () => {
+    const grid = [
+      [true, false, false],
+      [false, false, false],
+      [false, false, false],
+    ];
+    expect(() => repairMask(grid, 3, 0)).toThrow("mask_repair_failed");
+  });
 });
