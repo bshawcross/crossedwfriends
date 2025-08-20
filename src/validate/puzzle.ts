@@ -120,3 +120,9 @@ export function validateMinSlotLength(
   return findFirstShortSlot(grid, min);
 }
 
+export function validateComplete(
+  cells: { isBlack: boolean; answer: string }[],
+): boolean {
+  return cells.every((cell) => cell.isBlack || (cell.answer?.trim().length ?? 0) > 0);
+}
+
