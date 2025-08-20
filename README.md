@@ -28,6 +28,13 @@ You can load it in your shell with `source .env` or by copying it to `.env.local
 ## Puzzle quality gate
 
 Daily puzzles are produced with a deterministic generation pipeline.
+Run a quick bank coverage check before generating:
+
+```bash
+npm run tsx scripts/checkBanks.ts
+```
+
+This prints counts of unique normalized entries by answer length.
 Run the generator to build the puzzle for today. You can optionally supply
 "hero" terms to pin in the grid:
 
