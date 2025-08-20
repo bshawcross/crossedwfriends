@@ -14,14 +14,12 @@ describe('generateDaily', () => {
     expect(puzzle.across[0].enumeration).toBe('(7)');
   });
 
-  it('uses fallback when no matching word is found', () => {
-    const wordList = largeWordList().filter((w) => w.answer.length !== 3);
-    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-    expect(() => {
-      generateDaily('seed', wordList, [], { maxFillAttempts: 10, maxMasks: 1 });
-    }).toThrow();
-    logSpy.mockRestore();
-  }, 20000);
+    it('errors when no matching word is found', () => {
+      const wordList = largeWordList().filter((w) => w.answer.length !== 3);
+      expect(() => {
+        generateDaily('seed', wordList, [], { maxFillAttempts: 10, maxMasks: 1 });
+      }).toThrow();
+    }, 20000);
 });
 
 describe('coordsToIndex', () => {
