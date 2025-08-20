@@ -100,13 +100,11 @@ async function main() {
 
   let pool = buildCandidatePool(wordList);
   const fallbackEntries: WordEntry[] = [];
-  for (const words of Object.values(fallbackWords)) {
-    for (const w of words) {
-      const answer = w.trim().toUpperCase();
-      if (!/^[A-Z]+$/.test(answer)) continue;
-      if (!isValidFill(answer, 3)) continue;
-      fallbackEntries.push({ answer, clue: '' });
-    }
+  for (const w of fallbackWords) {
+    const answer = w.trim().toUpperCase();
+    if (!/^[A-Z]+$/.test(answer)) continue;
+    if (!isValidFill(answer, 3)) continue;
+    fallbackEntries.push({ answer, clue: '' });
   }
   const fallbackPool = buildCandidatePool(fallbackEntries);
   for (const [lenStr, entries] of Object.entries(fallbackPool)) {
@@ -120,7 +118,9 @@ async function main() {
     const have = pool[len]?.length || 0;
     if (have < minCount) {
       if (len === 13 || len === 15) {
-        const anchors = (fallbackWords[len] || []).map((w) => w.toUpperCase());
+        const anchors = fallbackWords
+          .filter((w) => w.length === len)
+          .map((w) => w.toUpperCase());
         for (const a of anchors) {
           if (!/^[A-Z]+$/.test(a)) continue;
           if (!pool[len]) pool[len] = [];
@@ -147,8 +147,12 @@ async function main() {
   }
 
   const baseHeroTerms = heroTerms.length > 0 ? heroTerms : defaultHeroTerms;
-  const long13 = (fallbackWords[13] || []).map((w) => w.toUpperCase());
-  const long15 = (fallbackWords[15] || []).map((w) => w.toUpperCase());
+  const long13 = fallbackWords
+    .filter((w) => w.length === 13)
+    .map((w) => w.toUpperCase());
+  const long15 = fallbackWords
+    .filter((w) => w.length === 15)
+    .map((w) => w.toUpperCase());
   const MAX_ATTEMPTS = 8;
   let puzzle: ReturnType<typeof generateDaily> | null = null;
   for (let attempt = 0; attempt < MAX_ATTEMPTS && !puzzle; attempt++) {

@@ -1,11 +1,15 @@
-import rawFallbackWords from "../data/fallbackWords";
+import fallbackWords from "../data/fallbackWords";
 import { isValidFill } from "./validateWord";
 
-const FALLBACK_WORDS: Record<number, string[]> = Object.fromEntries(
-  Object.entries(rawFallbackWords).map(([len, words]) => [
-    Number(len),
-    words.filter((w) => w.length === Number(len) && isValidFill(w, 2)),
-  ]),
+const FALLBACK_WORDS: Record<number, string[]> = fallbackWords.reduce(
+  (acc, w) => {
+    if (!isValidFill(w, 2)) return acc;
+    const len = w.length;
+    if (!acc[len]) acc[len] = [];
+    acc[len].push(w);
+    return acc;
+  },
+  {} as Record<number, string[]>,
 );
 
 export function getFallback(

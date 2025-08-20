@@ -9,38 +9,32 @@
  * Lists are intentionally small; puzzle generation will fail if too many
  * slots of a given length rely on fallbacks.
  */
-const fallbackWords: Record<number, string[]> = {
+const fallbackWords = [
   // Short, common nouns for 3‑letter slots.
-  3: [
-    "CAT",
-    "DOG",
-    "SUN",
-    "BEE",
-    "FOX",
-    "HAT",
-    "INK",
-    "JAM",
-    "KEY",
-    "OWL",
-  ],
+  "CAT",
+  "DOG",
+  "SUN",
+  "BEE",
+  "FOX",
+  "HAT",
+  "INK",
+  "JAM",
+  "KEY",
+  "OWL",
 
   // Assorted neutral 13‑letter words.
-  13: [
-    "UNDERSTANDING",
-    "KNOWLEDGEABLE",
-    "DETERMINATION",
-    "APPRECIATIONS",
-    "COMMUNICATION",
-  ],
+  "UNDERSTANDING",
+  "KNOWLEDGEABLE",
+  "DETERMINATION",
+  "APPRECIATIONS",
+  "COMMUNICATION",
 
   // Assorted neutral 15‑letter words.
-  15: [
-    "CONGRATULATIONS",
-    "ACKNOWLEDGMENTS",
-    "UNDERSTATEMENTS",
-    "MICROSCOPICALLY",
-    "RECOMMENDATIONS",
-  ],
-};
+  "CONGRATULATIONS",
+  "ACKNOWLEDGMENTS",
+  "UNDERSTATEMENTS",
+  "MICROSCOPICALLY",
+  "RECOMMENDATIONS",
+];
 
 export default fallbackWords;
