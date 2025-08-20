@@ -1,4 +1,5 @@
-import fallbackWords from "../src/data/fallbackWords";
+import fs from "fs";
+import path from "path";
 import { isValidFill } from "@/utils/validateWord";
 
 /**
@@ -18,8 +19,7 @@ export function normalizeAnswer(input: string): string | null {
 /**
  * Build a candidate pool mapping word length to a list of unique answers.
  * Primary sources are supplied as an array of string arrays. All entries are
- * normalized and invalid or multi-word entries are discarded. Fallback lists
- * are merged automatically.
+ * normalized and invalid or multi-word entries are discarded.
  */
 export function buildCandidatePool(
   sources: string[][] = [],
@@ -39,9 +39,6 @@ export function buildCandidatePool(
     for (const w of list) addWord(w);
   }
 
-  // Merge fallback list
-  for (const w of fallbackWords) addWord(w);
-
   // Convert sets to arrays
   const out = new Map<number, string[]>();
   for (const [len, set] of byLen.entries()) {
@@ -49,5 +46,54 @@ export function buildCandidatePool(
   }
   return out;
 }
+
+/**
+ * Read a word bank file from the banks directory and return an array of
+ * normalized, unique words. Invalid entries (multi-word, punctuation, etc)
+ * are discarded.
+ */
+function readBankFile(file: string): string[] {
+  const fullPath = path.join(process.cwd(), "banks", file);
+  let lines: string[] = [];
+  try {
+    lines = fs.readFileSync(fullPath, "utf8").split(/\r?\n/);
+  } catch {
+    return [];
+  }
+  const set = new Set<string>();
+  for (const line of lines) {
+    const word = normalizeAnswer(line);
+    if (word) set.add(word);
+  }
+  return Array.from(set);
+}
+
+/**
+ * Preloaded candidate pool from the default word bank text files.
+ */
+function loadCandidatePoolFromBanks(): Map<number, string[]> {
+  const byLen = new Map<number, Set<string>>();
+  const addWords = (words: string[]) => {
+    for (const w of words) {
+      const len = w.length;
+      if (!byLen.has(len)) byLen.set(len, new Set());
+      byLen.get(len)!.add(w);
+    }
+  };
+  const files = [
+    "anchors_13.txt",
+    "anchors_15.txt",
+    "mid_7to12.txt",
+    "glue_3to6.txt",
+  ];
+  for (const f of files) addWords(readBankFile(f));
+  const out = new Map<number, string[]>();
+  for (const [len, set] of byLen.entries()) {
+    out.set(len, Array.from(set));
+  }
+  return out;
+}
+
+export const candidatePoolByLength = loadCandidatePoolFromBanks();
 
 export type CandidatePool = Map<number, string[]>;

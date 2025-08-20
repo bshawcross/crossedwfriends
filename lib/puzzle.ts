@@ -4,8 +4,8 @@ import { planHeroPlacements } from './heroPlacement';
 import { buildMask } from '@/grid/mask';
 import * as validatePuzzle from '../src/validate/puzzle';
 import { assertCoverage } from '../src/validate/coverage';
-import fallbackWords from '../src/data/fallbackWords';
 import { getFallback } from '../src/utils/getFallback';
+import { candidatePoolByLength } from './candidatePool';
 import { repairMask } from './repairMask';
 import { solve, SolverSlot } from './solver';
 import { logInfo, logError } from '@/utils/logger';
@@ -201,10 +201,9 @@ export function generateDaily(
       });
       verifyFallbackPools(requiredLens, heroesByLen, dictByLen);
       const fallbackByLen: Record<number, number> = {};
-      fallbackWords.forEach((w) => {
-        const len = w.length;
-        fallbackByLen[len] = (fallbackByLen[len] || 0) + 1;
-      });
+      for (const [len, words] of candidatePoolByLength.entries()) {
+        fallbackByLen[len] = words.length;
+      }
       assertCoverage(requiredLens, { heroesByLen, dictByLen, fallbackByLen });
 
       // build grid for slot finding

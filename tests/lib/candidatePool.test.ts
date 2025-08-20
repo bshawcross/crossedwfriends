@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { normalizeAnswer, buildCandidatePool } from '../../lib/candidatePool';
+import { normalizeAnswer, buildCandidatePool, candidatePoolByLength } from '../../lib/candidatePool';
 
 describe('normalizeAnswer', () => {
   it('uppercases and trims valid single words', () => {
@@ -14,10 +14,10 @@ describe('normalizeAnswer', () => {
 });
 
 describe('buildCandidatePool', () => {
-  it('normalizes, dedupes and merges fallback lists', () => {
+  it('normalizes and dedupes words from sources', () => {
     const primary = [
       ['cat', 'dog', 'multi word', 'bee'],
-      ['DOG', 'fox']
+      ['DOG', 'fox'],
     ];
     const pool = buildCandidatePool(primary);
     const len3 = pool.get(3) || [];
@@ -27,9 +27,14 @@ describe('buildCandidatePool', () => {
     expect(len3.filter((w) => w === 'DOG').length).toBe(1);
     expect(len3).toContain('BEE');
     expect(len3).toContain('FOX');
-    // Fallback words merged (SUN is from fallback list)
-    expect(len3).toContain('SUN');
-    // Fallback pool provides longer lengths as well
-    expect(pool.get(15)).toBeDefined();
+    expect(len3).not.toContain('MULTI WORD');
+  });
+});
+
+describe('candidatePoolByLength', () => {
+  it('loads banks and normalizes entries', () => {
+    const len13 = candidatePoolByLength.get(13) || [];
+    expect(len13.length).toBeGreaterThan(0);
+    expect(len13.every((w) => /^[A-Z]+$/.test(w))).toBe(true);
   });
 });
