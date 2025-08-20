@@ -13,7 +13,6 @@ export interface SolveParams {
   dict: WordEntry[];
   rng?: () => number;
   opts?: {
-    allow2?: boolean;
     heroThreshold?: number;
     maxFillAttempts?: number;
     maxFallbackRate?: number;
@@ -51,7 +50,7 @@ export function solve(params: SolveParams): SolveResult {
   const MAX_FALLBACK_RATE = params.opts?.maxFallbackRate ?? 0.1;
   const totalSlots = slots.length;
   let fallbackCount = 0;
-  const minLen = params.opts?.allow2 ? 2 : 3;
+  const minLen = 3;
 
   for (const s of slots) {
     if (s.length < minLen) {
@@ -152,6 +151,9 @@ export function solve(params: SolveParams): SolveResult {
     doShuffle = true,
     includeFallback = true,
   ): WordEntry[] => {
+    if (len === 2) {
+      throw new Error("Two-letter answers are banned (slotLen=2).");
+    }
     const heroCandidates = heroes.filter(
       (w) =>
         w.answer.length === len &&
@@ -170,7 +172,7 @@ export function solve(params: SolveParams): SolveResult {
     }
     const cands = [...heroCandidates, ...dictCandidates];
     if (includeFallback) {
-      const fb = getFallback(len, pattern, { allow2: params.opts?.allow2, rng });
+      const fb = getFallback(len, pattern, { rng });
       if (fb && isValidFill(fb, minLen)) cands.push({ answer: fb, clue: fb });
     }
     return cands;

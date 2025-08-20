@@ -7,9 +7,11 @@ export function chooseAnswer(
   len: number,
   letters: string[],
   pool: WordEntry[],
-  opts: { allow2?: boolean } = {},
 ): WordEntry {
-  const minLen = opts.allow2 ? 2 : 3;
+  if (len === 2) {
+    throw new Error("Two-letter answers are banned (slotLen=2).");
+  }
+  const minLen = 3;
   const idx = pool.findIndex(
     (w) =>
       w.answer.length === len &&
@@ -19,7 +21,7 @@ export function chooseAnswer(
   if (idx !== -1) {
     return pool.splice(idx, 1)[0];
   }
-  const fb = getFallback(len, letters, opts);
+  const fb = getFallback(len, letters);
   if (fb) {
     logInfo("fallback_word_used", { length: len, answer: fb });
     return { answer: fb, clue: fb };

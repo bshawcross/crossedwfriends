@@ -57,14 +57,14 @@ describe('validatePuzzle', () => {
   });
 
   test('fails when not 225 cells', () => {
-    const puzzle = generateDaily('seed', largeWordList(), [], { allow2: true });
+    const puzzle = generateDaily('seed', largeWordList(), []);
     puzzle.cells.pop();
-    const errors = validatePuzzle(puzzle, { allow2: true });
+    const errors = validatePuzzle(puzzle);
     expect(errors.some((e) => e.includes('225'))).toBe(true);
   });
 
   test('detects clue and answer issues', () => {
-    const puzzle = generateDaily('seed', largeWordList(), [], { allow2: true });
+    const puzzle = generateDaily('seed', largeWordList(), []);
     // mismatched clue length and dirty clue
     puzzle.across[0].length += 1;
     puzzle.across[0].text = '<b>bad</b> clue http://example.com';
@@ -82,35 +82,27 @@ describe('validatePuzzle', () => {
     for (let i = 0; i < slot.length; i++) {
       puzzle.cells[slot.row * size + slot.col + i].answer = i === 0 ? 'A' : '1';
     }
-    const errors = validatePuzzle(puzzle, { allow2: true });
+    const errors = validatePuzzle(puzzle);
     expect(errors.some((e) => e.includes('clue') && e.includes('length'))).toBe(true);
     expect(errors.some((e) => e.includes('not allowed'))).toBe(true);
     expect(errors.some((e) => e.includes('not clean'))).toBe(true);
   });
 
   test('fails symmetry check', () => {
-    const puzzle = generateDaily('seed', largeWordList(), [], { allow2: true });
+    const puzzle = generateDaily('seed', largeWordList(), []);
     const size = 15;
     const idx = 0;
     const sym = symCell(0, 0, size);
     const symIdx = sym.row * size + sym.col;
     puzzle.cells[idx].isBlack = !puzzle.cells[symIdx].isBlack;
-    const errors = validatePuzzle(puzzle, { checkSymmetry: true, allow2: true });
+    const errors = validatePuzzle(puzzle, { checkSymmetry: true });
     expect(errors.some((e) => e.includes('not symmetric'))).toBe(true);
   });
 
-  test('uses fallback when word list is insufficient', () => {
-    const shortList: WordEntry[] = [{ answer: 'OK', clue: 'ok' }];
-    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-    let puzzle;
+  test('fails when word list is insufficient', () => {
+    const shortList: WordEntry[] = [{ answer: 'DOG', clue: 'dog' }];
     expect(() => {
-      puzzle = generateDaily('seed', shortList, [], { allow2: true });
-    }).not.toThrow();
-    expect(logSpy).toHaveBeenCalledWith(
-      expect.stringContaining('"message":"fallback_word_used"'),
-    );
-    const errors = validatePuzzle(puzzle, { allow2: true });
-    expect(errors.length).toBeGreaterThanOrEqual(0);
-    logSpy.mockRestore();
+      generateDaily('seed', shortList, [], { maxFallbackRate: 1 });
+    }).toThrow();
   });
 });

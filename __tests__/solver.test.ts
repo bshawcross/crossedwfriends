@@ -36,20 +36,21 @@ describe("solver logging", () => {
 
   it("logs backtrack attempts with reasons", () => {
     const board = [
-      ["", ""],
-      ["", ""],
+      ["", "", ""],
+      ["", "", ""],
+      ["", "", ""],
     ];
     const slots: SolverSlot[] = [
-      { row: 0, col: 0, length: 2, direction: "across", id: "across_0_0" },
-      { row: 0, col: 0, length: 2, direction: "down", id: "down_0_0" },
+      { row: 0, col: 0, length: 3, direction: "across", id: "across_0_0" },
+      { row: 0, col: 0, length: 3, direction: "down", id: "down_0_0" },
     ];
-    const dict: WordEntry[] = [{ answer: "AA", clue: "aa" }];
-      const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+    const dict: WordEntry[] = [{ answer: "AAA", clue: "aaa" }];
+    const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
     const res = solve({
       board,
       slots,
       dict,
-      opts: { allow2: true, maxFillAttempts: 1 },
+      opts: { maxFillAttempts: 1, maxFallbackRate: 1 },
     });
     expect(res.ok).toBe(false);
     const call = logSpy.mock.calls.find((c) =>

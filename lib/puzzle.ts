@@ -41,7 +41,6 @@ export function generateDaily(
   wordList: WordEntry[] = [],
   heroTerms: string[] = [],
   opts: {
-    allow2?: boolean;
     heroThreshold?: number;
     maxFillAttempts?: number;
     maxMasks?: number;
@@ -50,7 +49,7 @@ export function generateDaily(
   mask?: boolean[][],
 ): Puzzle {
   const size = mask ? mask.length : 15;
-  const minLen = opts.allow2 ? 2 : 3;
+  const minLen = 3;
   const maxMasks = opts.maxMasks ?? 3;
   const rng = seedrandom(seed);
   const shuffle = <T>(arr: T[]): T[] => {
@@ -72,7 +71,7 @@ export function generateDaily(
         let slotDetail = validatePuzzle.validateMinSlotLength(boolGrid, 3);
         if (!symValid || slotDetail) {
           try {
-            boolGrid = repairMask(boolGrid, minLen, 50, opts.allow2);
+            boolGrid = repairMask(boolGrid, minLen, 50);
           } catch {
             // ignore repair failures and validate below
           }
@@ -235,7 +234,6 @@ export function generateDaily(
         dict: remaining,
         rng,
         opts: {
-          allow2: opts.allow2,
           heroThreshold: opts.heroThreshold,
           maxFillAttempts: opts.maxFillAttempts,
           maxFallbackRate: opts.maxFallbackRate,
