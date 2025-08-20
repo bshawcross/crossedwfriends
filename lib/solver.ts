@@ -207,6 +207,7 @@ export function solve(params: SolveParams): SolveResult {
 
     const slot = slotOrder.find((s) => !assignments.has(s.id))!;
     const letters = getLetters(slot);
+    const pattern = letters.join("");
     let candidates = candidatesFor(letters, slot.length);
     if (candidates.length === 0) {
       const fb = getFallback(slot.length, letters, { rng });
@@ -229,8 +230,17 @@ export function solve(params: SolveParams): SolveResult {
         const idx = removeFrom.indexOf(cand);
         removeFrom.splice(idx, 1);
       }
+      const beforeCount = candidates.length;
       if (isFallback) {
-        logInfo("fallback_word_used", { slot: slot.id, answer: cand.answer });
+        logInfo("fallback_word_used", {
+          slotId: slot.id,
+          row: slot.row,
+          col: slot.col,
+          direction: slot.direction,
+          pattern,
+          word: cand.answer,
+          candidatesBefore: beforeCount,
+        });
         fallbackCount++;
         const rate = fallbackCount / totalSlots;
         if (rate > MAX_FALLBACK_RATE) {
@@ -238,6 +248,19 @@ export function solve(params: SolveParams): SolveResult {
           assignments.delete(slot.id);
           unplace(changed);
           fallbackCount--;
+          const afterCount = beforeCount;
+          logInfo("backtrack", {
+            slotId: slot.id,
+            row: slot.row,
+            col: slot.col,
+            direction: slot.direction,
+            pattern,
+            word: cand.answer,
+            candidatesBefore: beforeCount,
+            candidatesAfter: afterCount,
+            reason: "fallback_rate_exceeded",
+            attempts,
+          });
           failureReason = "fallback_rate_exceeded";
           return false;
         }
@@ -254,18 +277,32 @@ export function solve(params: SolveParams): SolveResult {
         }
       }
       if (!dead && backtrack()) return true;
-      if (failureReason === "fallback_rate_exceeded") {
-        assignments.delete(slot.id);
-        unplace(changed);
-        if (removeFrom) removeFrom.push(cand);
-        if (isFallback) fallbackCount--;
-        return false;
-      }
       assignments.delete(slot.id);
       unplace(changed);
       if (removeFrom) removeFrom.push(cand);
       if (isFallback) fallbackCount--;
-      logInfo("backtrack", { slot: slot.id, attempts });
+      const afterCount = beforeCount;
+      const reason =
+        failureReason === "fallback_rate_exceeded" || failureReason === "max_fill_attempts"
+          ? failureReason
+          : dead
+          ? "dead_end"
+          : "backtrack";
+      logInfo("backtrack", {
+        slotId: slot.id,
+        row: slot.row,
+        col: slot.col,
+        direction: slot.direction,
+        pattern,
+        word: cand.answer,
+        candidatesBefore: beforeCount,
+        candidatesAfter: afterCount,
+        reason,
+        attempts,
+      });
+      if (failureReason === "fallback_rate_exceeded") {
+        return false;
+      }
       if (heroes.includes(cand)) {
         const count = (heroAttempts.get(cand.answer) || 0) + 1;
         heroAttempts.set(cand.answer, count);
