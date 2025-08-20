@@ -176,17 +176,26 @@ export function solve(params: SolveParams): SolveResult {
   const candidateCount = (slot: SolverSlot): number =>
     candidatesFor(getLetters(slot), slot.length, false).length;
 
-  const orderSlots = (remaining: SolverSlot[]): SolverSlot[] =>
-    [...remaining].sort((a, b) => {
-      const ca = candidateCount(a);
-      const cb = candidateCount(b);
-      if (ca !== cb) return ca - cb;
-      const ia = intersectionCount.get(a.id) || 0;
-      const ib = intersectionCount.get(b.id) || 0;
-      if (ia !== ib) return ib - ia;
-      if (a.length !== b.length) return b.length - a.length;
-      return 0;
-    });
+  const orderSlots = (all: SolverSlot[]): SolverSlot[] => {
+    const long = all
+      .filter((s) => s.length >= 13)
+      .sort((a, b) => b.length - a.length);
+    const rest = all
+      .filter((s) => s.length < 13)
+      .sort((a, b) => {
+        const ca = candidateCount(a);
+        const cb = candidateCount(b);
+        if (ca !== cb) return ca - cb;
+        const ia = intersectionCount.get(a.id) || 0;
+        const ib = intersectionCount.get(b.id) || 0;
+        if (ia !== ib) return ib - ia;
+        if (a.length !== b.length) return b.length - a.length;
+        return 0;
+      });
+    return [...long, ...rest];
+  };
+
+  const slotOrder = orderSlots(slots);
 
   const backtrack = (): boolean => {
     if (assignments.size === slots.length) return true;
@@ -196,9 +205,7 @@ export function solve(params: SolveParams): SolveResult {
       return false;
     }
 
-    const remaining = slots.filter((s) => !assignments.has(s.id));
-    const ordered = orderSlots(remaining);
-    const slot = ordered[0];
+    const slot = slotOrder.find((s) => !assignments.has(s.id))!;
     const letters = getLetters(slot);
     let candidates = candidatesFor(letters, slot.length);
     if (candidates.length === 0) {
