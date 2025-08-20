@@ -81,6 +81,34 @@ describe("solver logging", () => {
     expect(parsed).toMatchObject({ message: "fallback_rate_exceeded" });
     warnSpy.mockRestore();
   });
+
+  it("logs fallback usage with slot and answer", () => {
+    const board = [["", "", ""]];
+    const slots: SolverSlot[] = [
+      { row: 0, col: 0, length: 3, direction: "across", id: "across_0_0" },
+    ];
+    const dict: WordEntry[] = [];
+    const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+    const res = solve({
+      board,
+      slots,
+      dict,
+      rng: () => 0,
+      opts: { maxFallbackRate: 1 },
+    });
+    expect(res.ok).toBe(true);
+    const call = logSpy.mock.calls.find((c) =>
+      c[0].includes("\"message\":\"fallback_word_used\"")
+    );
+    expect(call).toBeTruthy();
+    const parsed = JSON.parse(call![0]);
+    expect(parsed).toMatchObject({
+      message: "fallback_word_used",
+      slot: "across_0_0",
+      answer: "CAT",
+    });
+    logSpy.mockRestore();
+  });
 });
 
 describe("solver puzzle", () => {
