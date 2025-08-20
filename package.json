@@ -26,6 +26,7 @@
     "test": "vitest run",
     "lint": "eslint .",
     "gen:daily": "tsx scripts/genDaily.ts",
+    "tsx": "tsx",
     "db:migrate": "prisma migrate deploy",
     "db:seed": "prisma db seed"
   },
