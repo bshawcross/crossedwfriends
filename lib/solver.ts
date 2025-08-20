@@ -1,5 +1,4 @@
 import { isValidFill } from "@/utils/validateWord";
-import { getFallback } from "@/utils/getFallback";
 import { logInfo, logWarn } from "@/utils/logger";
 import type { WordEntry } from "./puzzle";
 import type { Slot } from "./slotFinder";
@@ -16,7 +15,6 @@ export interface SolveParams {
   opts?: {
     heroThreshold?: number;
     maxFillAttempts?: number;
-    maxFallbackRate?: number;
   };
 }
 
@@ -48,9 +46,6 @@ export function solve(params: SolveParams): SolveResult {
   shuffle(dict);
   const heroThreshold = params.opts?.heroThreshold ?? 10;
   const maxFillAttempts = params.opts?.maxFillAttempts ?? 100000;
-  const MAX_FALLBACK_RATE = params.opts?.maxFallbackRate ?? 0.1;
-  const totalSlots = slots.length;
-  let fallbackCount = 0;
   const minLen = 3;
 
   for (const s of slots) {
@@ -82,11 +77,8 @@ export function solve(params: SolveParams): SolveResult {
     }
   }
   const intersectionCount = new Map<string, number>();
-  const slotIntersections = new Map<string, Set<string>>();
-  const slotById = new Map(slots.map((s) => [s.id, s]));
   for (const s of slots) {
     let count = 0;
-    const set = new Set<string>();
     for (let i = 0; i < s.length; i++) {
       const r = s.direction === "across" ? s.row : s.row + i;
       const c = s.direction === "across" ? s.col + i : s.col;
@@ -94,17 +86,15 @@ export function solve(params: SolveParams): SolveResult {
       const others = cellSlots.get(key) || [];
       if (others.length > 1) {
         count++;
-        for (const o of others) if (o.id !== s.id) set.add(o.id);
       }
     }
     intersectionCount.set(s.id, count);
-    slotIntersections.set(s.id, set);
   }
 
   const assignments = new Map<string, WordEntry>();
   const heroAttempts = new Map<string, number>();
   let attempts = 0;
-  let failureReason = "max_fill_attempts";
+  let failureReason = "dead_end";
 
   const canPlace = (slot: SolverSlot, word: string): boolean => {
     for (let i = 0; i < slot.length; i++) {
@@ -178,25 +168,53 @@ export function solve(params: SolveParams): SolveResult {
     candidatesFor(getLetters(slot), slot.length, false).length;
 
   const orderSlots = (all: SolverSlot[]): SolverSlot[] => {
-    const long = all
-      .filter((s) => s.length >= 13)
-      .sort((a, b) => b.length - a.length);
-    const rest = all
-      .filter((s) => s.length < 13)
-      .sort((a, b) => {
+    const sortHeuristics = (arr: SolverSlot[]) =>
+      arr.sort((a, b) => {
         const ca = candidateCount(a);
         const cb = candidateCount(b);
         if (ca !== cb) return ca - cb;
         const ia = intersectionCount.get(a.id) || 0;
         const ib = intersectionCount.get(b.id) || 0;
-        if (ia !== ib) return ib - ia;
-        if (a.length !== b.length) return b.length - a.length;
-        return 0;
+        return ib - ia;
       });
-    return [...long, ...rest];
+    const isAnchored = (s: SolverSlot) => getLetters(s).some(Boolean);
+    const anchored = sortHeuristics(all.filter(isAnchored));
+    const rest = sortHeuristics(all.filter((s) => !isAnchored(s)));
+    return [...anchored, ...rest];
   };
 
   const slotOrder = orderSlots(slots);
+
+  const rankLCV = (slot: SolverSlot, cands: WordEntry[]): WordEntry[] => {
+    const scored = cands.map((cand) => {
+      let score = 0;
+      for (let i = 0; i < slot.length; i++) {
+        const r = slot.direction === "across" ? slot.row : slot.row + i;
+        const c = slot.direction === "across" ? slot.col + i : slot.col;
+        const key = `${r}_${c}`;
+        const others = cellSlots.get(key) || [];
+        for (const o of others) {
+          if (o.id === slot.id || assignments.has(o.id)) continue;
+          const idx = o.direction === "across" ? c - o.col : r - o.row;
+          const pattern = getLetters(o);
+          pattern[idx] = cand.answer[i];
+          const freq = candidatesFor(pattern, o.length, false).length;
+          score += freq;
+        }
+      }
+      return { cand, score };
+    });
+    scored.sort((a, b) => b.score - a.score);
+    return scored.map((s) => s.cand);
+  };
+
+  const anySlotZeroCandidates = (): boolean => {
+    for (const s of slotOrder) {
+      if (assignments.has(s.id)) continue;
+      if (candidatesFor(getLetters(s), s.length, false).length === 0) return true;
+    }
+    return false;
+  };
 
   const backtrack = (): boolean => {
     if (assignments.size === slots.length) return true;
@@ -209,13 +227,9 @@ export function solve(params: SolveParams): SolveResult {
     const slot = slotOrder.find((s) => !assignments.has(s.id))!;
     const letters = getLetters(slot);
     const pattern = letters.join("");
-    let candidates = candidatesFor(letters, slot.length);
-    if (candidates.length === 0) {
-      const fb = getFallback(slot.length, letters, { rng });
-      if (fb && isValidFill(fb, minLen)) {
-        candidates = [{ answer: fb, clue: fb }];
-      }
-    }
+    let candidates = rankLCV(slot, candidatesFor(letters, slot.length));
+    if (candidates.length === 0) return false;
+
     for (const cand of candidates) {
       attempts++;
       if (!canPlace(slot, cand.answer)) continue;
@@ -226,69 +240,16 @@ export function solve(params: SolveParams): SolveResult {
         : dict.includes(cand)
         ? dict
         : null;
-      const isFallback = !removeFrom;
       if (removeFrom) {
         const idx = removeFrom.indexOf(cand);
         removeFrom.splice(idx, 1);
       }
-      const beforeCount = candidates.length;
-      if (isFallback) {
-        logInfo("fallback_word_used", {
-          slotId: slot.id,
-          row: slot.row,
-          col: slot.col,
-          direction: slot.direction,
-          pattern,
-          word: cand.answer,
-          candidatesBefore: beforeCount,
-        });
-        fallbackCount++;
-        const rate = fallbackCount / totalSlots;
-        if (rate > MAX_FALLBACK_RATE) {
-          logWarn("fallback_rate_exceeded", { rate });
-          assignments.delete(slot.id);
-          unplace(changed);
-          fallbackCount--;
-          const afterCount = beforeCount;
-          logInfo("backtrack", {
-            slotId: slot.id,
-            row: slot.row,
-            col: slot.col,
-            direction: slot.direction,
-            pattern,
-            word: cand.answer,
-            candidatesBefore: beforeCount,
-            candidatesAfter: afterCount,
-            reason: "fallback_rate_exceeded",
-            attempts,
-          });
-          failureReason = "fallback_rate_exceeded";
-          return false;
-        }
-      }
-      let dead = false;
-      const neighbors = slotIntersections.get(slot.id) || new Set();
-      for (const nid of neighbors) {
-        if (assignments.has(nid)) continue;
-        const ns = slotById.get(nid)!;
-        const count = candidatesFor(getLetters(ns), ns.length).length;
-        if (count === 0) {
-          dead = true;
-          break;
-        }
-      }
+      const dead = anySlotZeroCandidates();
       if (!dead && backtrack()) return true;
       assignments.delete(slot.id);
       unplace(changed);
       if (removeFrom) removeFrom.push(cand);
-      if (isFallback) fallbackCount--;
-      const afterCount = beforeCount;
-      const reason =
-        failureReason === "fallback_rate_exceeded" || failureReason === "max_fill_attempts"
-          ? failureReason
-          : dead
-          ? "dead_end"
-          : "backtrack";
+      const reason = dead ? "dead_end" : "backtrack";
       logInfo("backtrack", {
         slotId: slot.id,
         row: slot.row,
@@ -296,14 +257,9 @@ export function solve(params: SolveParams): SolveResult {
         direction: slot.direction,
         pattern,
         word: cand.answer,
-        candidatesBefore: beforeCount,
-        candidatesAfter: afterCount,
         reason,
         attempts,
       });
-      if (failureReason === "fallback_rate_exceeded") {
-        return false;
-      }
       if (heroes.includes(cand)) {
         const count = (heroAttempts.get(cand.answer) || 0) + 1;
         heroAttempts.set(cand.answer, count);
@@ -312,11 +268,11 @@ export function solve(params: SolveParams): SolveResult {
           if (idx !== -1) {
             heroes.splice(idx, 1);
             dict.push(cand);
-              logWarn("hero_demoted", {
-                word: cand.answer,
-                reason: "no_fit_after_threshold",
-              });
-              continue;
+            logWarn("hero_demoted", {
+              word: cand.answer,
+              reason: "no_fit_after_threshold",
+            });
+            continue;
           }
         }
       }

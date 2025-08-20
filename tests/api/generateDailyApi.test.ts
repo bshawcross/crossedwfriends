@@ -33,17 +33,6 @@ describe('generateDaily and API integration', () => {
     vi.doMock('../../lib/validatePuzzle', () => ({ validatePuzzle: () => [] }));
     vi.doMock('../../src/validate/puzzle', () => ({ validateSymmetry: () => true, validateMinSlotLength: () => null }));
     vi.doMock('../../lib/coverage', () => ({ validateCoverage: () => ({ missing: [] }) }));
-    const gf = {
-      getFallback: (len: number, letters: string[]) => {
-        let word = '';
-        for (let i = 0; i < len; i++) {
-          word += letters[i] || 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[i % 26];
-        }
-        return word;
-      },
-    };
-    vi.doMock('../../utils/getFallback', () => gf);
-    vi.doMock('../../src/utils/getFallback', () => gf);
     const makePuzzle = (seed: string) => ({
       id: seed,
       title: 'Daily Placeholder',
@@ -63,9 +52,7 @@ describe('generateDaily and API integration', () => {
     vi.doMock('../../lib/puzzle', () => ({ generateDaily: makePuzzle }));
 
     vi.setSystemTime(new Date('2024-01-01T23:59:00-08:00'));
-    process.argv.push('--maxFallbackRate=1');
     await import('../../scripts/genDaily');
-    process.argv.pop();
     vi.useRealTimers();
     await new Promise(r => setTimeout(r, 0));
 
@@ -84,13 +71,9 @@ describe('generateDaily and API integration', () => {
     vi.doMock('../../lib/validatePuzzle', () => ({ validatePuzzle: () => [] }));
     vi.doMock('../../src/validate/puzzle', () => ({ validateSymmetry: () => true, validateMinSlotLength: () => null }));
     vi.doMock('../../lib/coverage', () => ({ validateCoverage: () => ({ missing: [] }) }));
-    vi.doMock('../../utils/getFallback', () => gf);
-    vi.doMock('../../src/utils/getFallback', () => gf);
     vi.doMock('../../lib/puzzle', () => ({ generateDaily: makePuzzle }));
     vi.setSystemTime(new Date('2024-01-02T00:01:00-08:00'));
-    process.argv.push('--maxFallbackRate=1');
     await import('../../scripts/genDaily');
-    process.argv.pop();
     vi.useRealTimers();
     await new Promise(r => setTimeout(r, 0));
 
