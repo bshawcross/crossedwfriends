@@ -1,6 +1,6 @@
 import { promises as fs } from 'fs';
 import path from 'path';
-import { generateDaily, WordEntry } from '../lib/puzzle';
+import { generateDaily, WordEntry, type Cell } from '../lib/puzzle';
 import { validatePuzzle } from '../lib/validatePuzzle';
 import { findSlots } from '../lib/slotFinder';
 import { getSeasonalWords, getFunFactWords, getCurrentEventWords } from '../lib/topics';
@@ -9,6 +9,9 @@ import { logInfo, logError } from '../utils/logger';
 import { validateSymmetry, validateMinSlotLength } from '../src/validate/puzzle';
 import { buildMask } from '../grid/mask';
 import { isValidFill } from '../utils/validateWord';
+import { getSlotLengths } from '../lib/gridSlots';
+import { buildWordBank } from '../lib/wordBank';
+import { validateCoverage } from '../lib/coverage';
 
 const defaultHeroTerms = ['CAPTAINMARVEL', 'BLACKWIDOW', 'SPIDERMAN', 'IRONMAN', 'THOR'];
 
@@ -79,6 +82,27 @@ async function main() {
     logError('puzzle_invalid', { error: (err as Error).message });
     process.exit(1);
   }
+
+  const allWords = wordList.map((w) => w.answer);
+  const wordBank = buildWordBank(allWords);
+  const cellGrid: Cell[][] = grid.map((row, r) =>
+    row.map((isBlack, c) => ({
+      row: r,
+      col: c,
+      isBlack,
+      answer: '',
+      clueNumber: null,
+      userInput: '',
+      isSelected: false,
+    })),
+  );
+  const slotLengths = getSlotLengths(cellGrid).all;
+  const { missing } = validateCoverage(slotLengths, wordBank);
+  if (missing.length > 0) {
+    console.error(JSON.stringify({ level: 'error', message: 'missing_length_detail', missing }));
+    process.exit(1);
+  }
+
   const puzzle = generateDaily(
     seed,
     wordList,
