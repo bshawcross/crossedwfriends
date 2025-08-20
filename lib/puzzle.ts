@@ -290,6 +290,12 @@ export function generateDaily(
           },
         });
         if (result.ok) break;
+        logInfo('restart_summary', {
+          maskAttempt: attempt + 1,
+          restart: restart + 1,
+          reason: result.reason,
+          fillAttempts: result.attempts,
+        });
         if (dict.length > 0) blacklist.add(dict[0].answer);
       }
 
@@ -301,6 +307,7 @@ export function generateDaily(
             (w.answer.length === 13 || w.answer.length === 15 || w.answer.length === 3) &&
             !blacklist.has(w.answer),
         );
+        let relaxedRestart = 0;
         while (!result || !result.ok) {
           const board = baseBoard.map((row) => [...row]);
           result = solve({
@@ -316,9 +323,16 @@ export function generateDaily(
             },
           });
           if (!result.ok) {
+            logInfo('restart_summary', {
+              maskAttempt: attempt + 1,
+              restart: `relaxed-${relaxedRestart + 1}`,
+              reason: result.reason,
+              fillAttempts: result.attempts,
+            });
             const dict = remaining.filter((w) => !blacklist.has(w.answer));
             if (dict.length === 0) break;
             blacklist.add(dict[0].answer);
+            relaxedRestart++;
           }
         }
       }

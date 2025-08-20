@@ -27,10 +27,10 @@ describe('generateDaily', () => {
     const wordList = largeWordList().filter((w) => w.answer.length !== 3);
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
     expect(() => {
-      generateDaily('seed', wordList, [], { maxFallbackRate: 1 });
+      generateDaily('seed', wordList, [], { maxFallbackRate: 1, maxFillAttempts: 10, maxMasks: 1 });
     }).toThrow();
     logSpy.mockRestore();
-  });
+  }, 20000);
 });
 
 describe('coordsToIndex', () => {

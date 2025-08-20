@@ -104,8 +104,8 @@ describe("solver logging", () => {
     const parsed = JSON.parse(call![0]);
     expect(parsed).toMatchObject({
       message: "fallback_word_used",
-      slot: "across_0_0",
-      answer: "CAT",
+      slotId: "across_0_0",
+      word: "CAT",
     });
     logSpy.mockRestore();
   });
