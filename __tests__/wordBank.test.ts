@@ -3,13 +3,27 @@ import { buildWordBank } from '../lib/wordBank';
 
 describe('buildWordBank', () => {
   it('normalizes, filters, dedupes and sorts words', () => {
-    const words = ['apple', 'Banana', 'APPLE', 'pear', 'abc', 'z', 'AB', 'pine-apple'];
+    const words = [
+      'apple',
+      'Banana',
+      'APPLE',
+      'pear',
+      'abc',
+      'z',
+      'AB',
+      'pine-apple',
+      ' kiwi ',
+      'grape',
+      'grape1',
+      'straw berry',
+    ];
     const bank = buildWordBank(words);
     expect(bank).toEqual({
       3: ['ABC'],
-      4: ['PEAR'],
-      5: ['APPLE'],
+      4: ['KIWI', 'PEAR'],
+      5: ['APPLE', 'GRAPE'],
       6: ['BANANA'],
     });
+    expect(bank[2]).toBeUndefined();
   });
 });
