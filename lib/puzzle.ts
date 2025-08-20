@@ -5,6 +5,7 @@ import { buildMask } from '@/grid/mask';
 import * as validatePuzzle from '../src/validate/puzzle';
 import { assertCoverage } from '../src/validate/coverage';
 import fallbackWords from '../src/data/fallbackWords';
+import { getFallback } from '../src/utils/getFallback';
 import { repairMask } from './repairMask';
 import { solve, SolverSlot } from './solver';
 import { logInfo, logError } from '@/utils/logger';
@@ -36,6 +37,31 @@ export type WordEntry = { answer: string; clue: string }
 // lib/puzzle.ts
 export function coordsToIndex(row: number, col: number, size = 15) {
   return row * size + col;
+}
+
+function verifyFallbackPools(
+  requiredLens: number[],
+  heroesByLen: Record<number, number>,
+  dictByLen: Record<number, number>,
+): void {
+  const needed: Record<number, number> = {};
+  for (const len of requiredLens) {
+    needed[len] = (needed[len] || 0) + 1;
+  }
+  const missing: number[] = [];
+  for (const [lenStr, count] of Object.entries(needed)) {
+    const len = Number(lenStr);
+    const available = (heroesByLen[len] || 0) + (dictByLen[len] || 0);
+    if (available >= count) continue;
+    if (!getFallback(len)) missing.push(len);
+  }
+  if (missing.length > 0) {
+    throw {
+      message: 'puzzle_invalid',
+      error: 'fallback_pool_missing',
+      detail: { lengths: missing },
+    };
+  }
 }
 
 export function generateDaily(
@@ -173,6 +199,7 @@ export function generateDaily(
         const len = w.answer.length;
         dictByLen[len] = (dictByLen[len] || 0) + 1;
       });
+      verifyFallbackPools(requiredLens, heroesByLen, dictByLen);
       const fallbackByLen: Record<number, number> = {};
       Object.entries(fallbackWords).forEach(([lenStr, words]) => {
         fallbackByLen[Number(lenStr)] = (words as string[]).length;
