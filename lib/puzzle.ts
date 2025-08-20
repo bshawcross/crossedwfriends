@@ -10,6 +10,8 @@ import { solve, SolverSlot } from './solver';
 import { logInfo, logError } from '@/utils/logger';
 import seedrandom from 'seedrandom';
 
+const MAX_RESTARTS = 5;
+
 export type Cell = {
   row: number;
   col: number;
@@ -208,7 +210,7 @@ export function generateDaily(
         allSlots.push(slot);
       });
 
-      const board: string[][] = Array.from({ length: size }, (_, r) =>
+      const baseBoard: string[][] = Array.from({ length: size }, (_, r) =>
         Array.from({ length: size }, (_, c) => {
           const cell = getCell(cells, size, r, c);
           return cell.isBlack ? '#' : cell.answer;
@@ -227,23 +229,78 @@ export function generateDaily(
         .filter((t) => !heroPlacements.some((p) => p.term === t.toUpperCase()))
         .map((t) => ({ answer: t.toUpperCase(), clue: t }));
 
-      const result = solve({
-        board,
-        slots: solverSlots,
-        heroes: heroEntries,
-        dict: remaining,
-        rng,
-        opts: {
-          heroThreshold: opts.heroThreshold,
-          maxFillAttempts: opts.maxFillAttempts,
-          maxFallbackRate: opts.maxFallbackRate,
-        },
-      });
-      if (!result.ok) {
-        logInfo('retry', { attempt: attempt + 1, reason: result.reason, attempts: result.attempts });
+      const blacklist = new Set<string>();
+      let result = null as ReturnType<typeof solve> | null;
+
+      for (let restart = 0; restart < MAX_RESTARTS; restart++) {
+        const localSeed = `${seed}-${attempt}-${restart}`;
+        const localRng = seedrandom(localSeed);
+        const shuffleLocal = <T>(arr: T[]): T[] => {
+          for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(localRng() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+          }
+          return arr;
+        };
+        const board = baseBoard.map((row) => [...row]);
+        const dict = shuffleLocal(
+          remaining.filter((w) => !blacklist.has(w.answer)),
+        );
+        const heroes = shuffleLocal(
+          heroEntries.filter((w) => !blacklist.has(w.answer)),
+        );
+        const slots = shuffleLocal([...solverSlots]);
+        result = solve({
+          board,
+          slots,
+          heroes,
+          dict,
+          rng: localRng,
+          opts: {
+            heroThreshold: opts.heroThreshold,
+            maxFillAttempts: opts.maxFillAttempts,
+            maxFallbackRate: opts.maxFallbackRate,
+          },
+        });
+        if (result.ok) break;
+        if (dict.length > 0) blacklist.add(dict[0].answer);
+      }
+
+      if (!result || !result.ok) {
+        const localSeed = `${seed}-${attempt}-relaxed`;
+        const localRng = seedrandom(localSeed);
+        const curatedAnchors = remaining.filter(
+          (w) =>
+            (w.answer.length === 13 || w.answer.length === 15 || w.answer.length === 3) &&
+            !blacklist.has(w.answer),
+        );
+        while (!result || !result.ok) {
+          const board = baseBoard.map((row) => [...row]);
+          result = solve({
+            board,
+            slots: solverSlots,
+            heroes: curatedAnchors,
+            dict: remaining.filter((w) => !blacklist.has(w.answer)),
+            rng: localRng,
+            opts: {
+              heroThreshold: opts.heroThreshold,
+              maxFillAttempts: opts.maxFillAttempts,
+              maxFallbackRate: 1,
+            },
+          });
+          if (!result.ok) {
+            const dict = remaining.filter((w) => !blacklist.has(w.answer));
+            if (dict.length === 0) break;
+            blacklist.add(dict[0].answer);
+          }
+        }
+      }
+
+      if (!result || !result.ok) {
+        logInfo('retry', { attempt: attempt + 1, reason: result?.reason, attempts: result?.attempts });
         if (attempt === maxMasks - 1) {
-          logError('abort', { attempts: attempt + 1, reason: result.reason, fillAttempts: result.attempts });
-          throw { message: 'puzzle_invalid', error: result.reason, detail: undefined };
+          logError('abort', { attempts: attempt + 1, reason: result?.reason, fillAttempts: result?.attempts });
+          throw { message: 'puzzle_invalid', error: result?.reason, detail: undefined };
         }
         continue;
       }
@@ -294,6 +351,10 @@ export function generateDaily(
           });
           num++;
         }
+      }
+
+      if (!validatePuzzle.validateComplete(cells)) {
+        throw { message: 'puzzle_invalid', error: 'fill_incomplete', detail: undefined };
       }
 
       return {
