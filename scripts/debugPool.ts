@@ -1,7 +1,6 @@
 import { promises as fs } from 'fs';
 import path from 'path';
-import { buildCandidatePool } from '../lib/candidatePool';
-import fallbackWords from '../src/data/fallbackWords';
+import { buildCandidatePool, candidatePoolByLength } from '../lib/candidatePool';
 
 async function main() {
   // Load primary word lists if present
@@ -17,11 +16,10 @@ async function main() {
   // Build pool from primary sources
   const pool = buildCandidatePool([allowlist]);
 
-  // Ensure fallback words are merged
-  for (const w of fallbackWords) {
-    const len = w.length;
+  // Merge bank words
+  for (const [len, words] of candidatePoolByLength.entries()) {
     const existing = pool.get(len) || [];
-    const merged = new Set([...existing, w.toUpperCase()]);
+    const merged = new Set([...existing, ...words]);
     pool.set(len, Array.from(merged));
   }
 
