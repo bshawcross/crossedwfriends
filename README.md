@@ -107,13 +107,21 @@ pnpm gen:daily [hero terms...]
   ```
 
 - Lint the codebase with:
-  
+
   ```bash
   pnpm lint
   ```
 
 - WebAuthn authentication only accepts platform biometrics (e.g., Face ID).
   External security keys are not supported.
+
+## Local verification
+
+Inspect candidate pool sizes:
+
+```bash
+npm run tsx scripts/debugPool.ts
+```
 
 ## Dev gotcha
 
