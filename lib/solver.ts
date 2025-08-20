@@ -3,6 +3,7 @@ import { getFallback } from "@/utils/getFallback";
 import { logInfo, logWarn } from "@/utils/logger";
 import type { WordEntry } from "./puzzle";
 import type { Slot } from "./slotFinder";
+import seedrandom from "seedrandom";
 
 export type SolverSlot = Slot & { direction: "across" | "down"; id: string };
 
@@ -333,5 +334,69 @@ export function solve(params: SolveParams): SolveResult {
     return { ok: true, assignments };
   }
   return { ok: false, reason: failureReason, attempts };
+}
+
+export interface SolveWithBacktrackingParams extends SolveParams {
+  seed?: string;
+  maxRestarts?: number;
+}
+
+export interface SolveWithBacktrackingLog {
+  restart: number;
+  reason: string;
+  attempts: number;
+  blacklisted?: string;
+}
+
+export interface SolveWithBacktrackingResult {
+  ok: boolean;
+  puzzle?: Map<string, WordEntry>;
+  logs: SolveWithBacktrackingLog[];
+}
+
+export function solveWithBacktracking(
+  params: SolveWithBacktrackingParams,
+): SolveWithBacktrackingResult {
+  const {
+    seed,
+    maxRestarts = 3,
+    board,
+    slots,
+    heroes = [],
+    dict,
+    opts,
+  } = params;
+  const logs: SolveWithBacktrackingLog[] = [];
+  const blacklist = new Set<string>();
+
+  for (let restart = 0; restart < maxRestarts; restart++) {
+    const seedSuffix = seed ? `${seed}-${restart}` : undefined;
+    const rng = seedSuffix ? seedrandom(seedSuffix) : Math.random;
+    const filteredDict = dict.filter((w) => !blacklist.has(w.answer));
+    const filteredHeroes = heroes.filter((w) => !blacklist.has(w.answer));
+
+    const result = solve({
+      board: board.map((row) => [...row]),
+      slots: [...slots],
+      heroes: filteredHeroes,
+      dict: filteredDict,
+      rng,
+      opts,
+    });
+    if (result.ok) {
+      return { ok: true, puzzle: result.assignments, logs };
+    }
+
+    const bad = filteredDict[0]?.answer;
+    if (bad) blacklist.add(bad);
+    logs.push({
+      restart: restart + 1,
+      reason: result.reason,
+      attempts: result.attempts,
+      blacklisted: bad,
+    });
+  }
+
+  return { ok: false, logs };
 }
 

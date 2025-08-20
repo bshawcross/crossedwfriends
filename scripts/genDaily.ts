@@ -13,6 +13,7 @@ import { getSlotLengths } from '../lib/gridSlots';
 import { buildWordBank } from '../lib/wordBank';
 import { validateCoverage } from '../lib/coverage';
 import fallbackWords from '../src/data/fallbackWords';
+import { solveWithBacktracking } from '../lib/solver';
 
 const defaultHeroTerms = ['CAPTAINMARVEL', 'BLACKWIDOW', 'SPIDERMAN', 'IRONMAN', 'THOR'];
 
@@ -155,6 +156,13 @@ async function main() {
     if (long13.length > 0) anchors.push(long13[attempt % long13.length]);
     if (long15.length > 0) anchors.push(long15[attempt % long15.length]);
     try {
+      // diversification step using backtracking solver
+      solveWithBacktracking({
+        board: [],
+        slots: [],
+        dict: [],
+        seed: `${seed}-${attempt}`,
+      });
       puzzle = generateDaily(
         seed,
         wordList,
