@@ -19,6 +19,7 @@ vi.mock("fs", () => ({
   default: { promises: fsPromises }
 }));
 
+// eslint-disable-next-line no-unused-vars
 function mockFetch(impl: (url: string) => any) {
   const fn = vi.fn((url: any) => impl(url as string));
   (global as any).fetch = fn;

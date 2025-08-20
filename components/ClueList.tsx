@@ -2,7 +2,11 @@
 import type { Clue } from '@/lib/puzzle'
 export default function ClueList({
   title, clues, activeNumber, onSelect
-}:{title:string; clues:Clue[]; activeNumber:number|null; onSelect?:(n:number)=>void}){
+}:{
+  title:string; clues:Clue[]; activeNumber:number|null;
+  // eslint-disable-next-line no-unused-vars
+  onSelect?:(n:number)=>void
+}){
   return (
     <section className="px-4">
       <h2 className="mt-2 mb-1 text-base font-semibold">{title}</h2>

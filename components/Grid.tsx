@@ -19,7 +19,9 @@ export default function Grid({
   cells, setCells, onActiveChange, jump, kbOpen
 }: {
   cells: Cell[]
+  // eslint-disable-next-line no-unused-vars
   setCells: (cells: Cell[]) => void
+  // eslint-disable-next-line no-unused-vars
   onActiveChange?: (info:{number:number|null, dir:'across'|'down'}) => void
   jump?: { number:number, dir:'across'|'down', nonce:number }
   kbOpen?: boolean
@@ -32,7 +34,7 @@ export default function Grid({
   useEffect(() => {
     const first = cells.findIndex(c => !c.isBlack)
     if (first >= 0) setCursor({ row: Math.floor(first / SIZE), col: first % SIZE })
-  }, [])
+  }, [cells])
 
   useEffect(() => {
     const idx = coordsToIndex(cursor.row, cursor.col, SIZE)
@@ -44,7 +46,7 @@ export default function Grid({
         el.scrollIntoView({ block: 'center', inline: 'center', behavior: 'smooth' })
       }, 0)
     }
-  }, [cursor])
+  }, [cursor, cells])
 
 
   const activeWord = useMemo(() => getWordCells(cells, cursor, dir, SIZE), [cells, cursor, dir])
@@ -52,14 +54,14 @@ export default function Grid({
 
   useEffect(() => {
     onActiveChange?.({ number: activeNumber, dir })
-  }, [activeNumber, dir])
+  }, [activeNumber, dir, onActiveChange])
 
   useEffect(() => {
     if (!jump) return
     setDir(jump.dir)
     const headIdx = cells.findIndex(c => !c.isBlack && c.clueNumber === jump.number)
     if (headIdx >= 0) setCursor({ row: Math.floor(headIdx / SIZE), col: headIdx % SIZE })
-  }, [jump])
+  }, [jump, cells])
 
   function toggleDir() {
     setDir(d => d === 'across' ? 'down' : 'across')
