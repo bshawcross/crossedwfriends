@@ -4,7 +4,6 @@ import { planHeroPlacements } from './heroPlacement';
 import { buildMask } from '@/grid/mask';
 import * as validatePuzzle from '../src/validate/puzzle';
 import { assertCoverage } from '../src/validate/coverage';
-import { candidatePoolByLength } from './candidatePool';
 import { repairMask } from './repairMask';
 import { solve, SolverSlot } from './solver';
 import { logInfo, logError } from '@/utils/logger';
@@ -172,11 +171,7 @@ export function generateDaily(
         const len = w.answer.length;
         dictByLen[len] = (dictByLen[len] || 0) + 1;
       });
-      const fallbackByLen: Record<number, number> = {};
-      for (const [len, words] of candidatePoolByLength.entries()) {
-        fallbackByLen[len] = words.length;
-      }
-      assertCoverage(requiredLens, { heroesByLen, dictByLen, fallbackByLen });
+      assertCoverage(requiredLens, { heroesByLen, dictByLen });
 
       // build grid for slot finding
       const grid: string[] = [];

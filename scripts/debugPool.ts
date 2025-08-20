@@ -1,31 +1,9 @@
-import { promises as fs } from 'fs';
-import path from 'path';
-import { buildCandidatePool, candidatePoolByLength } from '../lib/candidatePool';
+import { candidatePoolByLength } from '../lib/candidatePool';
 
 async function main() {
-  // Load primary word lists if present
-  const allowlistPath = path.join(__dirname, '..', 'data', 'allowlist.json');
-  let allowlist: string[] = [];
-  try {
-    const raw = await fs.readFile(allowlistPath, 'utf8');
-    allowlist = JSON.parse(raw);
-  } catch {
-    // ignore if file missing
-  }
-
-  // Build pool from primary sources
-  const pool = buildCandidatePool([allowlist]);
-
-  // Merge bank words
-  for (const [len, words] of candidatePoolByLength.entries()) {
-    const existing = pool.get(len) || [];
-    const merged = new Set([...existing, ...words]);
-    pool.set(len, Array.from(merged));
-  }
-
-  // Output counts per word length
+  // Output counts per word length from bank-derived pool
   const counts: Record<string, number> = {};
-  for (const [len, words] of pool.entries()) {
+  for (const [len, words] of candidatePoolByLength.entries()) {
     counts[len] = words.length;
   }
   console.table(counts);
