@@ -4,7 +4,6 @@ import { planHeroPlacements } from './heroPlacement';
 import { buildMask } from '@/grid/mask';
 import * as validatePuzzle from '../src/validate/puzzle';
 import { assertCoverage } from '../src/validate/coverage';
-import { getFallback } from '../src/utils/getFallback';
 import { candidatePoolByLength } from './candidatePool';
 import { repairMask } from './repairMask';
 import { solve, SolverSlot } from './solver';
@@ -39,31 +38,6 @@ export function coordsToIndex(row: number, col: number, size = 15) {
   return row * size + col;
 }
 
-function verifyFallbackPools(
-  requiredLens: number[],
-  heroesByLen: Record<number, number>,
-  dictByLen: Record<number, number>,
-): void {
-  const needed: Record<number, number> = {};
-  for (const len of requiredLens) {
-    needed[len] = (needed[len] || 0) + 1;
-  }
-  const missing: number[] = [];
-  for (const [lenStr, count] of Object.entries(needed)) {
-    const len = Number(lenStr);
-    const available = (heroesByLen[len] || 0) + (dictByLen[len] || 0);
-    if (available >= count) continue;
-    if (!getFallback(len)) missing.push(len);
-  }
-  if (missing.length > 0) {
-    throw {
-      message: 'puzzle_invalid',
-      error: 'fallback_pool_missing',
-      detail: { lengths: missing },
-    };
-  }
-}
-
 export function generateDaily(
   seed: string,
   wordList: WordEntry[] = [],
@@ -72,7 +46,6 @@ export function generateDaily(
     heroThreshold?: number;
     maxFillAttempts?: number;
     maxMasks?: number;
-    maxFallbackRate?: number;
   } = {},
   mask?: boolean[][],
 ): Puzzle {
@@ -199,7 +172,6 @@ export function generateDaily(
         const len = w.answer.length;
         dictByLen[len] = (dictByLen[len] || 0) + 1;
       });
-      verifyFallbackPools(requiredLens, heroesByLen, dictByLen);
       const fallbackByLen: Record<number, number> = {};
       for (const [len, words] of candidatePoolByLength.entries()) {
         fallbackByLen[len] = words.length;
@@ -286,7 +258,6 @@ export function generateDaily(
           opts: {
             heroThreshold: opts.heroThreshold,
             maxFillAttempts: opts.maxFillAttempts,
-            maxFallbackRate: opts.maxFallbackRate,
           },
         });
         if (result.ok) break;
@@ -319,7 +290,6 @@ export function generateDaily(
             opts: {
               heroThreshold: opts.heroThreshold,
               maxFillAttempts: opts.maxFillAttempts,
-              maxFallbackRate: 1,
             },
           });
           if (!result.ok) {

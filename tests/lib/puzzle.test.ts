@@ -1,13 +1,4 @@
 import { describe, it, expect, vi } from 'vitest';
-vi.mock('../../utils/getFallback', () => ({
-  getFallback: (len: number, letters: string[]) => {
-    let word = '';
-    for (let i = 0; i < len; i++) {
-      word += letters[i] || 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[i % 26];
-    }
-    return word;
-  },
-}));
 import { generateDaily, coordsToIndex, loadDemoFromFile, WordEntry } from '../../lib/puzzle';
 import { largeWordList } from '../helpers/wordList';
 
@@ -17,7 +8,7 @@ describe('generateDaily', () => {
       { answer: 'ABCDEFGHIJKLMNOP', clue: 'skip' },
       ...largeWordList(),
     ];
-    const puzzle = generateDaily('test', wordList, [], { maxFallbackRate: 1 });
+    const puzzle = generateDaily('test', wordList, []);
     const allClues = [...puzzle.across, ...puzzle.down].map((c) => c.text);
     expect(allClues).not.toContain('skip');
     expect(puzzle.across[0].enumeration).toBe('(7)');
@@ -27,7 +18,7 @@ describe('generateDaily', () => {
     const wordList = largeWordList().filter((w) => w.answer.length !== 3);
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
     expect(() => {
-      generateDaily('seed', wordList, [], { maxFallbackRate: 1, maxFillAttempts: 10, maxMasks: 1 });
+      generateDaily('seed', wordList, [], { maxFillAttempts: 10, maxMasks: 1 });
     }).toThrow();
     logSpy.mockRestore();
   }, 20000);

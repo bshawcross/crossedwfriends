@@ -30,15 +30,6 @@ vi.mock('../../utils/date', () => ({
   yyyyMmDd: () => '2024-01-02',
 }));
 
-vi.mock('../../utils/getFallback', () => ({
-  getFallback: (len: number, letters: string[]) => {
-    let word = '';
-    for (let i = 0; i < len; i++) {
-      word += letters[i] || 'A';
-    }
-    return word;
-  },
-}));
 
 afterEach(() => {
   vi.clearAllMocks();
@@ -52,17 +43,6 @@ describe('generateDaily script', () => {
     currentMock.mockResolvedValue(largeWordList());
     vi.doMock('../../lib/validatePuzzle', () => ({ validatePuzzle: () => [] }));
     vi.doMock('../../src/validate/puzzle', () => ({ validateSymmetry: () => true, validateMinSlotLength: () => null }));
-    const gf = {
-      getFallback: (len: number, letters: string[]) => {
-        let word = '';
-        for (let i = 0; i < len; i++) {
-          word += letters[i] || 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[i % 26];
-        }
-        return word;
-      },
-    };
-    vi.doMock('../../utils/getFallback', () => gf);
-    vi.doMock('../../src/utils/getFallback', () => gf);
     const makePuzzle = (seed: string) => ({
       id: seed,
       title: 'Daily Placeholder',
@@ -87,9 +67,7 @@ describe('generateDaily script', () => {
     const originalCwd = process.cwd();
     process.chdir(tmpDir);
 
-    process.argv.push('--maxFallbackRate=1');
     await import('../../scripts/genDaily');
-    process.argv.pop();
     await new Promise((r) => setTimeout(r, 50));
 
     const filePath = path.join(tmpDir, 'puzzles', '2024-01-02.json');
@@ -111,17 +89,6 @@ describe('generateDaily script', () => {
     currentMock.mockResolvedValue([]);
     vi.doMock('../../lib/validatePuzzle', () => ({ validatePuzzle: () => [] }));
     vi.doMock('../../src/validate/puzzle', () => ({ validateSymmetry: () => true, validateMinSlotLength: () => null }));
-    const gf = {
-      getFallback: (len: number, letters: string[]) => {
-        let word = '';
-        for (let i = 0; i < len; i++) {
-          word += letters[i] || 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[i % 26];
-        }
-        return word;
-      },
-    };
-    vi.doMock('../../utils/getFallback', () => gf);
-    vi.doMock('../../src/utils/getFallback', () => gf);
     const makePuzzle = (seed: string) => ({
       id: seed,
       title: 'Daily Placeholder',
@@ -149,9 +116,7 @@ describe('generateDaily script', () => {
     const exitSpy = vi.spyOn(process, 'exit').mockImplementation(() => undefined as never);
     const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-    process.argv.push('--maxFallbackRate=1');
     await import('../../scripts/genDaily');
-    process.argv.pop();
     await new Promise((r) => setTimeout(r, 0));
 
     expect(exitSpy).toHaveBeenCalledWith(1);
