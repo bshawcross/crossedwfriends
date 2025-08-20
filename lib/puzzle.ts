@@ -201,8 +201,9 @@ export function generateDaily(
       });
       verifyFallbackPools(requiredLens, heroesByLen, dictByLen);
       const fallbackByLen: Record<number, number> = {};
-      Object.entries(fallbackWords).forEach(([lenStr, words]) => {
-        fallbackByLen[Number(lenStr)] = (words as string[]).length;
+      fallbackWords.forEach((w) => {
+        const len = w.length;
+        fallbackByLen[len] = (fallbackByLen[len] || 0) + 1;
       });
       assertCoverage(requiredLens, { heroesByLen, dictByLen, fallbackByLen });
 

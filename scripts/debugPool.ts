@@ -18,10 +18,10 @@ async function main() {
   const pool = buildCandidatePool([allowlist]);
 
   // Ensure fallback words are merged
-  for (const [lenStr, words] of Object.entries(fallbackWords)) {
-    const len = Number(lenStr);
+  for (const w of fallbackWords) {
+    const len = w.length;
     const existing = pool.get(len) || [];
-    const merged = new Set([...existing, ...words.map((w) => w.toUpperCase())]);
+    const merged = new Set([...existing, w.toUpperCase()]);
     pool.set(len, Array.from(merged));
   }
 

@@ -39,10 +39,8 @@ export function buildCandidatePool(
     for (const w of list) addWord(w);
   }
 
-  // Merge fallback lists
-  for (const words of Object.values(fallbackWords)) {
-    for (const w of words) addWord(w);
-  }
+  // Merge fallback list
+  for (const w of fallbackWords) addWord(w);
 
   // Convert sets to arrays
   const out = new Map<number, string[]>();
