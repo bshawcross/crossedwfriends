@@ -12,6 +12,7 @@ export default function GridCell({
   onKeyDown,
   inputRef,
 }: {
+  /* eslint-disable no-unused-vars */
   cell: Cell
   isCursor: boolean
   isHighlighted: boolean
@@ -19,6 +20,7 @@ export default function GridCell({
   onChange: (r: number, c: number, val: string) => void
   onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>, r: number, c: number) => void
   inputRef?: (el: HTMLInputElement | null) => void
+  /* eslint-enable no-unused-vars */
 }) {
   const id = `${cell.row}_${cell.col}`
   return (

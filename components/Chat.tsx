@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, FormEvent } from 'react';
+import { useState, useEffect, useCallback, FormEvent } from 'react';
 
 interface Message {
   id: string;
@@ -13,7 +13,7 @@ export default function Chat({ groupId, userId }: { groupId: string; userId: str
   const [messages, setMessages] = useState<Message[]>([]);
   const [content, setContent] = useState('');
 
-  async function fetchMessages() {
+  const fetchMessages = useCallback(async () => {
     const res = await fetch(`/api/groups/${groupId}/messages`, {
       headers: { 'x-user-id': userId },
     });
@@ -21,13 +21,13 @@ export default function Chat({ groupId, userId }: { groupId: string; userId: str
       const data = await res.json();
       setMessages(data);
     }
-  }
+  }, [groupId, userId]);
 
   useEffect(() => {
     fetchMessages();
     const interval = setInterval(fetchMessages, 5000);
     return () => clearInterval(interval);
-  }, [groupId, userId]);
+  }, [fetchMessages]);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();

@@ -7,6 +7,7 @@ export default function ClueBar({
   onHeightChange,
 }: {
   text: string
+  // eslint-disable-next-line no-unused-vars
   onHeightChange?: (px: number) => void
 }) {
   const [bottom, setBottom] = useState(0)

@@ -13,7 +13,7 @@ export async function GET(
     const data = await fs.readFile(filePath, 'utf-8');
     const puzzle: Puzzle = JSON.parse(data);
     return NextResponse.json(puzzle);
-  } catch (err) {
+  } catch {
     return NextResponse.json({ error: 'Puzzle not found' }, { status: 404 });
   }
 }
