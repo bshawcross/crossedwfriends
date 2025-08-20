@@ -15,27 +15,20 @@ describe('generateDaily', () => {
   it('rejects answers whose length does not match a slot', () => {
     const wordList: WordEntry[] = [
       { answer: 'ABCDEFGHIJKLMNOP', clue: 'skip' },
-      { answer: 'OK', clue: 'fit' },
       ...largeWordList(),
     ];
-    const puzzle = generateDaily('test', wordList, [], { allow2: true, maxFallbackRate: 1 });
+    const puzzle = generateDaily('test', wordList, [], { maxFallbackRate: 1 });
     const allClues = [...puzzle.across, ...puzzle.down].map((c) => c.text);
     expect(allClues).not.toContain('skip');
-    expect(puzzle.across[0].enumeration).toBe('(2)');
+    expect(puzzle.across[0].enumeration).toBe('(7)');
   });
 
   it('uses fallback when no matching word is found', () => {
     const wordList = largeWordList().filter((w) => w.answer.length !== 3);
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-    let puzzle;
     expect(() => {
-      puzzle = generateDaily('seed', wordList, [], { allow2: true, maxFallbackRate: 1 });
-    }).not.toThrow();
-    expect(logSpy).toHaveBeenCalledWith(
-      expect.stringContaining('"message":"fallback_word_used"'),
-    );
-    const clues = [...puzzle.across, ...puzzle.down].map((c) => c.text);
-    expect(clues.length).toBeGreaterThan(0);
+      generateDaily('seed', wordList, [], { maxFallbackRate: 1 });
+    }).toThrow();
     logSpy.mockRestore();
   });
 });

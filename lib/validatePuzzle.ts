@@ -6,7 +6,7 @@ import { symCell } from '@/grid/symmetry';
 
 export function validatePuzzle(
   puzzle: Puzzle,
-  opts: { checkSymmetry?: boolean; allow2?: boolean } = {},
+  opts: { checkSymmetry?: boolean } = {},
 ): string[] {
   const errors: string[] = [];
   const size = 15;
@@ -64,7 +64,7 @@ export function validatePuzzle(
       if (answer.length !== slot.length) {
         errors.push(`${dir} answer ${clue.number} length ${answer.length} ≠ slot length ${slot.length}`);
       }
-      if (!isValidFill(answer, opts.allow2 ? 2 : 3)) {
+      if (!isValidFill(answer, 3)) {
         errors.push(`${dir} answer ${clue.number} not allowed: ${answer}`);
       }
       if (cleanClue(clue.text) !== clue.text) {

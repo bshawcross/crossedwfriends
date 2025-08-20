@@ -15,11 +15,11 @@ import { validateCoverage } from '../lib/coverage';
 
 const defaultHeroTerms = ['CAPTAINMARVEL', 'BLACKWIDOW', 'SPIDERMAN', 'IRONMAN', 'THOR'];
 
-function getPresentLengths(words: WordEntry[], allow2: boolean): Set<number> {
+function getPresentLengths(words: WordEntry[]): Set<number> {
   const present = new Set<number>();
   for (const entry of words) {
     const len = entry.answer.length;
-    if (len >= (allow2 ? 2 : 3) && len <= 15) {
+    if (len >= 3 && len <= 15) {
       present.add(len);
     }
   }
@@ -31,10 +31,8 @@ async function main() {
   const seed = `${date}:seasonal,funFacts,currentEvents`;
   const puzzleDate = new Date(`${date}T00:00:00Z`);
 
-  // CLI usage: [hero terms...] --allow2=true|false --maxMasks=N --maxFillAttempts=N --heroThreshold=N
+  // CLI usage: [hero terms...] --maxMasks=N --maxFillAttempts=N --heroThreshold=N
   const args = process.argv.slice(2);
-  const allow2Arg = args.find((a) => a.startsWith('--allow2'));
-  const allow2 = allow2Arg ? allow2Arg.split('=')[1] !== 'false' : false;
   const maxMasksArg = args.find((a) => a.startsWith('--maxMasks'));
   const maxMasks = maxMasksArg ? parseInt(maxMasksArg.split('=')[1], 10) : 10;
   const maxFillAttemptsArg = args.find((a) => a.startsWith('--maxFillAttempts'));
@@ -50,8 +48,8 @@ async function main() {
     getCurrentEventWords(puzzleDate)
   ]);
   let wordList: WordEntry[] = [...seasonal, ...funFacts, ...currentEvents];
-  let present = getPresentLengths(wordList, allow2);
-  const minLen = allow2 ? 2 : 3;
+  let present = getPresentLengths(wordList);
+  const minLen = 3;
   const missingLengths: number[] = [];
   for (let len = minLen; len <= 15; len++) {
     if (!present.has(len)) missingLengths.push(len);
@@ -107,7 +105,7 @@ async function main() {
     seed,
     wordList,
     heroTerms.length > 0 ? heroTerms : defaultHeroTerms,
-    { allow2, heroThreshold, maxFillAttempts, maxMasks, maxFallbackRate },
+    { heroThreshold, maxFillAttempts, maxMasks, maxFallbackRate },
     grid,
   );
   const finalGrid: boolean[][] = [];
@@ -148,7 +146,7 @@ async function main() {
               : (slot.row + k) * size + slot.col;
           ans += puzzle.cells[cellIdx].answer;
         }
-        const valid = isValidFill(ans, allow2 ? 2 : 3);
+        const valid = isValidFill(ans, 3);
         if (!valid) {
           logError('puzzle_invalid', { error: `${dir} clue invalid`, clueIndex: idx });
         }
@@ -156,7 +154,7 @@ async function main() {
     };
     checkEntries(puzzle.across, slots.across, 'across');
     checkEntries(puzzle.down, slots.down, 'down');
-    const errors = validatePuzzle(puzzle, { checkSymmetry: true, allow2 });
+    const errors = validatePuzzle(puzzle, { checkSymmetry: true });
     if (errors.length > 0) {
       errors.forEach((err) => logError('puzzle_invalid', { error: err }));
       process.exit(1);

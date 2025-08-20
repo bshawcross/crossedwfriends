@@ -5,9 +5,7 @@ export function repairMask(
   grid: boolean[][],
   minLen = 3,
   maxPasses = 50,
-  allow2 = false,
 ): boolean[][] {
-  if (allow2) return grid;
   let detail = validateMinSlotLength(grid, minLen);
   let passes = 0;
   const size = grid.length;

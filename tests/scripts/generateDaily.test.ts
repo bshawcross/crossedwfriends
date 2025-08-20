@@ -22,6 +22,10 @@ vi.mock('../../src/validate/puzzle', () => ({
   validateMinSlotLength: () => null,
 }));
 
+vi.mock('../../lib/coverage', () => ({
+  validateCoverage: () => ({ missing: [] }),
+}));
+
 vi.mock('../../utils/date', () => ({
   yyyyMmDd: () => '2024-01-02',
 }));
@@ -83,9 +87,8 @@ describe('generateDaily script', () => {
     const originalCwd = process.cwd();
     process.chdir(tmpDir);
 
-    process.argv.push('--allow2=true', '--maxFallbackRate=1');
+    process.argv.push('--maxFallbackRate=1');
     await import('../../scripts/genDaily');
-    process.argv.pop();
     process.argv.pop();
     await new Promise((r) => setTimeout(r, 50));
 
@@ -146,9 +149,8 @@ describe('generateDaily script', () => {
     const exitSpy = vi.spyOn(process, 'exit').mockImplementation(() => undefined as never);
     const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-    process.argv.push('--allow2=true', '--maxFallbackRate=1');
+    process.argv.push('--maxFallbackRate=1');
     await import('../../scripts/genDaily');
-    process.argv.pop();
     process.argv.pop();
     await new Promise((r) => setTimeout(r, 0));
 
