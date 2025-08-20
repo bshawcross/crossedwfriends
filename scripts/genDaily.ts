@@ -12,18 +12,31 @@ import { isValidFill } from '../utils/validateWord';
 import { getSlotLengths } from '../lib/gridSlots';
 import { buildWordBank } from '../lib/wordBank';
 import { validateCoverage } from '../lib/coverage';
+import fallbackWords from '../src/data/fallbackWords';
 
 const defaultHeroTerms = ['CAPTAINMARVEL', 'BLACKWIDOW', 'SPIDERMAN', 'IRONMAN', 'THOR'];
 
-function getPresentLengths(words: WordEntry[]): Set<number> {
-  const present = new Set<number>();
+type CandidatePool = Record<number, WordEntry[]>;
+
+const MIN_BY_LEN: Record<number, number> = Object.fromEntries(
+  Array.from({ length: 13 }, (_, i) => [i + 3, 1]),
+);
+
+function buildCandidatePool(words: WordEntry[]): CandidatePool {
+  const pool: CandidatePool = {};
+  const seen = new Set<string>();
   for (const entry of words) {
-    const len = entry.answer.length;
-    if (len >= 3 && len <= 15) {
-      present.add(len);
-    }
+    const answer = entry.answer.trim().toUpperCase();
+    if (!/^[A-Z]{3,15}$/.test(answer)) continue;
+    if (!isValidFill(answer, 3)) continue;
+    const len = answer.length;
+    const key = `${len}:${answer}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    if (!pool[len]) pool[len] = [];
+    pool[len].push({ answer, clue: entry.clue });
   }
-  return present;
+  return pool;
 }
 
 async function main() {
@@ -48,16 +61,7 @@ async function main() {
     getCurrentEventWords(puzzleDate)
   ]);
   let wordList: WordEntry[] = [...seasonal, ...funFacts, ...currentEvents];
-  let present = getPresentLengths(wordList);
   const minLen = 3;
-  const missingLengths: number[] = [];
-  for (let len = minLen; len <= 15; len++) {
-    if (!present.has(len)) missingLengths.push(len);
-  }
-  if (missingLengths.length > 0) {
-    missingLengths.forEach((len) => logError('missing_length', { length: len }));
-    process.exit(1);
-  }
 
   // Build grid for preflight validation
   const size = 15;
@@ -80,9 +84,6 @@ async function main() {
     logError('puzzle_invalid', { error: (err as Error).message });
     process.exit(1);
   }
-
-  const allWords = wordList.map((w) => w.answer);
-  const wordBank = buildWordBank(allWords);
   const cellGrid: Cell[][] = grid.map((row, r) =>
     row.map((isBlack, c) => ({
       row: r,
@@ -95,24 +96,102 @@ async function main() {
     })),
   );
   const slotLengths = getSlotLengths(cellGrid).all;
+
+  let pool = buildCandidatePool(wordList);
+  const fallbackEntries: WordEntry[] = [];
+  for (const words of Object.values(fallbackWords)) {
+    for (const w of words) {
+      const answer = w.trim().toUpperCase();
+      if (!/^[A-Z]+$/.test(answer)) continue;
+      if (!isValidFill(answer, 3)) continue;
+      fallbackEntries.push({ answer, clue: '' });
+    }
+  }
+  const fallbackPool = buildCandidatePool(fallbackEntries);
+  for (const [lenStr, entries] of Object.entries(fallbackPool)) {
+    const len = Number(lenStr);
+    pool[len] = [...(pool[len] || []), ...entries];
+  }
+
+  const requiredLens = Array.from(new Set(slotLengths));
+  for (const len of requiredLens) {
+    const minCount = MIN_BY_LEN[len] || 1;
+    const have = pool[len]?.length || 0;
+    if (have < minCount) {
+      if (len === 13 || len === 15) {
+        const anchors = (fallbackWords[len] || []).map((w) => w.toUpperCase());
+        for (const a of anchors) {
+          if (!/^[A-Z]+$/.test(a)) continue;
+          if (!pool[len]) pool[len] = [];
+          if (!pool[len].some((e) => e.answer === a)) {
+            pool[len].push({ answer: a, clue: '' });
+          }
+          if (pool[len].length >= minCount) break;
+        }
+      }
+      if ((pool[len]?.length || 0) < minCount) {
+        logError('missing_length', { length: len });
+        process.exit(1);
+      }
+    }
+  }
+
+  wordList = Object.values(pool).flat();
+  const allWords = wordList.map((w) => w.answer);
+  const wordBank = buildWordBank(allWords);
   const { missing } = validateCoverage(slotLengths, wordBank);
   if (missing.length > 0) {
     console.error(JSON.stringify({ level: 'error', message: 'missing_length_detail', missing }));
     process.exit(1);
   }
 
-  const puzzle = generateDaily(
-    seed,
-    wordList,
-    heroTerms.length > 0 ? heroTerms : defaultHeroTerms,
-    { heroThreshold, maxFillAttempts, maxMasks, maxFallbackRate },
-    grid,
-  );
+  const baseHeroTerms = heroTerms.length > 0 ? heroTerms : defaultHeroTerms;
+  const long13 = (fallbackWords[13] || []).map((w) => w.toUpperCase());
+  const long15 = (fallbackWords[15] || []).map((w) => w.toUpperCase());
+  const MAX_ATTEMPTS = 8;
+  let puzzle: ReturnType<typeof generateDaily> | null = null;
+  for (let attempt = 0; attempt < MAX_ATTEMPTS && !puzzle; attempt++) {
+    const anchors: string[] = [];
+    if (long13.length > 0) anchors.push(long13[attempt % long13.length]);
+    if (long15.length > 0) anchors.push(long15[attempt % long15.length]);
+    try {
+      puzzle = generateDaily(
+        seed,
+        wordList,
+        [...baseHeroTerms, ...anchors],
+        { heroThreshold, maxFillAttempts, maxMasks, maxFallbackRate },
+        grid,
+      );
+    } catch (e) {
+      logInfo('generation_retry', { attempt: attempt + 1, error: (e as Error).message });
+    }
+  }
+  if (!puzzle) {
+    const forceAnchors: string[] = [];
+    if (long13.length > 0) forceAnchors.push(long13[0]);
+    if (long15.length > 0) forceAnchors.push(long15[0]);
+    try {
+      puzzle = generateDaily(
+        seed,
+        wordList,
+        [...baseHeroTerms, ...forceAnchors],
+        { heroThreshold, maxFillAttempts, maxMasks, maxFallbackRate },
+        grid,
+      );
+    } catch (e) {
+      logError('generate_daily_failed', { error: (e as Error).message });
+      process.exit(1);
+    }
+  }
+  if (!puzzle) {
+    logError('generate_daily_failed', { error: 'unknown' });
+    process.exit(1);
+  }
   const finalGrid: boolean[][] = [];
   for (let r = 0; r < size; r++) {
     const row: boolean[] = [];
     for (let c = 0; c < size; c++) {
-      row.push(puzzle.cells[r * size + c].isBlack);
+      row.push(puzzle!.cells[r * size + c].isBlack);
     }
     finalGrid.push(row);
   }
@@ -125,7 +204,7 @@ async function main() {
     for (let r = 0; r < size; r++) {
       let row = '';
       for (let c = 0; c < size; c++) {
-        row += puzzle.cells[r * size + c].isBlack ? '#' : '.';
+        row += puzzle!.cells[r * size + c].isBlack ? '#' : '.';
       }
       gridStr.push(row);
     }
@@ -144,7 +223,7 @@ async function main() {
             dir === 'across'
               ? slot.row * size + slot.col + k
               : (slot.row + k) * size + slot.col;
-          ans += puzzle.cells[cellIdx].answer;
+          ans += puzzle!.cells[cellIdx].answer;
         }
         const valid = isValidFill(ans, 3);
         if (!valid) {
@@ -152,9 +231,9 @@ async function main() {
         }
       });
     };
-    checkEntries(puzzle.across, slots.across, 'across');
-    checkEntries(puzzle.down, slots.down, 'down');
-    const errors = validatePuzzle(puzzle, { checkSymmetry: true });
+    checkEntries(puzzle!.across, slots.across, 'across');
+    checkEntries(puzzle!.down, slots.down, 'down');
+    const errors = validatePuzzle(puzzle!, { checkSymmetry: true });
     if (errors.length > 0) {
       errors.forEach((err) => logError('puzzle_invalid', { error: err }));
       process.exit(1);
@@ -174,7 +253,7 @@ async function main() {
 
   const filePath = path.join(puzzlesDir, `${date}.json`);
   try {
-    await fs.writeFile(filePath, JSON.stringify(puzzle, null, 2));
+    await fs.writeFile(filePath, JSON.stringify(puzzle!, null, 2));
     logInfo('puzzle_written', { date, filePath });
   } catch (e) {
     logError('write_failed', { filePath, error: (e as Error).message });
