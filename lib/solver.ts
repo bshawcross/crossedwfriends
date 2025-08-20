@@ -184,6 +184,7 @@ export function solve(params: SolveParams): SolveResult {
   const orderSlots = (all: SolverSlot[]): SolverSlot[] => {
     const sortHeuristics = (arr: SolverSlot[]) =>
       arr.sort((a, b) => {
+        if (b.length !== a.length) return b.length - a.length;
         const ca = candidateCount(a);
         const cb = candidateCount(b);
         if (ca !== cb) return ca - cb;
