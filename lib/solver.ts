@@ -149,7 +149,6 @@ export function solve(params: SolveParams): SolveResult {
     pattern: string[],
     len: number,
     doShuffle = true,
-    includeFallback = true,
   ): WordEntry[] => {
     if (len === 2) {
       throw new Error("Two-letter answers are banned (slotLen=2).");
@@ -171,15 +170,11 @@ export function solve(params: SolveParams): SolveResult {
       shuffle(dictCandidates);
     }
     const cands = [...heroCandidates, ...dictCandidates];
-    if (includeFallback) {
-      const fb = getFallback(len, pattern, { rng });
-      if (fb && isValidFill(fb, minLen)) cands.push({ answer: fb, clue: fb });
-    }
     return cands;
   };
 
   const candidateCount = (slot: SolverSlot): number =>
-    candidatesFor(getLetters(slot), slot.length, false, false).length;
+    candidatesFor(getLetters(slot), slot.length, false).length;
 
   const orderSlots = (remaining: SolverSlot[]): SolverSlot[] =>
     [...remaining].sort((a, b) => {
@@ -204,7 +199,14 @@ export function solve(params: SolveParams): SolveResult {
     const remaining = slots.filter((s) => !assignments.has(s.id));
     const ordered = orderSlots(remaining);
     const slot = ordered[0];
-    const candidates = candidatesFor(getLetters(slot), slot.length);
+    const letters = getLetters(slot);
+    let candidates = candidatesFor(letters, slot.length);
+    if (candidates.length === 0) {
+      const fb = getFallback(slot.length, letters, { rng });
+      if (fb && isValidFill(fb, minLen)) {
+        candidates = [{ answer: fb, clue: fb }];
+      }
+    }
     for (const cand of candidates) {
       attempts++;
       if (!canPlace(slot, cand.answer)) continue;
@@ -221,7 +223,7 @@ export function solve(params: SolveParams): SolveResult {
         removeFrom.splice(idx, 1);
       }
       if (isFallback) {
-        logInfo("fallback_word_used", { length: slot.length, answer: cand.answer });
+        logInfo("fallback_word_used", { slot: slot.id, answer: cand.answer });
         fallbackCount++;
         const rate = fallbackCount / totalSlots;
         if (rate > MAX_FALLBACK_RATE) {
