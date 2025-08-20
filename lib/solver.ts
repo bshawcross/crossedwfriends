@@ -116,14 +116,28 @@ export function solve(params: SolveParams): SolveResult {
         changed.push(`${r}_${c}`);
       }
     }
+    logInfo("place", {
+      slotId: slot.id,
+      row: slot.row,
+      col: slot.col,
+      direction: slot.direction,
+      word,
+    });
     return changed;
   };
 
-  const unplace = (changed: string[]): void => {
+  const unplace = (slot: SolverSlot, changed: string[], word: string): void => {
     for (const key of changed) {
       const [r, c] = key.split("_").map(Number);
       board[r][c] = "";
     }
+    logInfo("undo", {
+      slotId: slot.id,
+      row: slot.row,
+      col: slot.col,
+      direction: slot.direction,
+      word,
+    });
   };
 
   const getLetters = (slot: SolverSlot): string[] => {
@@ -247,7 +261,7 @@ export function solve(params: SolveParams): SolveResult {
       const dead = anySlotZeroCandidates();
       if (!dead && backtrack()) return true;
       assignments.delete(slot.id);
-      unplace(changed);
+      unplace(slot, changed, cand.answer);
       if (removeFrom) removeFrom.push(cand);
       const reason = dead ? "dead_end" : "backtrack";
       logInfo("backtrack", {
@@ -330,7 +344,7 @@ export function solveWithBacktracking(
     const rng = seedSuffix ? seedrandom(seedSuffix) : Math.random;
     const filteredDict = dict.filter((w) => !blacklist.has(w.answer));
     const filteredHeroes = heroes.filter((w) => !blacklist.has(w.answer));
-
+    logInfo("restart_begin", { restart: restart + 1 });
     const result = solve({
       board: board.map((row) => [...row]),
       slots: [...slots],
@@ -340,19 +354,22 @@ export function solveWithBacktracking(
       opts,
     });
     if (result.ok) {
+      logInfo("restart_success", { restart: restart + 1, attempts: result.attempts });
       return { ok: true, puzzle: result.assignments, logs };
     }
 
     const bad = filteredDict[0]?.answer;
     if (bad) blacklist.add(bad);
-    logs.push({
+    const log = {
       restart: restart + 1,
       reason: result.reason,
       attempts: result.attempts,
       blacklisted: bad,
-    });
+    };
+    logs.push(log);
+    logInfo("restart_failed", log);
   }
-
+  logInfo("restart_giveup", { restarts: maxRestarts });
   return { ok: false, logs };
 }
 
