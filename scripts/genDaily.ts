@@ -54,7 +54,7 @@ function loadBankPool(): Map<number, string[]> {
   return buildBankPool(sources);
 }
 
-function selectAnchors(
+export function selectAnchors(
   slots: { across: Slot[]; down: Slot[] },
   size: number,
   pool: Map<number, string[]>,
