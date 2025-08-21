@@ -62,7 +62,9 @@ export function getCandidates(
     .filter(match)
     .sort((a, b) => (a.frequency ?? Infinity) - (b.frequency ?? Infinity));
   const mask = pattern.map((ch) => ch || ".").join("");
-  const llmCands = queryTier3(mask, len);
+  const llmCands = queryTier3(mask, len)
+    .filter(match)
+    .sort((a, b) => (a.frequency ?? Infinity) - (b.frequency ?? Infinity));
   const seen = new Set<string>();
   const merged: WordEntry[] = [];
   for (const list of [topicalCands, globalCands, llmCands]) {

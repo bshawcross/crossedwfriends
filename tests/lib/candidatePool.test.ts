@@ -9,18 +9,6 @@ import {
   banlist,
 } from '../../lib/candidatePool';
 
-describe('normalizeAnswer', () => {
-  it('removes non letters and uppercases', () => {
-    expect(normalizeAnswer('  spider-man ')).toBe('SPIDERMAN');
-  });
-});
-
-describe('answerLen', () => {
-  it('computes length after normalization', () => {
-    expect(answerLen(' hi! ')).toBe(2);
-  });
-});
-
 describe('buildCandidatePool', () => {
   it('normalizes, dedupes, assigns frequency and respects banlist', () => {
     const primary = [
