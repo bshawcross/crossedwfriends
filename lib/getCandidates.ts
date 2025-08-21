@@ -5,6 +5,7 @@ import type { WordEntry } from "./puzzle";
 import { spawnSync } from "child_process";
 
 const MIN_LEN = 3;
+const MAX_LEN = 15;
 const BANNED_LENGTHS = new Set([2]);
 
 type SlotLike = { length: number };
@@ -45,7 +46,7 @@ export function getCandidates(
   global: WordEntry[],
 ): WordEntry[] {
   const len = slot.length;
-  if (BANNED_LENGTHS.has(len)) return [];
+  if (len < MIN_LEN || BANNED_LENGTHS.has(len) || len > MAX_LEN) return [];
   const match = (w: WordEntry) => {
     const ans = normalizeAnswer(w.answer);
     return (
