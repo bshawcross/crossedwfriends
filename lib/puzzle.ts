@@ -21,6 +21,12 @@ export type Cell = {
   isSelected: boolean;
 }
 export type Clue = { number:number, text:string, length:number, enumeration:string }
+export type PuzzleSummary = {
+  seed: string;
+  properNounCount: number;
+  abbrCount: number;
+};
+
 export type Puzzle = {
   id: string;
   title: string;
@@ -28,6 +34,7 @@ export type Puzzle = {
   across: Clue[];
   down: Clue[];
   cells: Cell[];
+  summary?: PuzzleSummary;
 }
 
 export type WordEntry = { answer: string; clue: string; frequency: number }
