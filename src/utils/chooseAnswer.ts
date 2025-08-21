@@ -1,6 +1,6 @@
 import { isValidFill } from "./validateWord";
 import type { WordEntry } from "../../lib/puzzle";
-import { answerLen } from "../../lib/candidatePool";
+import { answerLen, normalizeAnswer } from "../../lib/candidatePool";
 
 export function chooseAnswer(
   len: number,
@@ -11,12 +11,14 @@ export function chooseAnswer(
     throw new Error("Two-letter answers are banned (slotLen=2).");
   }
   const minLen = 3;
-  const idx = pool.findIndex(
-    (w) =>
+  const idx = pool.findIndex((w) => {
+    const ans = normalizeAnswer(w.answer);
+    return (
       answerLen(w.answer) === len &&
-      letters.every((ch, i) => !ch || w.answer[i] === ch) &&
-      isValidFill(w.answer, minLen),
-  );
+      letters.every((ch, i) => !ch || ans[i] === ch) &&
+      isValidFill(ans, minLen)
+    );
+  });
   if (idx !== -1) {
     return pool.splice(idx, 1)[0];
   }
