@@ -396,7 +396,9 @@ export function generateDaily(
         cells,
       };
     } catch (err) {
-      const reason = (err as any).error || (err as Error).message;
+      const message = (err as Error).message;
+      if (message === 'search_budget_exhausted') throw err;
+      const reason = (err as any).error || message;
       logInfo('retry', { attempt: attempt + 1, reason });
       if (attempt === maxMasks - 1) {
         logError('abort', { attempts: attempt + 1, reason });
