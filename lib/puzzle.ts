@@ -47,10 +47,13 @@ export function generateDaily(
     maxTotalAttempts?: number;
     maxTimeBudgetMs?: number;
     maxMasks?: number;
+    gridSize?: number;
+    patternSet?: string;
+    dictsPath?: string;
   } = {},
   mask?: boolean[][],
 ): Puzzle {
-  const size = mask ? mask.length : 15;
+  const size = mask ? mask.length : opts.gridSize ?? 15;
   const minLen = 3;
   const maxMasks = opts.maxMasks ?? 3;
   const rng = seedrandom(seed);
@@ -258,6 +261,9 @@ export function generateDaily(
             maxBranchAttempts: opts.maxBranchAttempts,
             maxTotalAttempts: opts.maxTotalAttempts,
             maxTimeBudgetMs: opts.maxTimeBudgetMs,
+            gridSize: opts.gridSize,
+            patternSet: opts.patternSet,
+            dictsPath: opts.dictsPath,
           },
         });
         if (result.ok) break;
@@ -292,6 +298,9 @@ export function generateDaily(
               maxBranchAttempts: opts.maxBranchAttempts,
               maxTotalAttempts: opts.maxTotalAttempts,
               maxTimeBudgetMs: opts.maxTimeBudgetMs,
+              gridSize: opts.gridSize,
+              patternSet: opts.patternSet,
+              dictsPath: opts.dictsPath,
             },
           });
           if (!result.ok) {

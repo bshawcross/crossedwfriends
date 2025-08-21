@@ -48,6 +48,18 @@ pnpm gen:daily "captain marvel" "black widow"
 If no hero terms are provided, a default set is used. Two-letter answers are
 always disallowed.
 
+The generator also recognizes several environment variables:
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `GRID_SIZE` | `15` | Size of the square puzzle grid. |
+| `MAX_BRANCH_ATTEMPTS` | `50000` | Maximum branch attempts the solver may explore. |
+| `MAX_TOTAL_ATTEMPTS` | `20` | Overall retries before giving up. |
+| `MAX_TIME_BUDGET_MS` | `120000` | Time budget (in milliseconds) for the solver. |
+| `PATTERN_SET` | `default` | Pattern set identifier for mask generation. |
+| `HERO_TERMS` | `CAPTAINMARVEL,BLACKWIDOW,SPIDERMAN,IRONMAN,THOR` | Comma-separated list of hero terms. Used when CLI args are omitted. |
+| `DICTS_PATH` | _none_ | Path to an additional JSON word list. |
+
 The script assembles word lists, creates a puzzle seeded by the date, and then
 runs `validatePuzzle` to enforce structural rules. Validators ensure every clue
 is normalized by `cleanClue`, answers obey the policy from `isValidFill`, and the
