@@ -19,6 +19,14 @@ import seedrandom from 'seedrandom';
 
 const defaultHeroTerms = ['CAPTAINMARVEL', 'BLACKWIDOW', 'SPIDERMAN', 'IRONMAN', 'THOR'];
 
+const envGridSize = parseInt(process.env.GRID_SIZE || '', 10) || 15;
+const envPatternSet = process.env.PATTERN_SET || 'default';
+const envHeroTerms = (process.env.HERO_TERMS || '')
+  .split(',')
+  .map((t) => t.trim())
+  .filter((t) => t.length > 0);
+const envDictsPath = process.env.DICTS_PATH;
+
 type CandidatePool = Record<number, WordEntry[]>;
 
 const MIN_BY_LEN: Record<number, number> = Object.fromEntries(
@@ -177,17 +185,29 @@ async function main() {
     : parseInt(process.env.MAX_TIME_BUDGET_MS || '', 10) || 2 * 60 * 1000;
   const heroThresholdArg = args.find((a) => a.startsWith('--heroThreshold'));
   const heroThreshold = heroThresholdArg ? parseInt(heroThresholdArg.split('=')[1], 10) : 3000;
-  const heroTerms = args.filter((a) => !a.startsWith('--'));
+  const cliHeroTerms = args.filter((a) => !a.startsWith('--'));
+
+  const heroTerms = cliHeroTerms.length > 0 ? cliHeroTerms : envHeroTerms;
   const [seasonal, funFacts, currentEvents] = await Promise.all([
     getSeasonalWords(puzzleDate),
     getFunFactWords(),
-    getCurrentEventWords(puzzleDate)
+    getCurrentEventWords(puzzleDate),
   ]);
   let baseWordList: WordEntry[] = [...seasonal, ...funFacts, ...currentEvents];
+  if (envDictsPath) {
+    try {
+      const extra = JSON.parse(await fs.readFile(envDictsPath, 'utf8')) as WordEntry[];
+      baseWordList = [...baseWordList, ...extra];
+    } catch (e) {
+      logError('dict_load_failed', { path: envDictsPath, error: (e as Error).message });
+    }
+  }
   const minLen = 3;
-  const size = 15;
+  const size = envGridSize;
   const bankPool = loadBankPool();
-  const baseHeroTerms = heroTerms.length > 0 ? heroTerms : defaultHeroTerms;
+  const baseHeroTerms = (heroTerms.length > 0 ? heroTerms : defaultHeroTerms).map((t) =>
+    t.trim().toUpperCase(),
+  );
 
   const startTime = Date.now();
   let attempt = 0;
@@ -297,6 +317,9 @@ async function main() {
             maxTotalAttempts,
             maxTimeBudgetMs,
             maxMasks,
+            gridSize: size,
+            patternSet: envPatternSet,
+            dictsPath: envDictsPath,
           },
           grid,
         );

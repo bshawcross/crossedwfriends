@@ -17,6 +17,9 @@ export interface SolveParams {
     maxBranchAttempts?: number;
     maxTotalAttempts?: number;
     maxTimeBudgetMs?: number;
+    gridSize?: number;
+    patternSet?: string;
+    dictsPath?: string;
   };
 }
 
