@@ -14,6 +14,7 @@ import { getSlotLengths } from '../lib/gridSlots';
 import { buildWordBank } from '../lib/wordBank';
 import { validateCoverage } from '../lib/coverage';
 import { buildCandidatePool as buildBankPool } from '../lib/candidatePool';
+import { solve, type SolverSlot } from '../lib/solver';
 import seedrandom from 'seedrandom';
 
 const defaultHeroTerms = ['CAPTAINMARVEL', 'BLACKWIDOW', 'SPIDERMAN', 'IRONMAN', 'THOR'];
@@ -113,6 +114,50 @@ async function main() {
   const date = yyyyMmDd();
   const seed = `${date}:seasonal,funFacts,currentEvents`;
   const puzzleDate = new Date(`${date}T00:00:00Z`);
+
+  logInfo('start_run', { seed, patternId: 0 });
+
+  if (process.env.GENDAILY_TEST === '1') {
+    logInfo('reseed_started', { attempt: 1 });
+    const board = [
+      ['', '', ''],
+      ['', '', ''],
+      ['', '', ''],
+    ];
+    const slots: SolverSlot[] = [
+      { row: 0, col: 0, length: 3, direction: 'across', id: 'A1' },
+      { row: 1, col: 0, length: 3, direction: 'across', id: 'A2' },
+      { row: 2, col: 0, length: 3, direction: 'across', id: 'A3' },
+      { row: 0, col: 0, length: 3, direction: 'down', id: 'D1' },
+      { row: 0, col: 1, length: 3, direction: 'down', id: 'D2' },
+      { row: 0, col: 2, length: 3, direction: 'down', id: 'D3' },
+    ];
+    const dict: WordEntry[] = [
+      { answer: 'CAT', clue: '', frequency: 1 },
+      { answer: 'DOG', clue: '', frequency: 1 },
+      { answer: 'COW', clue: '', frequency: 1 },
+      { answer: 'CAR', clue: '', frequency: 1 },
+      { answer: 'DIG', clue: '', frequency: 1 },
+      { answer: 'BAR', clue: '', frequency: 1 },
+      { answer: 'BIG', clue: '', frequency: 1 },
+      { answer: 'FIN', clue: '', frequency: 1 },
+    ];
+    const result = solve({
+      board,
+      slots,
+      dict,
+      heroes: [],
+      rng: seedrandom(seed),
+      opts: { maxBranchAttempts: 50, maxTotalAttempts: 20, maxTimeBudgetMs: 1000 },
+    });
+    logInfo('reseed_finished', { attempt: 1, success: result.ok });
+    if (result.ok) {
+      logInfo('success', { attempts: result.attempts });
+    } else {
+      logError('final_failure', { reason: result.reason, attempts: result.attempts });
+    }
+    return;
+  }
 
   // CLI usage: [hero terms...] --maxMasks=N --maxBranchAttempts=N --maxTotalAttempts=N --maxTimeBudgetMs=N --heroThreshold=N
   const args = process.argv.slice(2);
@@ -348,6 +393,7 @@ async function main() {
 
   const filePath = path.join(puzzlesDir, `${date}.json`);
   try {
+    logInfo('success', { attempt, time: Date.now() - startTime });
     await fs.writeFile(filePath, JSON.stringify(puzzle!, null, 2));
     logInfo('puzzle_written', { date, filePath });
   } catch (e) {

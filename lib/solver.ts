@@ -263,6 +263,15 @@ export function solve(params: SolveParams): SolveResult {
       if (!canPlace(slot, cand.answer)) continue;
       const changed = place(slot, cand.answer);
       assignments.set(slot.id, cand);
+      logInfo("place_word", {
+        slotId: slot.id,
+        row: slot.row,
+        col: slot.col,
+        direction: slot.direction,
+        pattern,
+        word: cand.answer,
+        attempts: branchAttempts,
+      });
       const removeFrom = heroes.includes(cand)
         ? heroes
         : dict.includes(cand)
@@ -277,17 +286,19 @@ export function solve(params: SolveParams): SolveResult {
       assignments.delete(slot.id);
       unplace(slot, changed, cand.answer);
       if (removeFrom) removeFrom.push(cand);
-      const reason = dead ? "dead_end" : "backtrack";
-      logInfo("backtrack", {
+      const meta = {
         slotId: slot.id,
         row: slot.row,
         col: slot.col,
         direction: slot.direction,
         pattern,
         word: cand.answer,
-        reason,
         attempts: branchAttempts,
-      });
+      };
+      if (dead) {
+        logInfo("dead_end", meta);
+      }
+      logInfo("backtrack", meta);
       if (heroes.includes(cand)) {
         const count = (heroAttempts.get(cand.answer) || 0) + 1;
         heroAttempts.set(cand.answer, count);
@@ -311,8 +322,10 @@ export function solve(params: SolveParams): SolveResult {
 
   const success = backtrack();
   if (success) {
+    logInfo("success", { attempts: branchAttempts });
     return { ok: true, assignments };
   }
+  logInfo("final_failure", { reason: failureReason, attempts: branchAttempts });
   return { ok: false, reason: failureReason, attempts: branchAttempts };
 }
 
