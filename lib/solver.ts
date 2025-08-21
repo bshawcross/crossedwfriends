@@ -199,17 +199,10 @@ export function solve(params: SolveParams): SolveResult {
     );
     return [...heroCandidates, ...dictCandidates];
   };
-
-  const candidateCount = (slot: SolverSlot): number =>
-    candidatesFor(getLetters(slot), slot.length).length;
-
   const orderSlots = (all: SolverSlot[]): SolverSlot[] => {
     const sortHeuristics = (arr: SolverSlot[]) =>
       arr.sort((a, b) => {
         if (b.length !== a.length) return b.length - a.length;
-        const ca = candidateCount(a);
-        const cb = candidateCount(b);
-        if (ca !== cb) return ca - cb;
         const ia = intersectionCount.get(a.id) || 0;
         const ib = intersectionCount.get(b.id) || 0;
         return ib - ia;
