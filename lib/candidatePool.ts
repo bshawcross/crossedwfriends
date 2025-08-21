@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { isValidFill } from "@/utils/validateWord";
+import type { WordEntry } from "./puzzle";
 
 /**
  * Normalize an answer string by trimming, uppercasing and ensuring it is a
@@ -16,6 +17,23 @@ export function normalizeAnswer(input: string): string | null {
   return word;
 }
 
+function loadBanlist(): Set<string> {
+  const fullPath = path.join(process.cwd(), "banks", "banlist.txt");
+  try {
+    const lines = fs.readFileSync(fullPath, "utf8").split(/\r?\n/);
+    const set = new Set<string>();
+    for (const line of lines) {
+      const word = normalizeAnswer(line);
+      if (word) set.add(word);
+    }
+    return set;
+  } catch {
+    return new Set();
+  }
+}
+
+export const banlist = loadBanlist();
+
 /**
  * Build a candidate pool mapping word length to a list of unique answers.
  * Primary sources are supplied as an array of string arrays. All entries are
@@ -23,26 +41,33 @@ export function normalizeAnswer(input: string): string | null {
  */
 export function buildCandidatePool(
   sources: string[][] = [],
-): Map<number, string[]> {
-  const byLen = new Map<number, Set<string>>();
+): Map<number, WordEntry[]> {
+  const byLen = new Map<number, Map<string, WordEntry>>();
+  let rank = 0;
 
   const addWord = (raw: string) => {
     const word = normalizeAnswer(raw);
-    if (!word) return;
+    if (!word || banlist.has(word)) {
+      rank++;
+      return;
+    }
     const len = word.length;
-    if (!byLen.has(len)) byLen.set(len, new Set());
-    byLen.get(len)!.add(word);
+    if (!byLen.has(len)) byLen.set(len, new Map());
+    const existing = byLen.get(len)!.get(word);
+    if (!existing || rank < existing.frequency) {
+      byLen.get(len)!.set(word, { answer: word, clue: "", frequency: rank });
+    }
+    rank++;
   };
 
-  // Add words from primary sources
   for (const list of sources) {
     for (const w of list) addWord(w);
   }
 
-  // Convert sets to arrays
-  const out = new Map<number, string[]>();
-  for (const [len, set] of byLen.entries()) {
-    out.set(len, Array.from(set));
+  const out = new Map<number, WordEntry[]>();
+  for (const [len, map] of byLen.entries()) {
+    const arr = Array.from(map.values()).sort((a, b) => a.frequency - b.frequency);
+    out.set(len, arr);
   }
   return out;
 }
@@ -54,46 +79,27 @@ export function buildCandidatePool(
  */
 function readBankFile(file: string): string[] {
   const fullPath = path.join(process.cwd(), "banks", file);
-  let lines: string[] = [];
   try {
-    lines = fs.readFileSync(fullPath, "utf8").split(/\r?\n/);
+    return fs.readFileSync(fullPath, "utf8").split(/\r?\n/);
   } catch {
     return [];
   }
-  const set = new Set<string>();
-  for (const line of lines) {
-    const word = normalizeAnswer(line);
-    if (word) set.add(word);
-  }
-  return Array.from(set);
 }
 
 /**
  * Preloaded candidate pool from the default word bank text files.
  */
-function loadCandidatePoolFromBanks(): Map<number, string[]> {
-  const byLen = new Map<number, Set<string>>();
-  const addWords = (words: string[]) => {
-    for (const w of words) {
-      const len = w.length;
-      if (!byLen.has(len)) byLen.set(len, new Set());
-      byLen.get(len)!.add(w);
-    }
-  };
+function loadCandidatePoolFromBanks(): Map<number, WordEntry[]> {
   const files = [
     "anchors_13.txt",
     "anchors_15.txt",
     "mid_7to12.txt",
     "glue_3to6.txt",
   ];
-  for (const f of files) addWords(readBankFile(f));
-  const out = new Map<number, string[]>();
-  for (const [len, set] of byLen.entries()) {
-    out.set(len, Array.from(set));
-  }
-  return out;
+  const sources = files.map((f) => readBankFile(f));
+  return buildCandidatePool(sources);
 }
 
 export const candidatePoolByLength = loadCandidatePoolFromBanks();
 
-export type CandidatePool = Map<number, string[]>;
+export type CandidatePool = Map<number, WordEntry[]>;

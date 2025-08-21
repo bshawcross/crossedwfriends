@@ -48,7 +48,7 @@ describe("getSeasonalWords", () => {
     );
     const { getSeasonalWords } = await import("../../lib/topics");
     const result = await getSeasonalWords(new Date("2024-01-01"));
-    expect(result).toEqual([{ answer: "APPLE", clue: "fruit" }]);
+    expect(result).toEqual([{ answer: "APPLE", clue: "fruit", frequency: Infinity }]);
   });
 
   it("returns [] on failure", async () => {
@@ -73,7 +73,7 @@ describe("getFunFactWords", () => {
     );
     const { getFunFactWords } = await import("../../lib/topics");
     const result = await getFunFactWords();
-    expect(result).toEqual([{ answer: "ALPHABETA", clue: "Sample?" }]);
+    expect(result).toEqual([{ answer: "ALPHABETA", clue: "Sample?", frequency: Infinity }]);
   });
 
   it("returns [] on failure", async () => {
@@ -97,10 +97,10 @@ describe("getCurrentEventWords", () => {
     const { getCurrentEventWords } = await import("../../lib/topics");
     const result = await getCurrentEventWords(new Date("2024-01-01"));
     expect(result).toEqual([
-      { answer: "ALPHA", clue: "Gamma Delta" },
-      { answer: "BETA", clue: "Gamma Delta" },
-      { answer: "GAMMA", clue: "Gamma Delta" },
-      { answer: "DELTA", clue: "Gamma Delta" }
+      { answer: "ALPHA", clue: "Gamma Delta", frequency: Infinity },
+      { answer: "BETA", clue: "Gamma Delta", frequency: Infinity },
+      { answer: "GAMMA", clue: "Gamma Delta", frequency: Infinity },
+      { answer: "DELTA", clue: "Gamma Delta", frequency: Infinity }
     ]);
   });
 

@@ -30,7 +30,7 @@ export type Puzzle = {
   cells: Cell[];
 }
 
-export type WordEntry = { answer: string; clue: string }
+export type WordEntry = { answer: string; clue: string; frequency: number }
 
 // lib/puzzle.ts
 export function coordsToIndex(row: number, col: number, size = 15) {
@@ -218,10 +218,11 @@ export function generateDaily(
       const remaining = shuffledWordList.map((w) => ({
         answer: w.answer.toUpperCase(),
         clue: w.clue,
+        frequency: w.frequency,
       }));
       const heroEntries = shuffledHeroes
         .filter((t) => !heroPlacements.some((p) => p.term === t.toUpperCase()))
-        .map((t) => ({ answer: t.toUpperCase(), clue: t }));
+        .map((t) => ({ answer: t.toUpperCase(), clue: t, frequency: -1 }));
 
       const blacklist = new Set<string>();
       let result = null as ReturnType<typeof solve> | null;

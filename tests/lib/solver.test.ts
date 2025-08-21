@@ -14,8 +14,8 @@ describe('orderSlots', () => {
       { id: 'long', row: 0, col: 0, length: 5, direction: 'across' },
     ];
     const dict: WordEntry[] = [
-      { answer: 'FGH', clue: '' },
-      { answer: 'ABCDE', clue: '' },
+      { answer: 'FGH', clue: '', frequency: 1 },
+      { answer: 'ABCDE', clue: '', frequency: 0 },
     ];
     const infoSpy = vi.spyOn(logger, 'logInfo').mockImplementation(() => {});
     const result = solve({ board, slots, dict, rng: () => 0 });

@@ -150,36 +150,24 @@ export function solve(params: SolveParams): SolveResult {
     return arr;
   };
 
-  const candidatesFor = (
-    pattern: string[],
-    len: number,
-    doShuffle = true,
-  ): WordEntry[] => {
-    if (len === 2) {
-      throw new Error("Two-letter answers are banned (slotLen=2).");
-    }
-    const heroCandidates = heroes.filter(
-      (w) =>
-        w.answer.length === len &&
-        pattern.every((ch, i) => !ch || w.answer[i] === ch) &&
-        isValidFill(w.answer, minLen),
+  const BANNED_LENGTHS = new Set([2]);
+  const candidatesFor = (pattern: string[], len: number): WordEntry[] => {
+    if (BANNED_LENGTHS.has(len)) return [];
+    const matches = (w: WordEntry) =>
+      w.answer.length === len &&
+      pattern.every((ch, i) => !ch || w.answer[i] === ch) &&
+      isValidFill(w.answer, minLen);
+    const heroCandidates = heroes.filter(matches).sort(
+      (a, b) => (a.frequency ?? Infinity) - (b.frequency ?? Infinity),
     );
-    const dictCandidates = dict.filter(
-      (w) =>
-        w.answer.length === len &&
-        pattern.every((ch, i) => !ch || w.answer[i] === ch) &&
-        isValidFill(w.answer, minLen),
+    const dictCandidates = dict.filter(matches).sort(
+      (a, b) => (a.frequency ?? Infinity) - (b.frequency ?? Infinity),
     );
-    if (doShuffle) {
-      shuffle(heroCandidates);
-      shuffle(dictCandidates);
-    }
-    const cands = [...heroCandidates, ...dictCandidates];
-    return cands;
+    return [...heroCandidates, ...dictCandidates];
   };
 
   const candidateCount = (slot: SolverSlot): number =>
-    candidatesFor(getLetters(slot), slot.length, false).length;
+    candidatesFor(getLetters(slot), slot.length).length;
 
   const orderSlots = (all: SolverSlot[]): SolverSlot[] => {
     const sortHeuristics = (arr: SolverSlot[]) =>
@@ -213,7 +201,7 @@ export function solve(params: SolveParams): SolveResult {
           const idx = o.direction === "across" ? c - o.col : r - o.row;
           const pattern = getLetters(o);
           pattern[idx] = cand.answer[i];
-          const freq = candidatesFor(pattern, o.length, false).length;
+          const freq = candidatesFor(pattern, o.length).length;
           score += freq;
         }
       }
@@ -226,7 +214,7 @@ export function solve(params: SolveParams): SolveResult {
   const anySlotZeroCandidates = (): boolean => {
     for (const s of slotOrder) {
       if (assignments.has(s.id)) continue;
-      if (candidatesFor(getLetters(s), s.length, false).length === 0) return true;
+      if (candidatesFor(getLetters(s), s.length).length === 0) return true;
     }
     return false;
   };

@@ -5,6 +5,7 @@ import {
   normalizeAnswer,
   buildCandidatePool,
   candidatePoolByLength,
+  banlist,
 } from '../../lib/candidatePool';
 
 describe('normalizeAnswer', () => {
@@ -20,20 +21,25 @@ describe('normalizeAnswer', () => {
 });
 
 describe('buildCandidatePool', () => {
-  it('normalizes and dedupes words from sources', () => {
+  it('normalizes, dedupes, assigns frequency and respects banlist', () => {
     const primary = [
       ['cat', 'dog', 'multi word', 'bee'],
       ['DOG', 'fox'],
     ];
+    banlist.add('FOX');
     const pool = buildCandidatePool(primary);
     const len3 = pool.get(3) || [];
-    // Primary words normalized and deduped
-    expect(len3).toContain('CAT');
-    expect(len3).toContain('DOG');
-    expect(len3.filter((w) => w === 'DOG').length).toBe(1);
-    expect(len3).toContain('BEE');
-    expect(len3).toContain('FOX');
-    expect(len3).not.toContain('MULTI WORD');
+    const answers = len3.map((w) => w.answer);
+    expect(answers).toContain('CAT');
+    expect(answers).toContain('DOG');
+    expect(len3.filter((w) => w.answer === 'DOG').length).toBe(1);
+    expect(answers).toContain('BEE');
+    expect(answers).not.toContain('FOX');
+    expect(answers).not.toContain('MULTI WORD');
+    const cat = len3.find((w) => w.answer === 'CAT')!;
+    const dog = len3.find((w) => w.answer === 'DOG')!;
+    expect(cat.frequency).toBeLessThan(dog.frequency);
+    banlist.delete('FOX');
   });
 });
 
@@ -41,7 +47,7 @@ describe('candidatePoolByLength', () => {
   it('loads banks and normalizes entries', () => {
     const len13 = candidatePoolByLength.get(13) || [];
     expect(len13.length).toBeGreaterThan(0);
-    expect(len13.every((w) => /^[A-Z]+$/.test(w))).toBe(true);
+    expect(len13.every((w) => /^[A-Z]+$/.test(w.answer))).toBe(true);
   });
 
   it('matches counts from bank files', () => {

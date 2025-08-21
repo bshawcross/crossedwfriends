@@ -5,7 +5,7 @@ import { largeWordList } from '../helpers/wordList';
 describe('generateDaily', () => {
   it('rejects answers whose length does not match a slot', () => {
     const wordList: WordEntry[] = [
-      { answer: 'ABCDEFGHIJKLMNOP', clue: 'skip' },
+      { answer: 'ABCDEFGHIJKLMNOP', clue: 'skip', frequency: 0 },
       ...largeWordList(),
     ];
     const puzzle = generateDaily('test', wordList, []);

@@ -91,7 +91,7 @@ describe('validatePuzzle', () => {
   });
 
   test('fails when word list is insufficient', () => {
-    const shortList: WordEntry[] = [{ answer: 'DOG', clue: 'dog' }];
+    const shortList: WordEntry[] = [{ answer: 'DOG', clue: 'dog', frequency: 0 }];
     expect(() => {
       generateDaily('seed', shortList, []);
     }).toThrow();
