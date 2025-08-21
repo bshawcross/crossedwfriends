@@ -1,8 +1,8 @@
-import { isValidFill } from "@/utils/validateWord";
 import { logInfo, logWarn } from "@/utils/logger";
 import type { WordEntry } from "./puzzle";
 import type { Slot } from "./slotFinder";
 import { answerLen, normalizeAnswer } from "./candidatePool";
+import { getCandidates } from "./getCandidates";
 import seedrandom from "seedrandom";
 
 export type SolverSlot = Slot & { direction: "across" | "down"; id: string };
@@ -180,25 +180,6 @@ export function solve(params: SolveParams): SolveResult {
     return arr;
   };
 
-  const BANNED_LENGTHS = new Set([2]);
-  const candidatesFor = (pattern: string[], len: number): WordEntry[] => {
-    if (BANNED_LENGTHS.has(len)) return [];
-    const matches = (w: WordEntry) => {
-      const ans = normalizeAnswer(w.answer);
-      return (
-        answerLen(w.answer) === len &&
-        pattern.every((ch, i) => !ch || ans[i] === ch) &&
-        isValidFill(ans, minLen)
-      );
-    };
-    const heroCandidates = heroes.filter(matches).sort(
-      (a, b) => (a.frequency ?? Infinity) - (b.frequency ?? Infinity),
-    );
-    const dictCandidates = dict.filter(matches).sort(
-      (a, b) => (a.frequency ?? Infinity) - (b.frequency ?? Infinity),
-    );
-    return [...heroCandidates, ...dictCandidates];
-  };
   const orderSlots = (all: SolverSlot[]): SolverSlot[] => {
     const sortHeuristics = (arr: SolverSlot[]) =>
       arr.sort((a, b) => {
@@ -229,7 +210,7 @@ export function solve(params: SolveParams): SolveResult {
           const idx = o.direction === "across" ? c - o.col : r - o.row;
           const pattern = getLetters(o);
           pattern[idx] = ans[i];
-          const freq = candidatesFor(pattern, o.length).length;
+          const freq = getCandidates(o, pattern, heroes, dict).length;
           score += freq;
         }
       }
@@ -242,7 +223,7 @@ export function solve(params: SolveParams): SolveResult {
   const anySlotZeroCandidates = (): boolean => {
     for (const s of slotOrder) {
       if (assignments.has(s.id)) continue;
-      if (candidatesFor(getLetters(s), s.length).length === 0) return true;
+      if (getCandidates(s, getLetters(s), heroes, dict).length === 0) return true;
     }
     return false;
   };
@@ -256,7 +237,7 @@ export function solve(params: SolveParams): SolveResult {
     const slot = slotOrder.find((s) => !assignments.has(s.id))!;
     const letters = getLetters(slot);
     const pattern = letters.join("");
-    let candidates = rankLCV(slot, candidatesFor(letters, slot.length));
+    let candidates = rankLCV(slot, getCandidates(slot, letters, heroes, dict));
     if (candidates.length === 0) return false;
 
     for (const cand of candidates) {
