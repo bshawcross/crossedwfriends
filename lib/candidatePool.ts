@@ -3,18 +3,11 @@ import path from "path";
 import { isValidFill } from "@/utils/validateWord";
 import type { WordEntry } from "./puzzle";
 
-/**
- * Normalize an answer string by trimming, uppercasing and ensuring it is a
- * single word containing only the letters A-Z. Returns null if the input
- * contains whitespace, punctuation or otherwise fails validation.
- */
-export function normalizeAnswer(input: string): string | null {
-  const word = input.trim().toUpperCase();
-  // Reject if not purely letters or contains multiple words
-  if (!/^[A-Z]+$/.test(word)) return null;
-  // Ensure the word passes fill validation (min length handled by caller)
-  if (!isValidFill(word, 3)) return null;
-  return word;
+export function normalizeAnswer(raw: string): string {
+  return raw.replace(/[^A-Za-z]/g, "").toUpperCase();
+}
+export function answerLen(raw: string): number {
+  return normalizeAnswer(raw).length;
 }
 
 function loadBanlist(): Set<string> {
@@ -24,7 +17,9 @@ function loadBanlist(): Set<string> {
     const set = new Set<string>();
     for (const line of lines) {
       const word = normalizeAnswer(line);
-      if (word) set.add(word);
+      if (answerLen(line) === 0) continue;
+      if (!isValidFill(word, 3)) continue;
+      set.add(word);
     }
     return set;
   } catch {
@@ -47,11 +42,11 @@ export function buildCandidatePool(
 
   const addWord = (raw: string) => {
     const word = normalizeAnswer(raw);
-    if (!word || banlist.has(word)) {
+    const len = answerLen(raw);
+    if (len === 0 || banlist.has(word) || !isValidFill(word, 3)) {
       rank++;
       return;
     }
-    const len = word.length;
     if (!byLen.has(len)) byLen.set(len, new Map());
     const existing = byLen.get(len)!.get(word);
     if (!existing || rank < existing.frequency) {

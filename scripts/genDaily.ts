@@ -13,7 +13,11 @@ import { isValidFill } from '../utils/validateWord';
 import { getSlotLengths } from '../lib/gridSlots';
 import { buildWordBank } from '../lib/wordBank';
 import { validateCoverage } from '../lib/coverage';
-import { buildCandidatePool as buildBankPool } from '../lib/candidatePool';
+import {
+  buildCandidatePool as buildBankPool,
+  normalizeAnswer,
+  answerLen,
+} from '../lib/candidatePool';
 import { solve, type SolverSlot } from '../lib/solver';
 import seedrandom from 'seedrandom';
 import { getQualityMetrics } from '../lib/quality';
@@ -25,8 +29,8 @@ const envGridSize = parseInt(process.env.GRID_SIZE || '', 10) || 15;
 const envPatternSet = process.env.PATTERN_SET || 'default';
 const envHeroTerms = (process.env.HERO_TERMS || '')
   .split(',')
-  .map((t) => t.trim())
-  .filter((t) => t.length > 0);
+  .map((t) => normalizeAnswer(t))
+  .filter((t) => answerLen(t) > 0);
 const envDictsPath = process.env.DICTS_PATH;
 
 type CandidatePool = Record<number, WordEntry[]>;
@@ -39,10 +43,10 @@ function buildCandidatePool(words: WordEntry[]): CandidatePool {
   const pool: CandidatePool = {};
   const seen = new Set<string>();
   for (const entry of words) {
-    const answer = entry.answer.trim().toUpperCase();
-    if (!/^[A-Z]{3,15}$/.test(answer)) continue;
+    const answer = normalizeAnswer(entry.answer);
+    const len = answerLen(entry.answer);
+    if (len < 3 || len > 15) continue;
     if (!isValidFill(answer, 3)) continue;
-    const len = answer.length;
     const key = `${len}:${answer}`;
     if (seen.has(key)) continue;
     seen.add(key);
@@ -208,7 +212,7 @@ async function main() {
   const size = envGridSize;
   const bankPool = loadBankPool();
   const baseHeroTerms = (heroTerms.length > 0 ? heroTerms : defaultHeroTerms).map((t) =>
-    t.trim().toUpperCase(),
+    normalizeAnswer(t),
   );
 
   const startTime = Date.now();

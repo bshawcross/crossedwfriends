@@ -3,20 +3,21 @@ import fs from 'fs';
 import path from 'path';
 import {
   normalizeAnswer,
+  answerLen,
   buildCandidatePool,
   candidatePoolByLength,
   banlist,
 } from '../../lib/candidatePool';
 
 describe('normalizeAnswer', () => {
-  it('uppercases and trims valid single words', () => {
-    expect(normalizeAnswer('  hello ')).toBe('HELLO');
+  it('removes non letters and uppercases', () => {
+    expect(normalizeAnswer('  spider-man ')).toBe('SPIDERMAN');
   });
+});
 
-  it('rejects multi-word or punctuated entries', () => {
-    expect(normalizeAnswer('New York')).toBeNull();
-    expect(normalizeAnswer('spider-man')).toBeNull();
-    expect(normalizeAnswer('hi!')).toBeNull();
+describe('answerLen', () => {
+  it('computes length after normalization', () => {
+    expect(answerLen(' hi! ')).toBe(2);
   });
 });
 
@@ -35,7 +36,6 @@ describe('buildCandidatePool', () => {
     expect(len3.filter((w) => w.answer === 'DOG').length).toBe(1);
     expect(answers).toContain('BEE');
     expect(answers).not.toContain('FOX');
-    expect(answers).not.toContain('MULTI WORD');
     const cat = len3.find((w) => w.answer === 'CAT')!;
     const dog = len3.find((w) => w.answer === 'DOG')!;
     expect(cat.frequency).toBeLessThan(dog.frequency);
@@ -57,9 +57,9 @@ describe('candidatePoolByLength', () => {
     for (const f of files) {
       const lines = fs.readFileSync(path.join(bankDir, f), 'utf8').split(/\r?\n/);
       for (const line of lines) {
+        if (answerLen(line) === 0) continue;
         const word = normalizeAnswer(line);
-        if (!word) continue;
-        const len = word.length;
+        const len = answerLen(line);
         if (!expected.has(len)) expected.set(len, new Set());
         expected.get(len)!.add(word);
       }

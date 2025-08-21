@@ -1,6 +1,6 @@
 import { promises as fs } from 'fs';
 import path from 'path';
-import { normalizeAnswer } from '../lib/candidatePool';
+import { normalizeAnswer, answerLen } from '../lib/candidatePool';
 
 async function main() {
   const bankDir = path.join(process.cwd(), 'banks');
@@ -10,12 +10,12 @@ async function main() {
     const data = await fs.readFile(path.join(bankDir, file), 'utf8');
     for (const line of data.split(/\r?\n/)) {
       const word = normalizeAnswer(line);
-      if (word) words.add(word);
+      if (answerLen(line) > 0) words.add(word);
     }
   }
   const counts: Record<number, number> = {};
   for (const w of words) {
-    const len = w.length;
+    const len = answerLen(w);
     counts[len] = (counts[len] || 0) + 1;
   }
   console.table(counts);

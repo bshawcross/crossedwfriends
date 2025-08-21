@@ -23,6 +23,8 @@ describe('buildWordBank', () => {
       4: ['KIWI', 'PEAR'],
       5: ['APPLE', 'GRAPE'],
       6: ['BANANA'],
+      9: ['PINEAPPLE'],
+      10: ['STRAWBERRY'],
     });
     expect(bank[2]).toBeUndefined();
   });
