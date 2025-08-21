@@ -378,13 +378,23 @@ async function main() {
         clues.forEach((_, idx) => {
           const slot = slotArr[idx];
           if (!slot) return;
-          let ans = '';
+          let raw = '';
           for (let k = 0; k < slot.length; k++) {
             const cellIdx =
               dir === 'across'
                 ? slot.row * size + slot.col + k
                 : (slot.row + k) * size + slot.col;
-            ans += puzzle!.cells[cellIdx].answer;
+            raw += puzzle!.cells[cellIdx].answer;
+          }
+          const ans = normalizeAnswer(raw);
+          if (ans.length !== slot.length) {
+            logError('puzzle_invalid', {
+              attempt,
+              error: `${dir} clue length mismatch`,
+              clueIndex: idx,
+              want: slot.length,
+              got: ans.length,
+            });
           }
           const valid = isValidFill(ans, 3);
           if (!valid) {

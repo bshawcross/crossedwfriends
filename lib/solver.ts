@@ -2,7 +2,7 @@ import { isValidFill } from "@/utils/validateWord";
 import { logInfo, logWarn } from "@/utils/logger";
 import type { WordEntry } from "./puzzle";
 import type { Slot } from "./slotFinder";
-import { answerLen } from "./candidatePool";
+import { answerLen, normalizeAnswer } from "./candidatePool";
 import seedrandom from "seedrandom";
 
 export type SolverSlot = Slot & { direction: "across" | "down"; id: string };
@@ -183,10 +183,14 @@ export function solve(params: SolveParams): SolveResult {
   const BANNED_LENGTHS = new Set([2]);
   const candidatesFor = (pattern: string[], len: number): WordEntry[] => {
     if (BANNED_LENGTHS.has(len)) return [];
-    const matches = (w: WordEntry) =>
-      answerLen(w.answer) === len &&
-      pattern.every((ch, i) => !ch || w.answer[i] === ch) &&
-      isValidFill(w.answer, minLen);
+    const matches = (w: WordEntry) => {
+      const ans = normalizeAnswer(w.answer);
+      return (
+        answerLen(w.answer) === len &&
+        pattern.every((ch, i) => !ch || ans[i] === ch) &&
+        isValidFill(ans, minLen)
+      );
+    };
     const heroCandidates = heroes.filter(matches).sort(
       (a, b) => (a.frequency ?? Infinity) - (b.frequency ?? Infinity),
     );
@@ -220,6 +224,7 @@ export function solve(params: SolveParams): SolveResult {
 
   const rankLCV = (slot: SolverSlot, cands: WordEntry[]): WordEntry[] => {
     const scored = cands.map((cand) => {
+      const ans = normalizeAnswer(cand.answer);
       let score = 0;
       for (let i = 0; i < slot.length; i++) {
         const r = slot.direction === "across" ? slot.row : slot.row + i;
@@ -230,7 +235,7 @@ export function solve(params: SolveParams): SolveResult {
           if (o.id === slot.id || assignments.has(o.id)) continue;
           const idx = o.direction === "across" ? c - o.col : r - o.row;
           const pattern = getLetters(o);
-          pattern[idx] = cand.answer[i];
+          pattern[idx] = ans[i];
           const freq = candidatesFor(pattern, o.length).length;
           score += freq;
         }
@@ -264,16 +269,27 @@ export function solve(params: SolveParams): SolveResult {
     for (const cand of candidates) {
       branchAttempts++;
       if (!checkCaps()) return false;
-      if (!canPlace(slot, cand.answer)) continue;
-      const changed = place(slot, cand.answer);
-      assignments.set(slot.id, cand);
+      const ans = normalizeAnswer(cand.answer);
+      const len = answerLen(cand.answer);
+      if (len !== slot.length) {
+        failureReason = "len_mismatch";
+        logInfo("len_mismatch", {
+          slotId: slot.id,
+          want: slot.length,
+          got: len,
+        });
+        return false;
+      }
+      if (!canPlace(slot, ans)) continue;
+      const changed = place(slot, ans);
+      assignments.set(slot.id, { ...cand, answer: ans });
       logInfo("place_word", {
         slotId: slot.id,
         row: slot.row,
         col: slot.col,
         direction: slot.direction,
         pattern,
-        word: cand.answer,
+        word: ans,
         attempts: branchAttempts,
       });
       const removeFrom = heroes.includes(cand)
@@ -288,7 +304,7 @@ export function solve(params: SolveParams): SolveResult {
       const dead = anySlotZeroCandidates();
       if (!dead && backtrack()) return true;
       assignments.delete(slot.id);
-      unplace(slot, changed, cand.answer);
+      unplace(slot, changed, ans);
       if (removeFrom) removeFrom.push(cand);
       const meta = {
         slotId: slot.id,
@@ -296,7 +312,7 @@ export function solve(params: SolveParams): SolveResult {
         col: slot.col,
         direction: slot.direction,
         pattern,
-        word: cand.answer,
+        word: ans,
         attempts: branchAttempts,
       };
       if (dead) {
@@ -304,15 +320,15 @@ export function solve(params: SolveParams): SolveResult {
       }
       logInfo("backtrack", meta);
       if (heroes.includes(cand)) {
-        const count = (heroAttempts.get(cand.answer) || 0) + 1;
-        heroAttempts.set(cand.answer, count);
+        const count = (heroAttempts.get(ans) || 0) + 1;
+        heroAttempts.set(ans, count);
         if (count > heroThreshold) {
           const idx = heroes.indexOf(cand);
           if (idx !== -1) {
             heroes.splice(idx, 1);
             dict.push(cand);
             logWarn("hero_demoted", {
-              word: cand.answer,
+              word: ans,
               reason: "no_fit_after_threshold",
             });
             continue;
