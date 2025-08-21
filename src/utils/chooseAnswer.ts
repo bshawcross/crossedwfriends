@@ -1,5 +1,6 @@
 import { isValidFill } from "./validateWord";
 import type { WordEntry } from "../../lib/puzzle";
+import { answerLen } from "../../lib/candidatePool";
 
 export function chooseAnswer(
   len: number,
@@ -12,7 +13,7 @@ export function chooseAnswer(
   const minLen = 3;
   const idx = pool.findIndex(
     (w) =>
-      w.answer.length === len &&
+      answerLen(w.answer) === len &&
       letters.every((ch, i) => !ch || w.answer[i] === ch) &&
       isValidFill(w.answer, minLen),
   );

@@ -2,6 +2,7 @@ import { isValidFill } from "@/utils/validateWord";
 import { logInfo, logWarn } from "@/utils/logger";
 import type { WordEntry } from "./puzzle";
 import type { Slot } from "./slotFinder";
+import { answerLen } from "./candidatePool";
 import seedrandom from "seedrandom";
 
 export type SolverSlot = Slot & { direction: "across" | "down"; id: string };
@@ -183,7 +184,7 @@ export function solve(params: SolveParams): SolveResult {
   const candidatesFor = (pattern: string[], len: number): WordEntry[] => {
     if (BANNED_LENGTHS.has(len)) return [];
     const matches = (w: WordEntry) =>
-      w.answer.length === len &&
+      answerLen(w.answer) === len &&
       pattern.every((ch, i) => !ch || w.answer[i] === ch) &&
       isValidFill(w.answer, minLen);
     const heroCandidates = heroes.filter(matches).sort(

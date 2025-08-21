@@ -3,6 +3,7 @@ import seedrandom from 'seedrandom';
 import { findSlots } from '../lib/slotFinder';
 import { solveWithBacktracking, type SolverSlot } from '../lib/solver';
 import { largeWordList } from '../tests/helpers/wordList';
+import { answerLen } from '../lib/candidatePool';
 
 describe('solveWithBacktracking', () => {
   const size = 15;
@@ -17,7 +18,7 @@ describe('solveWithBacktracking', () => {
     direction: 'across',
     id: `a_${s.row}_${s.col}`,
   }));
-  const dict = largeWordList().filter((w) => w.answer.length === 15).slice(0, 1);
+  const dict = largeWordList().filter((w) => answerLen(w.answer) === 15).slice(0, 1);
   const seeds = ['alpha', 'beta', 'gamma'];
 
   for (const seed of seeds) {

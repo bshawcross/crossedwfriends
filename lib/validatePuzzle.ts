@@ -3,6 +3,7 @@ import { findSlots, Slot } from './slotFinder';
 import { cleanClue } from './clueClean';
 import { isValidFill } from '@/utils/validateWord';
 import { symCell } from '@/grid/symmetry';
+import { answerLen } from './candidatePool';
 
 export function validatePuzzle(
   puzzle: Puzzle,
@@ -61,8 +62,9 @@ export function validatePuzzle(
       if (clue.length !== slot.length) {
         errors.push(`${dir} clue ${clue.number} length ${clue.length} ≠ slot length ${slot.length}`);
       }
-      if (answer.length !== slot.length) {
-        errors.push(`${dir} answer ${clue.number} length ${answer.length} ≠ slot length ${slot.length}`);
+      const ansLen = answerLen(answer);
+      if (ansLen !== slot.length) {
+        errors.push(`${dir} answer ${clue.number} length ${ansLen} ≠ slot length ${slot.length}`);
       }
       if (!isValidFill(answer, 3)) {
         errors.push(`${dir} answer ${clue.number} not allowed: ${answer}`);

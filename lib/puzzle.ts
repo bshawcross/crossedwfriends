@@ -8,6 +8,7 @@ import { repairMask } from './repairMask';
 import { solve, SolverSlot } from './solver';
 import { logInfo, logError } from '@/utils/logger';
 import seedrandom from 'seedrandom';
+import { answerLen } from './candidatePool';
 
 const MAX_RESTARTS = 5;
 
@@ -175,12 +176,12 @@ export function generateDaily(
       ];
       const heroesByLen: Record<number, number> = {};
       heroTerms.forEach((t) => {
-        const len = t.length;
+        const len = answerLen(t);
         heroesByLen[len] = (heroesByLen[len] || 0) + 1;
       });
       const dictByLen: Record<number, number> = {};
       wordList.forEach((w) => {
-        const len = w.answer.length;
+        const len = answerLen(w.answer);
         dictByLen[len] = (dictByLen[len] || 0) + 1;
       });
       assertCoverage(requiredLens, { heroesByLen, dictByLen });
@@ -288,7 +289,7 @@ export function generateDaily(
         const localRng = seedrandom(localSeed);
         const curatedAnchors = remaining.filter(
           (w) =>
-            (w.answer.length === 13 || w.answer.length === 15 || w.answer.length === 3) &&
+            (answerLen(w.answer) === 13 || answerLen(w.answer) === 15 || answerLen(w.answer) === 3) &&
             !blacklist.has(w.answer),
         );
         let relaxedRestart = 0;

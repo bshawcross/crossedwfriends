@@ -1,3 +1,5 @@
+import { answerLen } from "../../lib/candidatePool";
+
 export function validateSymmetry(grid: boolean[][]): boolean {
   const size = grid.length;
   for (let r = 0; r < size; r++) {
@@ -123,6 +125,6 @@ export function validateMinSlotLength(
 export function validateComplete(
   cells: { isBlack: boolean; answer: string }[],
 ): boolean {
-  return cells.every((cell) => cell.isBlack || (cell.answer?.trim().length ?? 0) > 0);
+  return cells.every((cell) => cell.isBlack || answerLen(cell.answer ?? "") > 0);
 }
 

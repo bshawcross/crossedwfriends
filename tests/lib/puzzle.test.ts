@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { generateDaily, coordsToIndex, loadDemoFromFile, WordEntry } from '../../lib/puzzle';
 import { largeWordList } from '../helpers/wordList';
+import { answerLen } from '../../lib/candidatePool';
 
 describe('generateDaily', () => {
   it('rejects answers whose length does not match a slot', () => {
@@ -15,7 +16,7 @@ describe('generateDaily', () => {
   });
 
     it('errors when no matching word is found', () => {
-      const wordList = largeWordList().filter((w) => w.answer.length !== 3);
+      const wordList = largeWordList().filter((w) => answerLen(w.answer) !== 3);
       expect(() => {
         generateDaily('seed', wordList, [], { maxBranchAttempts: 10, maxMasks: 1 });
       }).toThrow();
