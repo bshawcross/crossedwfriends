@@ -6,7 +6,7 @@ import { validatePuzzle } from '../lib/validatePuzzle';
 import { findSlots, type Slot } from '../lib/slotFinder';
 import { getSeasonalWords, getFunFactWords, getCurrentEventWords } from '../lib/topics';
 import { yyyyMmDd } from '../utils/date';
-import { logInfo, logError } from '../utils/logger';
+import { log } from '../utils/logger';
 import { validateSymmetry, validateMinSlotLength } from '../src/validate/puzzle';
 import { buildMask } from '../grid/mask';
 import { isValidFill } from '../utils/validateWord';
@@ -130,10 +130,10 @@ async function main() {
   const seed = `${date}:seasonal,funFacts,currentEvents`;
   const puzzleDate = new Date(`${date}T00:00:00Z`);
 
-  logInfo('start_run', { seed, patternId: 0 });
+  log.info('start_run', { seed, patternId: 0 });
 
   if (process.env.GENDAILY_TEST === '1') {
-    logInfo('reseed_started', { attempt: 1 });
+    log.info('reseed_started', { attempt: 1 });
     const board = [
       ['', '', ''],
       ['', '', ''],
@@ -165,11 +165,11 @@ async function main() {
       rng: seedrandom(seed),
       opts: { maxBranchAttempts: 50, maxTotalAttempts: 20, maxTimeBudgetMs: 1000 },
     });
-    logInfo('reseed_finished', { attempt: 1, success: result.ok });
+    log.info('reseed_finished', { attempt: 1, success: result.ok });
     if (result.ok) {
-      logInfo('success', { attempts: result.attempts });
+      log.info('success', { attempts: result.attempts });
     } else {
-      logError('final_failure', { reason: result.reason, attempts: result.attempts });
+      log.error('final_failure', { reason: result.reason, attempts: result.attempts });
     }
     return;
   }
@@ -211,7 +211,7 @@ async function main() {
       }));
       baseWordList = [...baseWordList, ...extra];
     } catch (e) {
-      logError('dict_load_failed', { path: envDictsPath, error: (e as Error).message });
+      log.error('dict_load_failed', { path: envDictsPath, error: (e as Error).message });
     }
   }
   const minLen = 3;
@@ -238,12 +238,12 @@ async function main() {
     try {
       grid = buildMask(size, 36, 5000, minLen, rngMask);
     } catch (err) {
-      logError('mask_generation_failed', { attempt, error: (err as Error).message });
+      log.error('mask_generation_failed', { attempt, error: (err as Error).message });
       continue;
     }
     try {
       if (!validateSymmetry(grid)) {
-        logError('grid_not_symmetric', { attempt });
+        log.error('grid_not_symmetric', { attempt });
         continue;
       }
       const detail = validateMinSlotLength(grid, minLen);
@@ -252,11 +252,11 @@ async function main() {
           detail.type === 'across'
             ? { type: detail.type, r: detail.start.row, c0: detail.start.col, c1: detail.end.col, len: detail.len }
             : { type: detail.type, r: detail.start.col, c0: detail.start.row, c1: detail.end.row, len: detail.len };
-        logError('slot_too_short', { attempt, ...meta });
+        log.error('slot_too_short', { attempt, ...meta });
         continue;
       }
     } catch (err) {
-      logError('puzzle_invalid', { attempt, error: (err as Error).message });
+      log.error('puzzle_invalid', { attempt, error: (err as Error).message });
       continue;
     }
 
@@ -295,7 +295,7 @@ async function main() {
           }
         }
         if ((pool[len]?.length || 0) < minCount) {
-          logError('missing_length', { attempt, length: len });
+          log.error('missing_length', { attempt, length: len });
           missingLen = true;
           break;
         }
@@ -308,7 +308,7 @@ async function main() {
     const wordBank = buildWordBank(allWords);
     const { missing } = validateCoverage(slotLengths, wordBank);
     if (missing.length > 0) {
-      logError('missing_length_detail', { attempt, missing });
+      log.error('missing_length_detail', { attempt, missing });
       continue;
     }
 
@@ -335,9 +335,9 @@ async function main() {
           },
           grid,
         );
-        logInfo('generation_restart', { attempt, restart: restart + 1, anchors });
+        log.info('generation_restart', { attempt, restart: restart + 1, anchors });
       } catch (e) {
-        logInfo('generation_restart', {
+        log.info('generation_restart', {
           attempt,
           restart: restart + 1,
           error: (e as Error).message,
@@ -347,7 +347,7 @@ async function main() {
       }
     }
     if (!puzzle) {
-      logError('dead_end', { attempt, error: 'exhausted_restarts' });
+      log.error('dead_end', { attempt, error: 'exhausted_restarts' });
       continue;
     }
 
@@ -363,7 +363,7 @@ async function main() {
     }
     try {
       if (!validateSymmetry(finalGrid)) {
-        logError('puzzle_invalid', { attempt, error: 'grid_not_symmetric' });
+        log.error('puzzle_invalid', { attempt, error: 'grid_not_symmetric' });
         puzzle = null;
         continue;
       }
@@ -394,7 +394,7 @@ async function main() {
           }
           const ans = normalizeAnswer(raw);
           if (ans.length !== slot.length) {
-            logError('puzzle_invalid', {
+            log.error('puzzle_invalid', {
               attempt,
               error: `${dir} clue length mismatch`,
               clueIndex: idx,
@@ -404,7 +404,7 @@ async function main() {
           }
           const valid = isValidFill(ans, 3);
           if (!valid) {
-            logError('puzzle_invalid', { attempt, error: `${dir} clue invalid`, clueIndex: idx });
+            log.error('puzzle_invalid', { attempt, error: `${dir} clue invalid`, clueIndex: idx });
           }
         });
       };
@@ -412,19 +412,19 @@ async function main() {
       checkEntries(puzzle!.down, slotsCheck.down, 'down');
       const errors = validatePuzzle(puzzle!, { checkSymmetry: true });
       if (errors.length > 0) {
-        errors.forEach((err) => logError('puzzle_invalid', { attempt, error: err }));
+        errors.forEach((err) => log.error('puzzle_invalid', { attempt, error: err }));
         puzzle = null;
         continue;
       }
     } catch (err) {
-      logError('puzzle_invalid', { attempt, error: (err as Error).message });
+      log.error('puzzle_invalid', { attempt, error: (err as Error).message });
       puzzle = null;
       continue;
     }
   }
 
   if (!puzzle) {
-    logError('final_failure', { attempts: attempt, time: Date.now() - startTime });
+    log.error('final_failure', { attempts: attempt, time: Date.now() - startTime });
     process.exit(1);
   }
 
@@ -432,7 +432,7 @@ async function main() {
   puzzle!.summary = { seed, ...metrics };
   const schemaErrors = validateFirestorePuzzle(puzzle!);
   if (schemaErrors.length > 0) {
-    logError('firestore_validation_failed', { errors: schemaErrors });
+    log.error('firestore_validation_failed', { errors: schemaErrors });
     throw new Error('firestore_schema_mismatch');
   }
 
@@ -440,22 +440,22 @@ async function main() {
   try {
     await fs.mkdir(puzzlesDir, { recursive: true });
   } catch (e) {
-    logError('mkdir_failed', { dir: puzzlesDir, error: (e as Error).message });
+    log.error('mkdir_failed', { dir: puzzlesDir, error: (e as Error).message });
     throw e;
   }
 
   const filePath = path.join(puzzlesDir, `${date}.json`);
   try {
-    logInfo('success', { seed, attempt, time: Date.now() - startTime, ...metrics });
+    log.info('success', { seed, attempt, time: Date.now() - startTime, ...metrics });
     await fs.writeFile(filePath, JSON.stringify(puzzle!, null, 2));
-    logInfo('puzzle_written', { date, filePath });
+    log.info('puzzle_written', { date, filePath });
   } catch (e) {
-    logError('write_failed', { filePath, error: (e as Error).message });
+    log.error('write_failed', { filePath, error: (e as Error).message });
     throw e;
   }
 }
 
 main().catch((err) => {
-  logError('final_failure', { error: (err as Error).message });
+  log.error('final_failure', { error: (err as Error).message });
   process.exit(1);
 });
