@@ -13,6 +13,7 @@ import { isValidFill } from '../utils/validateWord';
 import { getSlotLengths } from '../lib/gridSlots';
 import { buildWordBank } from '../lib/wordBank';
 import { validateCoverage } from '../lib/coverage';
+import { parseGen } from '../lib/parseGen';
 import {
   buildCandidatePool as buildBankPool,
   normalizeAnswer,
@@ -202,7 +203,12 @@ async function main() {
   let baseWordList: WordEntry[] = [...seasonal, ...funFacts, ...currentEvents];
   if (envDictsPath) {
     try {
-      const extra = JSON.parse(await fs.readFile(envDictsPath, 'utf8')) as WordEntry[];
+      const extraRaw = await fs.readFile(envDictsPath, 'utf8');
+      const extra = parseGen(extraRaw).map((e) => ({
+        answer: e.answer,
+        clue: e.clue,
+        frequency: Infinity,
+      }));
       baseWordList = [...baseWordList, ...extra];
     } catch (e) {
       logError('dict_load_failed', { path: envDictsPath, error: (e as Error).message });
