@@ -43,7 +43,9 @@ export function generateDaily(
   heroTerms: string[] = [],
   opts: {
     heroThreshold?: number;
-    maxFillAttempts?: number;
+    maxBranchAttempts?: number;
+    maxTotalAttempts?: number;
+    maxTimeBudgetMs?: number;
     maxMasks?: number;
   } = {},
   mask?: boolean[][],
@@ -253,7 +255,9 @@ export function generateDaily(
           rng: localRng,
           opts: {
             heroThreshold: opts.heroThreshold,
-            maxFillAttempts: opts.maxFillAttempts,
+            maxBranchAttempts: opts.maxBranchAttempts,
+            maxTotalAttempts: opts.maxTotalAttempts,
+            maxTimeBudgetMs: opts.maxTimeBudgetMs,
           },
         });
         if (result.ok) break;
@@ -285,7 +289,9 @@ export function generateDaily(
             rng: localRng,
             opts: {
               heroThreshold: opts.heroThreshold,
-              maxFillAttempts: opts.maxFillAttempts,
+              maxBranchAttempts: opts.maxBranchAttempts,
+              maxTotalAttempts: opts.maxTotalAttempts,
+              maxTimeBudgetMs: opts.maxTimeBudgetMs,
             },
           });
           if (!result.ok) {

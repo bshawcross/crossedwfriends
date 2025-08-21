@@ -17,8 +17,6 @@ import { buildCandidatePool as buildBankPool } from '../lib/candidatePool';
 import seedrandom from 'seedrandom';
 
 const defaultHeroTerms = ['CAPTAINMARVEL', 'BLACKWIDOW', 'SPIDERMAN', 'IRONMAN', 'THOR'];
-const MAX_TOTAL_ATTEMPTS = 20;
-const MAX_TIME_BUDGET_MS = 2 * 60 * 1000; // 2 minutes
 
 type CandidatePool = Record<number, WordEntry[]>;
 
@@ -116,12 +114,22 @@ async function main() {
   const seed = `${date}:seasonal,funFacts,currentEvents`;
   const puzzleDate = new Date(`${date}T00:00:00Z`);
 
-  // CLI usage: [hero terms...] --maxMasks=N --maxFillAttempts=N --heroThreshold=N
+  // CLI usage: [hero terms...] --maxMasks=N --maxBranchAttempts=N --maxTotalAttempts=N --maxTimeBudgetMs=N --heroThreshold=N
   const args = process.argv.slice(2);
   const maxMasksArg = args.find((a) => a.startsWith('--maxMasks'));
   const maxMasks = maxMasksArg ? parseInt(maxMasksArg.split('=')[1], 10) : 10;
-  const maxFillAttemptsArg = args.find((a) => a.startsWith('--maxFillAttempts'));
-  const maxFillAttempts = maxFillAttemptsArg ? parseInt(maxFillAttemptsArg.split('=')[1], 10) : 50000;
+  const maxBranchAttemptsArg = args.find((a) => a.startsWith('--maxBranchAttempts'));
+  const maxBranchAttempts = maxBranchAttemptsArg
+    ? parseInt(maxBranchAttemptsArg.split('=')[1], 10)
+    : parseInt(process.env.MAX_BRANCH_ATTEMPTS || '', 10) || 50000;
+  const maxTotalAttemptsArg = args.find((a) => a.startsWith('--maxTotalAttempts'));
+  const maxTotalAttempts = maxTotalAttemptsArg
+    ? parseInt(maxTotalAttemptsArg.split('=')[1], 10)
+    : parseInt(process.env.MAX_TOTAL_ATTEMPTS || '', 10) || 20;
+  const maxTimeBudgetArg = args.find((a) => a.startsWith('--maxTimeBudgetMs'));
+  const maxTimeBudgetMs = maxTimeBudgetArg
+    ? parseInt(maxTimeBudgetArg.split('=')[1], 10)
+    : parseInt(process.env.MAX_TIME_BUDGET_MS || '', 10) || 2 * 60 * 1000;
   const heroThresholdArg = args.find((a) => a.startsWith('--heroThreshold'));
   const heroThreshold = heroThresholdArg ? parseInt(heroThresholdArg.split('=')[1], 10) : 3000;
   const heroTerms = args.filter((a) => !a.startsWith('--'));
@@ -141,8 +149,8 @@ async function main() {
   let puzzle: ReturnType<typeof generateDaily> | null = null;
 
   while (
-    attempt < MAX_TOTAL_ATTEMPTS &&
-    Date.now() - startTime < MAX_TIME_BUDGET_MS &&
+    attempt < maxTotalAttempts &&
+    Date.now() - startTime < maxTimeBudgetMs &&
     !puzzle
   ) {
     attempt++;
@@ -238,7 +246,13 @@ async function main() {
           localSeed,
           wordList,
           [...baseHeroTerms, ...anchors],
-          { heroThreshold, maxFillAttempts, maxMasks },
+          {
+            heroThreshold,
+            maxBranchAttempts,
+            maxTotalAttempts,
+            maxTimeBudgetMs,
+            maxMasks,
+          },
           grid,
         );
         logInfo('generation_restart', { attempt, restart: restart + 1, anchors });
@@ -253,7 +267,7 @@ async function main() {
       }
     }
     if (!puzzle) {
-      logError('generate_daily_failed', { attempt, error: 'exhausted_restarts' });
+      logError('dead_end', { attempt, error: 'exhausted_restarts' });
       continue;
     }
 
@@ -320,7 +334,7 @@ async function main() {
   }
 
   if (!puzzle) {
-    logError('generate_daily_failed', { error: 'exhausted_attempts', attempts: attempt });
+    logError('final_failure', { attempts: attempt, time: Date.now() - startTime });
     process.exit(1);
   }
 
@@ -343,6 +357,6 @@ async function main() {
 }
 
 main().catch((err) => {
-  logError('generate_daily_failed', { error: (err as Error).message });
+  logError('final_failure', { error: (err as Error).message });
   process.exit(1);
 });

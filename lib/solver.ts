@@ -14,7 +14,9 @@ export interface SolveParams {
   rng?: () => number;
   opts?: {
     heroThreshold?: number;
-    maxFillAttempts?: number;
+    maxBranchAttempts?: number;
+    maxTotalAttempts?: number;
+    maxTimeBudgetMs?: number;
   };
 }
 
@@ -45,7 +47,10 @@ export function solve(params: SolveParams): SolveResult {
   shuffle(heroes);
   shuffle(dict);
   const heroThreshold = params.opts?.heroThreshold ?? 10;
-  const maxFillAttempts = params.opts?.maxFillAttempts ?? 100000;
+  const maxBranchAttempts = params.opts?.maxBranchAttempts ?? 100000;
+  const maxTotalAttempts = params.opts?.maxTotalAttempts ?? Infinity;
+  const maxTimeBudgetMs = params.opts?.maxTimeBudgetMs ?? Infinity;
+  const startTime = Date.now();
   const minLen = 3;
 
   for (const s of slots) {
@@ -93,8 +98,29 @@ export function solve(params: SolveParams): SolveResult {
 
   const assignments = new Map<string, WordEntry>();
   const heroAttempts = new Map<string, number>();
-  let attempts = 0;
+  let branchAttempts = 0;
+  let totalAttempts = 0;
   let failureReason = "dead_end";
+
+  const checkCaps = (): boolean => {
+    if (branchAttempts >= maxBranchAttempts || totalAttempts >= maxTotalAttempts) {
+      logInfo("dead_end", {
+        reason: branchAttempts >= maxBranchAttempts ? "max_branch_attempts" : "max_total_attempts",
+        branchAttempts,
+        totalAttempts,
+      });
+      return false;
+    }
+    if (Date.now() - startTime >= maxTimeBudgetMs) {
+      logInfo("dead_end", {
+        reason: "time_budget",
+        branchAttempts,
+        totalAttempts,
+      });
+      return false;
+    }
+    return true;
+  };
 
   const canPlace = (slot: SolverSlot, word: string): boolean => {
     for (let i = 0; i < slot.length; i++) {
@@ -220,12 +246,10 @@ export function solve(params: SolveParams): SolveResult {
   };
 
   const backtrack = (): boolean => {
+    totalAttempts++;
+    if (!checkCaps()) return false;
+
     if (assignments.size === slots.length) return true;
-    if (attempts >= maxFillAttempts) {
-      logInfo("backtrack", { attempts, reason: "max_fill_attempts" });
-      failureReason = "max_fill_attempts";
-      return false;
-    }
 
     const slot = slotOrder.find((s) => !assignments.has(s.id))!;
     const letters = getLetters(slot);
@@ -234,7 +258,8 @@ export function solve(params: SolveParams): SolveResult {
     if (candidates.length === 0) return false;
 
     for (const cand of candidates) {
-      attempts++;
+      branchAttempts++;
+      if (!checkCaps()) return false;
       if (!canPlace(slot, cand.answer)) continue;
       const changed = place(slot, cand.answer);
       assignments.set(slot.id, cand);
@@ -261,7 +286,7 @@ export function solve(params: SolveParams): SolveResult {
         pattern,
         word: cand.answer,
         reason,
-        attempts,
+        attempts: branchAttempts,
       });
       if (heroes.includes(cand)) {
         const count = (heroAttempts.get(cand.answer) || 0) + 1;
@@ -279,11 +304,7 @@ export function solve(params: SolveParams): SolveResult {
           }
         }
       }
-      if (attempts >= maxFillAttempts) {
-        logInfo("backtrack", { attempts, reason: "max_fill_attempts" });
-        failureReason = "max_fill_attempts";
-        return false;
-      }
+      if (!checkCaps()) return false;
     }
     return false;
   };
@@ -292,7 +313,7 @@ export function solve(params: SolveParams): SolveResult {
   if (success) {
     return { ok: true, assignments };
   }
-  return { ok: false, reason: failureReason, attempts };
+  return { ok: false, reason: failureReason, attempts: branchAttempts };
 }
 
 export interface SolveWithBacktrackingParams extends SolveParams {

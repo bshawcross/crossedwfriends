@@ -17,7 +17,7 @@ describe('generateDaily', () => {
     it('errors when no matching word is found', () => {
       const wordList = largeWordList().filter((w) => w.answer.length !== 3);
       expect(() => {
-        generateDaily('seed', wordList, [], { maxFillAttempts: 10, maxMasks: 1 });
+        generateDaily('seed', wordList, [], { maxBranchAttempts: 10, maxMasks: 1 });
       }).toThrow();
     }, 20000);
 });
