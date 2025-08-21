@@ -46,8 +46,12 @@ export function solve(params: SolveParams): SolveResult {
       [arr[i], arr[j]] = [arr[j], arr[i]];
     }
   };
-  const heroes: WordEntry[] = [...(params.heroes || [])];
-  const dict: WordEntry[] = [...params.dict];
+  const isAllowedLength = (w: WordEntry) => {
+    const len = answerLen(w.answer);
+    return len > 2 && len <= 15;
+  };
+  const heroes: WordEntry[] = [...(params.heroes || [])].filter(isAllowedLength);
+  const dict: WordEntry[] = [...params.dict].filter(isAllowedLength);
   shuffle(heroes);
   shuffle(dict);
   const heroThreshold = params.opts?.heroThreshold ?? 10;
@@ -101,6 +105,7 @@ export function solve(params: SolveParams): SolveResult {
   }
 
   const assignments = new Map<string, WordEntry>();
+  const usedAnswers = new Set<string>();
   const heroAttempts = new Map<string, number>();
   let branchAttempts = 0;
   let totalAttempts = 0;
@@ -196,6 +201,12 @@ export function solve(params: SolveParams): SolveResult {
 
   const slotOrder = orderSlots(slots);
 
+  const filterCandidates = (cands: WordEntry[]): WordEntry[] =>
+    cands.filter((cand) => {
+      const ans = normalizeAnswer(cand.answer);
+      return !usedAnswers.has(ans) && !/(.)\1\1+/.test(ans);
+    });
+
   const rankLCV = (slot: SolverSlot, cands: WordEntry[]): WordEntry[] => {
     const scored = cands.map((cand) => {
       const ans = normalizeAnswer(cand.answer);
@@ -223,22 +234,26 @@ export function solve(params: SolveParams): SolveResult {
   const anySlotZeroCandidates = (): boolean => {
     for (const s of slotOrder) {
       if (assignments.has(s.id)) continue;
-      if (getCandidates(s, getLetters(s), heroes, dict).length === 0) return true;
+      if (filterCandidates(getCandidates(s, getLetters(s), heroes, dict)).length === 0)
+        return true;
     }
     return false;
   };
 
   const backtrack = (): boolean => {
-    totalAttempts++;
     if (!checkCaps()) return false;
-
     if (assignments.size === slots.length) return true;
 
     const slot = slotOrder.find((s) => !assignments.has(s.id))!;
     const letters = getLetters(slot);
     const pattern = letters.join("");
-    let candidates = rankLCV(slot, getCandidates(slot, letters, heroes, dict));
+    let candidates = getCandidates(slot, letters, heroes, dict);
+    candidates = filterCandidates(candidates);
+    candidates = rankLCV(slot, candidates);
     if (candidates.length === 0) return false;
+
+    totalAttempts++;
+    if (!checkCaps()) return false;
 
     for (const cand of candidates) {
       branchAttempts++;
@@ -254,9 +269,11 @@ export function solve(params: SolveParams): SolveResult {
         });
         return false;
       }
+      if (usedAnswers.has(ans) || /(.)\1\1+/.test(ans)) continue;
       if (!canPlace(slot, ans)) continue;
       const changed = place(slot, ans);
       assignments.set(slot.id, { ...cand, answer: ans });
+      usedAnswers.add(ans);
       logInfo("place_word", {
         slotId: slot.id,
         row: slot.row,
@@ -278,6 +295,7 @@ export function solve(params: SolveParams): SolveResult {
       const dead = anySlotZeroCandidates();
       if (!dead && backtrack()) return true;
       assignments.delete(slot.id);
+      usedAnswers.delete(ans);
       unplace(slot, changed, ans);
       if (removeFrom) removeFrom.push(cand);
       const meta = {
