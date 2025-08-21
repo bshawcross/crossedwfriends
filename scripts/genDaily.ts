@@ -38,12 +38,12 @@ function buildCandidatePool(words: WordEntry[]): CandidatePool {
     if (seen.has(key)) continue;
     seen.add(key);
     if (!pool[len]) pool[len] = [];
-    pool[len].push({ answer, clue: entry.clue });
+    pool[len].push({ answer, clue: entry.clue, frequency: entry.frequency });
   }
   return pool;
 }
 
-function loadBankPool(): Map<number, string[]> {
+function loadBankPool(): Map<number, WordEntry[]> {
   const bankDir = path.join(process.cwd(), 'banks');
   const files = ['anchors_13.txt', 'anchors_15.txt', 'mid_7to12.txt', 'glue_3to6.txt'];
   const sources = files.map((f) => {
@@ -59,7 +59,7 @@ function loadBankPool(): Map<number, string[]> {
 export function selectAnchors(
   slots: { across: Slot[]; down: Slot[] },
   size: number,
-  pool: Map<number, string[]>,
+  pool: Map<number, WordEntry[]>,
   rng: () => number,
   blacklist: Set<string>,
 ): string[] {
@@ -99,11 +99,11 @@ export function selectAnchors(
   const anchors: string[] = [];
   const pick = (len: number) => {
     const words = (pool.get(len) || []).filter(
-      (w) => !blacklist.has(w) && !anchors.includes(w),
+      (w) => !blacklist.has(w.answer) && !anchors.includes(w.answer),
     );
     if (words.length === 0) return;
     const idx = Math.floor(rng() * words.length);
-    anchors.push(words[idx]);
+    anchors.push(words[idx].answer);
   };
   if (center15) pick(15);
   if (thirteenSlots.length > 0) pick(13);
@@ -200,10 +200,11 @@ async function main() {
         if (len === 13 || len === 15) {
           const anchors = bankPool.get(len) || [];
           for (const a of anchors) {
-            if (!/^[A-Z]+$/.test(a)) continue;
+            const word = a.answer;
+            if (!/^[A-Z]+$/.test(word)) continue;
             if (!pool[len]) pool[len] = [];
-            if (!pool[len].some((e) => e.answer === a)) {
-              pool[len].push({ answer: a, clue: '' });
+            if (!pool[len].some((e) => e.answer === word)) {
+              pool[len].push({ answer: word, clue: '', frequency: a.frequency });
             }
             if (pool[len].length >= minCount) break;
           }

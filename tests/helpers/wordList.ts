@@ -10,7 +10,7 @@ export function largeWordList(): WordEntry[] {
         : Array.from({ length: len }, (_, j) =>
             String.fromCharCode(65 + ((i + j) % 26)),
           ).join('');
-      list.push({ answer, clue: `clue-${len}-${i}` });
+      list.push({ answer, clue: `clue-${len}-${i}`, frequency: i });
     }
   }
   return list;

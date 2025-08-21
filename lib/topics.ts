@@ -42,7 +42,7 @@ export async function getSeasonalWords(date: Date): Promise<WordEntry[]> {
     const data = await res.json();
     return (data || [])
       .filter((w: any) => w.word && w.defs && w.defs.length > 0)
-      .map((w: any) => ({ answer: w.word.toUpperCase(), clue: cleanClue(parseDefinition(w.defs[0])) }))
+      .map((w: any) => ({ answer: w.word.toUpperCase(), clue: cleanClue(parseDefinition(w.defs[0])), frequency: Infinity }))
       .filter((p: WordEntry) => isCrosswordFriendly(p.answer));
   });
   if (!result) logError('getSeasonalWords_failed', { key, topic });
@@ -68,7 +68,8 @@ export async function getFunFactWords(): Promise<WordEntry[]> {
     return (json.results || [])
       .map((q: any) => ({
         answer: cleanClue(q.correct_answer).replace(/[^A-Za-z]/g, '').toUpperCase(),
-        clue: cleanClue(q.question)
+        clue: cleanClue(q.question),
+        frequency: Infinity,
       }))
       .filter((p: WordEntry) => isCrosswordFriendly(p.answer));
   });
@@ -113,7 +114,7 @@ export async function getCurrentEventWords(date: Date): Promise<WordEntry[]> {
         if (!isCrosswordFriendly(w)) continue;
         const ans = w.toUpperCase();
         if (seen.has(ans)) continue;
-        out.push({ answer: ans, clue });
+        out.push({ answer: ans, clue, frequency: Infinity });
         seen.add(ans);
         if (out.length >= 10) break;
       }

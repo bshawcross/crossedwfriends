@@ -19,10 +19,10 @@ export const slots5x5: SolverSlot[] = [
 ];
 
 export const dict5x5: WordEntry[] = [
-  { answer: "ABC", clue: "abc" },
-  { answer: "DEF", clue: "def" },
-  { answer: "GHI", clue: "ghi" },
-  { answer: "ADG", clue: "adg" },
-  { answer: "BEH", clue: "beh" },
-  { answer: "CFI", clue: "cfi" },
+  { answer: "ABC", clue: "abc", frequency: 0 },
+  { answer: "DEF", clue: "def", frequency: 1 },
+  { answer: "GHI", clue: "ghi", frequency: 2 },
+  { answer: "ADG", clue: "adg", frequency: 3 },
+  { answer: "BEH", clue: "beh", frequency: 4 },
+  { answer: "CFI", clue: "cfi", frequency: 5 },
 ];
