@@ -40,6 +40,18 @@ const MIN_BY_LEN: Record<number, number> = Object.fromEntries(
   Array.from({ length: 13 }, (_, i) => [i + 3, 1]),
 );
 
+const maskRejectCounts = new Map<string, number>();
+const incMaskRejection = (mask: string) => {
+  maskRejectCounts.set(mask, (maskRejectCounts.get(mask) || 0) + 1);
+};
+
+const MAX_STEPS = 2000;
+let steps = 0;
+const step = () => {
+  steps++;
+  if (steps > MAX_STEPS) throw new Error('search_budget_exhausted');
+};
+
 function buildCandidatePool(words: WordEntry[]): CandidatePool {
   const pool: CandidatePool = {};
   const seen = new Set<string>();
@@ -230,6 +242,7 @@ async function main() {
     Date.now() - startTime < maxTimeBudgetMs &&
     !puzzle
   ) {
+    step();
     attempt++;
     let wordList = [...baseWordList];
     const attemptSeed = `${seed}-${attempt}`;
@@ -241,9 +254,12 @@ async function main() {
       log.error('mask_generation_failed', { attempt, error: (err as Error).message });
       continue;
     }
+    const baseGridStr = grid.map((row) => row.map((b) => (b ? '#' : '.')).join(''));
+    const maskKey = baseGridStr.join('\n');
     try {
       if (!validateSymmetry(grid)) {
         log.error('grid_not_symmetric', { attempt });
+        incMaskRejection(maskKey);
         continue;
       }
       const detail = validateMinSlotLength(grid, minLen);
@@ -253,10 +269,12 @@ async function main() {
             ? { type: detail.type, r: detail.start.row, c0: detail.start.col, c1: detail.end.col, len: detail.len }
             : { type: detail.type, r: detail.start.col, c0: detail.start.row, c1: detail.end.row, len: detail.len };
         log.error('slot_too_short', { attempt, ...meta });
+        incMaskRejection(maskKey);
         continue;
       }
     } catch (err) {
       log.error('puzzle_invalid', { attempt, error: (err as Error).message });
+      incMaskRejection(maskKey);
       continue;
     }
 
@@ -273,7 +291,6 @@ async function main() {
     );
     const slotLengths = getSlotLengths(cellGrid).all;
     let pool = buildCandidatePool(wordList);
-    const baseGridStr = grid.map((row) => row.map((b) => (b ? '#' : '.')).join(''));
     const slots = findSlots(baseGridStr);
 
     let missingLen = false;
@@ -295,26 +312,29 @@ async function main() {
           }
         }
         if ((pool[len]?.length || 0) < minCount) {
-          log.error('missing_length', { attempt, length: len });
           missingLen = true;
           break;
         }
       }
     }
-    if (missingLen) continue;
+    if (missingLen) {
+      incMaskRejection(maskKey);
+      continue;
+    }
 
     wordList = Object.values(pool).flat();
     const allWords = wordList.map((w) => w.answer);
     const wordBank = buildWordBank(allWords);
     const { missing } = validateCoverage(slotLengths, wordBank);
     if (missing.length > 0) {
-      log.error('missing_length_detail', { attempt, missing });
+      incMaskRejection(maskKey);
       continue;
     }
 
     const MAX_RESTARTS = 8;
     const anchorBlacklist = new Set<string>();
     for (let restart = 0; restart < MAX_RESTARTS && !puzzle; restart++) {
+      step();
       const localSeed = `${attemptSeed}-${restart}`;
       const rng = seedrandom(localSeed);
       const anchors = selectAnchors(slots, size, bankPool, rng, anchorBlacklist);
@@ -343,11 +363,16 @@ async function main() {
           error: (e as Error).message,
           anchors,
         });
+        if ((e as Error).message === 'search_budget_exhausted') {
+          incMaskRejection(maskKey);
+          throw e;
+        }
         anchors.forEach((a) => anchorBlacklist.add(a));
       }
     }
     if (!puzzle) {
       log.error('dead_end', { attempt, error: 'exhausted_restarts' });
+      incMaskRejection(maskKey);
       continue;
     }
 
@@ -365,6 +390,7 @@ async function main() {
       if (!validateSymmetry(finalGrid)) {
         log.error('puzzle_invalid', { attempt, error: 'grid_not_symmetric' });
         puzzle = null;
+        incMaskRejection(maskKey);
         continue;
       }
       const gridStr: string[] = [];
@@ -414,11 +440,13 @@ async function main() {
       if (errors.length > 0) {
         errors.forEach((err) => log.error('puzzle_invalid', { attempt, error: err }));
         puzzle = null;
+        incMaskRejection(maskKey);
         continue;
       }
     } catch (err) {
       log.error('puzzle_invalid', { attempt, error: (err as Error).message });
       puzzle = null;
+      incMaskRejection(maskKey);
       continue;
     }
   }
@@ -456,6 +484,16 @@ async function main() {
 }
 
 main().catch((err) => {
-  log.error('final_failure', { error: (err as Error).message });
+  if ((err as Error).message === 'search_budget_exhausted') {
+    log.error('search_budget_exhausted', { steps });
+    const top = [...maskRejectCounts.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3);
+    for (const [mask] of top) {
+      console.error(mask);
+    }
+  } else {
+    log.error('final_failure', { error: (err as Error).message });
+  }
   process.exit(1);
 });
