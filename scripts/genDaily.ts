@@ -16,6 +16,8 @@ import { validateCoverage } from '../lib/coverage';
 import { buildCandidatePool as buildBankPool } from '../lib/candidatePool';
 import { solve, type SolverSlot } from '../lib/solver';
 import seedrandom from 'seedrandom';
+import { getQualityMetrics } from '../lib/quality';
+import { validateFirestorePuzzle } from '../lib/firestorePuzzle';
 
 const defaultHeroTerms = ['CAPTAINMARVEL', 'BLACKWIDOW', 'SPIDERMAN', 'IRONMAN', 'THOR'];
 
@@ -406,6 +408,14 @@ async function main() {
     process.exit(1);
   }
 
+  const metrics = getQualityMetrics(puzzle!);
+  puzzle!.summary = { seed, ...metrics };
+  const schemaErrors = validateFirestorePuzzle(puzzle!);
+  if (schemaErrors.length > 0) {
+    logError('firestore_validation_failed', { errors: schemaErrors });
+    throw new Error('firestore_schema_mismatch');
+  }
+
   const puzzlesDir = path.join(process.cwd(), 'puzzles');
   try {
     await fs.mkdir(puzzlesDir, { recursive: true });
@@ -416,7 +426,7 @@ async function main() {
 
   const filePath = path.join(puzzlesDir, `${date}.json`);
   try {
-    logInfo('success', { attempt, time: Date.now() - startTime });
+    logInfo('success', { seed, attempt, time: Date.now() - startTime, ...metrics });
     await fs.writeFile(filePath, JSON.stringify(puzzle!, null, 2));
     logInfo('puzzle_written', { date, filePath });
   } catch (e) {
