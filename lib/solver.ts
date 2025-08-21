@@ -1,4 +1,4 @@
-import { logInfo, logWarn } from "@/utils/logger";
+import { logInfo, logWarn, log } from "@/utils/logger";
 import type { WordEntry } from "./puzzle";
 import type { Slot } from "./slotFinder";
 import { answerLen, normalizeAnswer } from "./candidatePool";
@@ -244,33 +244,54 @@ export function solve(params: SolveParams): SolveResult {
     if (!checkCaps()) return false;
     if (assignments.size === slots.length) return true;
 
-    const slot = slotOrder.find((s) => !assignments.has(s.id))!;
+    const idx = slotOrder.findIndex((s) => !assignments.has(s.id));
+    const slot = slotOrder[idx]!;
     const letters = getLetters(slot);
     const pattern = letters.join("");
+    log.info("try_slot", {
+      idx,
+      row: slot.row,
+      col: slot.col,
+      len: slot.length,
+      mask: pattern.toString(),
+    });
     let candidates = getCandidates(slot, letters, heroes, dict);
     candidates = filterCandidates(candidates);
     candidates = rankLCV(slot, candidates);
-    if (candidates.length === 0) return false;
+    if (candidates.length === 0) {
+      log.error("dead_end", { idx, attempts: 0 });
+      return false;
+    }
 
     totalAttempts++;
     if (!checkCaps()) return false;
 
+    let triedCount = 0;
     for (const cand of candidates) {
+      triedCount++;
       branchAttempts++;
       if (!checkCaps()) return false;
       const ans = normalizeAnswer(cand.answer);
       const len = answerLen(cand.answer);
       if (len !== slot.length) {
         failureReason = "len_mismatch";
-        logInfo("len_mismatch", {
-          slotId: slot.id,
+        log.warn("reject", {
+          reason: "len_mismatch",
           want: slot.length,
           got: len,
+          answer: ans,
         });
         return false;
       }
-      if (usedAnswers.has(ans) || /(.)\1\1+/.test(ans)) continue;
-      if (!canPlace(slot, ans)) continue;
+      if (usedAnswers.has(ans) || /(.)\1\1+/.test(ans)) {
+        const reason = usedAnswers.has(ans) ? "dup" : "triple";
+        log.warn("reject", { reason, want: slot.length, got: len, answer: ans });
+        continue;
+      }
+      if (!canPlace(slot, ans)) {
+        log.warn("reject", { reason: "conflict", want: slot.length, got: len, answer: ans });
+        continue;
+      }
       const changed = place(slot, ans);
       assignments.set(slot.id, { ...cand, answer: ans });
       usedAnswers.add(ans);
@@ -329,6 +350,7 @@ export function solve(params: SolveParams): SolveResult {
       }
       if (!checkCaps()) return false;
     }
+    log.error("dead_end", { idx, attempts: triedCount });
     return false;
   };
 

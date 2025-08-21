@@ -15,3 +15,9 @@ export function logWarn(message: string, meta: Record<string, unknown> = {}): vo
 export function logError(message: string, meta: Record<string, unknown> = {}): void {
   console.error(JSON.stringify({ level: 'error', message, ...sanitize(meta) }));
 }
+
+export const log = {
+  info: logInfo,
+  warn: logWarn,
+  error: logError,
+};
